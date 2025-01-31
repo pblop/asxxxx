@@ -1,7 +1,7 @@
 /* asout.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -508,6 +508,7 @@ int r;
  *		VOID	out_lxb()	asout.c
  *		VOID	out_rw()	asout.c
  *		VOID	out_txb()	asout.c
+ *		VOID	xerr()		assubr.c
  *
  *	side effects:
  *		R and T Lines updated.  Listing updated.
@@ -551,21 +552,37 @@ int r;
 			 */
 			if (((r & (R_SGND | R_USGN | R_PAGX | R_PCR)) == R_SGND) &&
 			   ((m & esp->e_addr) != m) && ((m & esp->e_addr) != 0))
-				aerr();
+				xerr('v', "Signed Number Exceeded Range.");
 
 			/*
 			 * Unsigned/Overflow Range Check
 			 */
 			if (((r & (R_SGND | R_USGN | R_PAGX | R_PCR)) == R_USGN) &&
 			   ((n & esp->e_addr) != 0))
-				aerr();
+				xerr('v', "Unsigned Number Exceeded Range.");
 
 			/*
 			 * Page0 Range Check
 			 */
 			if (((r & (R_SGND | R_USGN | R_PAGX | R_PCR)) == R_PAG0) &&
 			   ((n & esp->e_addr) != 0))
-				err('d');
+				xerr('d', "Page 0 Address Error.");
+
+			/*
+			 * R_MSB Option
+			 */
+			if (i == 1) {
+				r |= esp->e_rlcf;
+				if ((r & (R_SGND | R_USGN | R_PAGX | R_PCR)) == R_MSB) {
+					switch(as_msb) {
+					default:
+					case 0:	esp->e_addr = lobyte(esp->e_addr);	break;
+					case 1:	esp->e_addr = hibyte(esp->e_addr);	break;
+					case 2:	esp->e_addr = thrdbyte(esp->e_addr);	break;
+					case 3:	esp->e_addr = frthbyte(esp->e_addr);	break;
+					}
+				}
+			}
 
 			out_lxb(i,esp->e_addr,0);
 			if (oflag) {
@@ -606,6 +623,7 @@ int r;
 					r |= R_AREA;
 					if ((r & (R_PAGE | R_PCR)) != R_PAGN) {
 						fprintf(stderr, "?ASxxxx-OUTRXB-NULL-POINTER error.\n\n");
+						aserr++;
 					}
 				} else
 				if (esp->e_flag) {
@@ -730,7 +748,6 @@ a_uint v;
  *		char *	txtp		pointer to txt array
  *		
  *	functions called:
- *		VOID	aerr()		assubr.c
  *		int	hibyte()	asout.c
  *		int	lobyte()	asout.c
  *		VOID	outatxb()	asout.c
@@ -741,6 +758,7 @@ a_uint v;
  *		VOID	out_lxb()	asout.c
  *		VOID	out_rw()	asout.c
  *		VOID	out_txb()	asout.c
+ *		VOID	xerr()		assubr.c
  *
  *	side effects:
  *		R and T Lines updated.  Listing updated.
@@ -769,7 +787,7 @@ a_uint v;
 			   ((mp = modep[(r >> 8) & 0x0F]) != 0)) {
 			   	m = ~(mp->m_sbits >> 1);
 				if (((m & esp->e_addr) != m) && ((m & esp->e_addr) != 0))
-					aerr();
+					xerr('v', "Signed Number Exceeded Range.");
 			}
 			/*
 			 * Unsigned/Overflow Range Check
@@ -777,7 +795,7 @@ a_uint v;
 			if (((r & (R_SGND | R_USGN | R_PAGX | R_PCR)) == R_USGN) &&
 			   ((mp = modep[(r >> 8) & 0x0F]) != 0)) {
 				if (~mp->m_sbits & esp->e_addr)
-					aerr();
+					xerr('v', "Unsigned Number Exceeded Range.");
 			}
 			/*
 			 * Page0 Range Check
@@ -785,8 +803,26 @@ a_uint v;
 			if (((r & (R_SGND | R_USGN | R_PAGX | R_PCR)) == R_PAG0) &&
 			   ((mp = modep[(r >> 8) & 0x0F]) != 0)) {
 				if (~mp->m_sbits & esp->e_addr)
-					err('d');
+					xerr('d', "Page 0 Address Error.");
 			}
+
+			/*
+			 * R_MSB Option
+			 */
+			if (i == 1) {
+				r |= esp->e_rlcf;
+				if ((r & (R_SGND | R_USGN | R_PAGX | R_PCR)) == R_MSB) {
+					switch(as_msb) {
+					default:
+					case 0:	esp->e_addr = lobyte(esp->e_addr);	break;
+					case 1:	esp->e_addr = hibyte(esp->e_addr);	break;
+					case 2:	esp->e_addr = thrdbyte(esp->e_addr);	break;
+					case 3:	esp->e_addr = frthbyte(esp->e_addr);	break;
+					}
+					esprv = outmerge(esp->e_addr, r, v);
+				}
+			}
+
 			out_lxb(i,esprv,0);
 			if (oflag) {
 				outchk(i,0);
@@ -826,6 +862,7 @@ a_uint v;
 					r |= R_AREA;
 					if ((r & (R_PAGE | R_PCR)) != R_PAGN) {
 						fprintf(stderr, "?ASxxxx-OUTRXBM-NULL-POINTER error.\n\n");
+						aserr++;
 					}
 				} else
 				if (esp->e_flag) {
@@ -926,6 +963,7 @@ a_uint base;
  *
  *	global variables:
  *		int	a_bytes		T Line byte count
+ *		int	p_mask		user specified page mask
  *		int	oflag		-o, generate relocatable output flag
  *		int	pass		assembler pass number
  *		char	rel[]		relocation data for code/data array
@@ -961,6 +999,7 @@ int r;
 				n = area[1].a_ref;
 				r |= R_AREA;
 				fprintf(stderr, "?ASxxxx-OUTDP-NULL-POINTER error.\n\n");
+				aserr++;
 			} else
 			if (esp->e_flag) {
 				n = esp->e_base.e_sp->s_ref;
@@ -973,7 +1012,7 @@ int r;
 			*relp++ = txtp - txt - a_bytes;
 			out_rw(n);
 		}
-		if (p_mask != 0xFF) {
+		if (p_mask != DEFAULT_PMASK) {
 			out_txb(a_bytes,p_mask);
 		}
 		outbuf("P");
@@ -1481,6 +1520,7 @@ struct area *ap;
 #endif
 
 	fprintf(ofp, frmt, ap->a_size & a_mask, a_flag);
+
 	bp = ap->b_bp;
 	if (((ap->a_flag & A_BNK) == A_BNK) && (bp != NULL)) {
 		if (xflag == 0) {
@@ -1493,6 +1533,26 @@ struct area *ap;
 			fprintf(ofp, " bank %u", bp->b_ref);
 		}
 	}
+
+	if (ap->a_bndry != 0) {
+#ifdef	LONGINT
+		switch(xflag) {
+		default:
+		case 0:	frmt = " bndry %lX";	break;
+		case 1: frmt = " bndry %lo";	break;
+		case 2: frmt = " bndry %lu";	break;
+		}
+#else
+		switch(xflag) {
+		default:
+		case 0:	frmt = " bndry %X";	break;
+		case 1: frmt = " bndry %o";	break;
+		case 2: frmt = " bndry %u";	break;
+		}
+#endif
+		fprintf(ofp, frmt, ap->a_bndry);
+	}
+
 	fprintf(ofp, "\n");
 }
 

@@ -22,6 +22,13 @@ assembler.
         Roger Ivie
         ivie at cc dot usu dot edu
 
+   And  to  Sebastian Riedel for updating and adding the various
+alternate instruction formats found in the  SDCC  implementation
+of the Gameboy assembler.  
+
+        Sebastian Riedel
+        sdcc at basxto dot de
+
 
 </PRE></B></H4>
 
@@ -83,8 +90,7 @@ for each addressing mode supported by ASGB:
         label           call/jmp/jr label
 
 
-   The terms data, dir, and ext may all be expression.  The term
-dir is not allowed to be an external reference.  
+   The terms data, n, label, and address may all be expressions.
 
    Note  that  not all addressing modes are valid with every in-
 struction.  Although official information is not, as  far  as  I
@@ -94,7 +100,12 @@ ficial sources are available on the internet.
 
 .tile Directive 
 
-Format: .tile /string/ 
+Format:  
+
+        .tile  /string/         or 
+
+        .tile ^/string/ 
+
 
 where:  string  is  a  string of ascii characters taken from the
                 set ' ', '.', '+', '*', '0', '1', '2', and  '3'.
@@ -106,7 +117,7 @@ where:  string  is  a  string of ascii characters taken from the
                 characters,  as  long  as the characters are not
                 contained within  the  string  itself.   If  the
                 delimiting  characters  do  not match, the .tile
-                directive will give the (q) error.  
+                directive will give the &ltq&gt error.  
 
 
      The Gameboy displays information on the screen using a pro-
@@ -205,17 +216,22 @@ direct-page RAM.
 
 The 'stop' Instruction  - 
 
-     The  publically-available  documentation  for  the  Gameboy
-lists the 'stop' instruction as the two-byte instruction 10  00,
-and the other freely-available Gameboy assemblers assemble it in
-that manner.  As far as I can tell, the only rationale for  this
-is  that  the  corresponding Z80 instruction ('djnz label') is a
-two-byte instruction.  ASGB assembles 'stop' as the one-byte in-
-struction 10.  
+     The  publicly available documentation for the Gameboy lists
+the 'stop' instruction as the two-byte instruction  10  00,  and
+the  other  freely  available  Gameboy assemblers assemble it in
+that manner.  
+
+
+                              NOTE
+
+     'stop'  is  actually  just  one byte long.  There is a
+     hardware bug on Gameboy Classic that  causes  the  in-
+     struction following a 'stop' instruction to be skipped
+     under certain conditions.  Nintendo apparently started
+     to tell developers to always add a 'nop' after 'stop'. 
 
 
 Inherent Instructions 
-
 
         ccf             cpl
         daa             di
@@ -224,47 +240,141 @@ Inherent Instructions
         rlca            rra
         rrca            scf
         reti            stop
-        swap
+
+        |  Recommended  |  Alternates   |
+        |===============|===============|
+        |    rla        |     rl a      |
+        |    rlca       |     rlc a     |
+        |    rra        |     rr a      |
+        |    rrca       |     rrc a     |
+        |===============|===============|
 
 
 Implicit Operand Instructions 
 
+        |  Recommended  |   Aliases     |
+        |===============|===============|
+        |   adc a,[]    |    adc []     |
+        |   add a,[]    |    add []     |
+        |   and a,[]    |    and []     |
+        |   cp a,[]     |    cp []      |
+        |   or a,[]     |    or []      |
+        |   sbc a,[]    |    sbc []     |
+        |   sub a,[]    |    sub []     |
+        |   xor a,[]    |    xor []     |
+        |===============|===============|
+            [] = a, b, c, d, e, h, l, (hl), or #
 
-        adc a,[]        adc []
-        add a,[]        add []
-        and a,[]        and []
-        cp a,[]         cp []
-        dec a,[]        dec []
-        inc a,[]        inc []
-        or a,[]         or []
-        rl a,[]         rl []
-        rlc a,[]        rlc []
-        rr a,[]         rr []
-        rrc a,[]        rrc []
-        sbc a,[]        sbc []
-        sla a,[]        sla []
-        sra a,[]        sra []
-        srl a,[]        srl []
-        sub a,[]        sub []
-        xor a,[]        xor []
+
+Increment and Decrement Instructions 
+
+        dec []
+        inc []
+            [] = a, b, c, d, e, h, l, (hl),
+                 (be), (de), (hl+), (hl-), or sp
+
+
+Single Operand Instructions 
+
+        rl []
+        rlc []
+        rr []
+        rrc []
+        sla []
+        sra []
+        srl []
+        swap []
+            [] = a, b, c, d, e, h, l, or (hl)
 
 
 Load Instructions 
 
+        |  Recommended  |   Aliases     |
+        |===============|===============|
+        |   ld a,[]     |    lda []     |
+        |               |    ld []      |
+        |===============|===============|
+            [] = a, b, c, d, e, h, l, (c), (hl),
+                 (bc), (de), (hl+), (hl-),
+                 (address), or #data
 
-        ld rg,[]        ld [],rg
-        ld (bc),a       ld a,(bc)
-        ld (de),a       ld a,(de)
-        ld (label),a    ld a,(label)
-        ld (label),sp   ld rp,#data
-        ld sp,hl        ld hl,sp
 
-        ldd a,(hl)      ldd (hl),a
-        ldi a,(hl)      ldi (hl),a
+        ld [1],[2]
+            [1] = a, b, c, d, e, h, l, or (hl)
+            [2] = a, b, c, d, e ,h, l, or (hl)
+            except when  [1] = (hl) and [2] = (hl)
+
+        |  Recommended  |    Aliases    |
+        |===============|===============|
+        |  ld hl,#data  |  lda hl,#data |
+        |               |               |
+        |               |  ldhl #data   |
+        |===============|===============|
+
+
+        ld [],#data
+            [] = bc, de, or sp
+
+
+        ld a,[]
+        ld [],a
+            [] = (bc), (de), or (address)
+
+         |  Recommended  |   Aliases     |
+        |===============|===============|
+        |  ld a,(hl-)   |  ldd a,(hl)   |
+        |               |               |
+        |               |  ld a,(hld)   |
+        |               |  lda (hld)    |
+        |               |  ld (hld)     |
+        |               |  lda (hl-)    |
+        |               |  ld (hl-)     |
+        |===============|===============|
+        |  ld (hl-),a   |  ldd (hl),a   |
+        |               |               |
+        |               |  ld (hld),a   |
+        |===============|===============|
+        |  ld a,(hl+)   |  ldi a,(hl)   |
+        |               |               |
+        |               |  ld a,(hli)   |
+        |               |  lda (hli)    |
+        |               |  ld (hli)     |
+        |               |  lda (hl+)    |
+        |               |  ld (hl+)     |
+        |===============|===============|
+        |  ld (hl+),a   |  ldi (hl),a   |
+        |               |               |
+        |               |  ld (hli),a   |
+        |===============|===============|
+
+
+        ld (address),sp
+        ld sp,hl
+
+        |  Recommended  |   Aliases     |
+        |===============|===============|
+        |  ld hl,n(sp)  |  ldhl n(sp)   |
+        |               |               |
+        |               |  ld hl,(sp)+n |
+        |               |  ld hl,(sp+n) |
+        |               |  ld hl,sp+n   |
+        |               |               |
+        |               |  ldhl (sp)+n  |
+        |               |  ldhl (sp+n)  |
+        |               |  ldhl sp+n    |
+        |===============|===============|
+        |  ld hl,0(sp)  |  ld hl,(sp)   |
+        |===============|===============|
+        |  ldhl 0(sp)   |  ldhl (sp)    |
+        |               |               |
+        |               |  ld hl,(sp+0) |
+        |               |  ld hl,sp+0   |
+        |               |  ld hl,sp     |
+        |===============|===============|
+            Note: -128 <= n <= 127
 
 
 Call/Return Instructions 
-
 
         call C,label    ret C
         call NC,label   ret NC
@@ -276,7 +386,6 @@ Call/Return Instructions
 
 
 Jump Instructions 
-
 
         jp C,label      jp NC,label
         jp Z,label      jp NZ,label
@@ -290,27 +399,58 @@ Jump Instructions
 
 Bit Manipulation Instructions 
 
-
         bit n,[]
         res n,[]
         set n,[]
+            0 <= n <= 7
+            [] = a, b, c, d, e, h, l, or (hl)
 
 
 Input and Output Instructions 
 
-
-        in a,(n)        in a,(c)
-        out (n),a       out (c),a
+        |  Recommended  |  Aliases/Alternates   |
+        |===============|=======================|
+        |   ldh a,(n)   |   in a,(n)            |
+        |               |                       |
+        |               |   ld (n + 0xFF00)     |
+        |               |   lda (n + 0XFF00)    |
+        |               |   ld a,(n + 0xFF00)   |
+        |===============|=======================|
+        |   ldh a,(c)   |   in a,(c)            |
+        |               |                       |
+        |               |   ld (c)              |
+        |               |   lda (c)             |
+        |               |   ld a,(c)            |
+        |===============|=======================|
+        |   ldh (n),a   |   out n,a             |
+        |               |                       |
+        |               |   ld (n + 0xFF00),a   |
+        |===============|=======================|
+        |   ldh (c),a   |   out (c),a           |
+        |               |                       |
+        |               |   ld (c),a            |
+        |===============|=======================|
+            Note: 0 <= n <= 255
 
 
 Register Pair Instructions 
 
+        add hl,[]
+            [] = bc, de, hl, or sp
 
-        add hl,rp       add hl,sp
-        add sp,#data
+        |  Recommended  |   Aliases     |
+        |===============|===============|
+        |  add sp,#n    | ld sp,#n(sp)  |
+        |               | ld sp,n(sp)   |
+        |               |               |
+        |               | lda sp,#n(sp) |
+        |               | lda sp,n(sp)  |
+        |===============|===============|
+            Note: -128 <= n <= 127
 
-        push rp         pop rp
-
+        push []
+        pop []
+            [] = af, bc, de, or hl
 
 </PRE></B></H4>
 <H5><A HREF="asxdoc.htm#TOP"> Go to the Documentation Index</A></H5>
@@ -327,7 +467,7 @@ Register Pair Instructions
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>
 

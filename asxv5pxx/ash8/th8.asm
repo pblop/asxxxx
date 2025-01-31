@@ -5,8 +5,20 @@
 
 	;	Assemble this file as follows
 	;
-	;	ASH8 -glff th8
-
+	;	ASH8 -loxff th8
+	;
+	;	Link the compiled result as follows
+	;
+	;	ASLINK -mxu th8
+	;
+	;		Linking will report undefined global
+	;		references to value, exdata, and start.
+	;
+	;		Linking will also report 2 instances of
+	;		PageN relocation errors for each of the
+	;		global variables value and exdata.
+	;
+	;		These errors are expected !
 
 	.page
 	; Examples on Optional / Free Format Modes
@@ -40,6 +52,12 @@
 	;   mode will check for addresses within the last 256 bytes
 	;   at assembly or link time.
 	;
+
+	.setdp	0xFF00
+
+	.globl	value
+	.globl	exdata
+	.globl	start
 
 	; (external global variable)
 	mov	@value,r7	;6B 07s00r00
@@ -755,7 +773,7 @@ data:	.byte	0x10		;10
 	movfpe	@xx16,spH	;6A 47 A5 A5
 	movfpe	@xx16,spL	;6A 4F A5 A5
 
-	; S_MVFPE
+	; S_MVTPE
 
 	movtpe	r0H,@xx16	;6A C0 A5 A5
 	movtpe	r7H,@xx16	;6A C7 A5 A5

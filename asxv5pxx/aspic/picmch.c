@@ -1,7 +1,7 @@
 /* picmch.c */
 
 /*
- *  Copyright (C) 2001-2014  Alan R. Baldwin
+ *  Copyright (C) 2001-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -48,8 +48,8 @@ static struct badram *br;
 #define	OPCY_SDP	((char) (0xFF))
 #define	OPCY_ERR	((char) (0xFE))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	OPCY_SBITS	((char) (0xFD))
 #define	OPCY_PMAXR	((char) (0xFC))
@@ -82,6 +82,12 @@ struct mne *mp;
 	struct expr e1;
 	struct expr e2;
 
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
+
 	op = mp->m_valu;
 	switch (mp->m_type) {
 
@@ -91,7 +97,7 @@ struct mne *mp;
 			exprmasks(pic_bytes);
 		} else
 		if (pic_bytes != (int) op) {
-			err('m');
+			xerr('m', "Machine Bit Size Previously Set."); 
 		}
 		opcycles = OPCY_SBITS;
 		lmode = SLIST;
@@ -113,11 +119,11 @@ struct mne *mp;
 			br->b_lo = e1.e_addr;
 			br->b_hi = ~((a_uint) 0);
 			if (is_abs(&e1) == 0) {
-				err('e');
+				xerr('x',".maxram requires a constant value size.");
 			}
 		}
 		if (more()) {
-			err('e');
+			xerr('x', "Extra characters following argument.");
 			while (getnb()) ;
 		}
 		break;
@@ -139,7 +145,7 @@ struct mne *mp;
 				br->b_lo = e1.e_addr;
 				br->b_hi = e1.e_addr;
 				if (is_abs(&e1) == 0) {
-					err('e');
+					xerr('x',".badram requires constant parameters.");
 				}
 			}
 			if ((c = getnb()) == ':') {
@@ -148,7 +154,7 @@ struct mne *mp;
 				if (pass == 1) {
 					br->b_hi = e2.e_addr;
 					if (is_abs(&e2) == 0) {
-						err('e');
+						xerr('x',".badram requires constant parameters.");
 					}
 				}
 			} else {
@@ -170,7 +176,7 @@ struct mne *mp;
 			}
 			while ((c = get()) != d) {
 				if (c == '\0') {
-					qerr();
+					xerr('q', "Missing end of string delimiter.");
 				}
 				if (p < &id[sizeof(id)-1]) {
 					*p++ = c;
@@ -187,7 +193,7 @@ struct mne *mp;
 		sprintf(id, "__%s", pic_cpu + 1);
 		sp = lookup(id);
 		if (sp->s_type != S_NEW && (sp->s_flag & S_ASG) == 0) {
-			err('m');
+			xerr('m', "Multiple Pic CPU Type Selections Is NOT Allowed.");
 		}
 		sp->s_type = S_USER;
 		sp->s_addr = 1;
@@ -201,14 +207,14 @@ struct mne *mp;
 		opcycles = OPCY_PBITS;
 		lmode = SLIST;
 		pic_type = (int) op;
+		sym[2].s_addr = pic_type;
 		cd = picDef;
 		while (cd->id) {
 			mp = mlookup(cd->id);
 			if (mp) {
 				mp->m_valu = cd->opcode[(int) op];
-			} else
-			if (pass == 0) {
-				printf("?ASPIC-Internal-Error-<picpst.c: mne[]/picDef[]>\n");
+			} else {
+				xerr('x', "Internal-Error-<picpst.c: mne[]/picDef[]>\n");
 			}
 			cd++;
 		}
@@ -224,8 +230,6 @@ struct mne *mp;
 			exprmasks(2);
 			/* Set "CSEG" Characteristics */
 			/* To 2-bytes per PC Increment */
-			mp = mlookup("CSEG");
-			mp->m_valu = A_CSEG|A_2BYTE;
 			/* Set _CODE Area Characteristics */
 			area[0].a_flag = A_CSEG|A_2BYTE|A_BNK;
 			break;
@@ -233,8 +237,6 @@ struct mne *mp;
 			exprmasks(4);
 			/* Set "CSEG" Characteristics */
 			/* To 1-byte per PC Increment */
-			mp = mlookup("CSEG");
-			mp->m_valu = A_CSEG|A_1BYTE;
 			/* Set _CODE Area Characteristics */
 			area[0].a_flag = A_CSEG|A_1BYTE|A_BNK;
 			break;
@@ -250,7 +252,7 @@ struct mne *mp;
 					mp->m_valu = cf->opcode;
 				} else
 				if (pass == 0) {
-					printf("?ASPIC-Internal-Error-<picpst.c: mne[]/picFix[]>\n");
+					xerr('x', "Internal-Error-<picpst.c: mne[]/picFix[]>\n");
 				}
 			}
 			cf++;
@@ -259,7 +261,7 @@ struct mne *mp;
 			pic_bytes = (int) a_bytes;
 		} else
 		if (pic_bytes != (int) a_bytes) {
-			err('m');
+			xerr('m', "Machine Bit Sized Changed.");
 		}
 		break;
 
@@ -278,7 +280,7 @@ struct mne *mp;
 		}
 		while ((c = get()) != d) {
 			if (c == '\0') {
-				qerr();
+				xerr('q', "Missing String Delimiter.");
 			}
 			if (p < &id[sizeof(id)-1]) {
 				*p++ = c;
@@ -292,7 +294,7 @@ struct mne *mp;
 		 */
 		comma(1);
 		if (!more()) {
-			qerr();
+			xerr('q', "Require An Opcode String.");
 		}
 		p = picmne;
 		if ((d = getnb()) == '^') {
@@ -300,7 +302,7 @@ struct mne *mp;
 		}
 		while ((c = get()) != d) {
 			if (c == '\0') {
-				qerr();
+				xerr('q', "Missing String Delimiter.");
 			}
 			if (p < &picmne[sizeof(picmne)-1]) {
 				*p++ = c;
@@ -314,7 +316,7 @@ struct mne *mp;
 		 */
 		comma(1);
 		if (!more()) {
-			qerr();
+			xerr('q', "Opcode Value Required.");
 		}
 		op = absexpr();
 		/*
@@ -325,10 +327,10 @@ struct mne *mp;
 			if (mp) {
 				mp->m_valu = op;
 			} else {
-				err('u');
+				xerr('u', "Opcode Not Found.");
 			}
 		} else {
-			err('u');
+			xerr('u', "Opcode Not Found.");
 		}
 		lmode = SLIST;
 		break;
@@ -355,6 +357,11 @@ struct mne *mp;
 		}
 		break;
 	}
+	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 
@@ -378,7 +385,7 @@ struct mne *mp;
 
 	op = mp->m_valu;
 	if (op == ~0) {			/* Undefined Instructions */
-		err('o');
+		xerr('u', "Undefined Pic12Bit Instruction.");
 		op = 0;
 	}
 	switch (mp->m_type) {
@@ -391,7 +398,7 @@ struct mne *mp;
 			abscheck(&e1);
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 				if (e1.e_addr & 0x1F) {
-					err('b');
+					xerr('b', "Page Boundary Error.");
 				}
 			}
 			e1.e_addr &= ~((a_uint) 0x1F);
@@ -399,7 +406,7 @@ struct mne *mp;
 				getid(id, -1);
 				espa = alookup(id);
 				if (espa == NULL) {
-					err('u');
+					xerr('u', "Undefined Area.");
 				}
 			} else {
 				unget(c);
@@ -418,10 +425,10 @@ struct mne *mp;
 	case S_FW:			/* inst f,d */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* d */
@@ -433,11 +440,11 @@ struct mne *mp;
 		} else {
 			abscheck(&e2);
 			if (e2.e_addr & ~((a_uint) 0x01)) {
-				aerr();
+				xerr('a', "Second argument: W, F or a constant of value 0 or 1.");
 				e2.e_addr &= 0x01;
 			}
 			if (t2 == S_DIR) {
-				aerr();
+				xerr('a', "Second argument: A direct address is invalid.");
 			}
 		}
 		if (is_abs(&e1)) {
@@ -453,10 +460,10 @@ struct mne *mp;
 	case S_F:			/* inst f */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		if (is_abs(&e1)) {
 			mch12fsr(&e1);
@@ -470,19 +477,19 @@ struct mne *mp;
 	case S_FBIT:			/* inst f,b */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* b */
 		if ((t2 != S_IMMED) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be a #__ or constant.");
 		}
 		abscheck(&e2);
 		if (e2.e_addr & ~((a_uint) 0x07)) {
-			aerr();
+			xerr('a', "Second argument: Value from 0 -> 7.");
 			e2.e_addr &= 0x07;
 		}
 		if (is_abs(&e1)) {
@@ -497,7 +504,7 @@ struct mne *mp;
 	case S_LIT:			/* inst k */
 		t1 = addr(&e1);		/* k */
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be a #__ or constant.");
 		}
 		outrwm(&e1, R_8BIT, op);
 		break;
@@ -505,7 +512,7 @@ struct mne *mp;
 	case S_CALL:			/* inst k */
 		t1 = addr(&e1);		/* k */
 		if (t1 != S_EXT) {
-			aerr();
+			xerr('a', "Argument must be an address.");
 		}
 		outrwm(&e1, R_8BIT, op);
 		break;
@@ -513,7 +520,7 @@ struct mne *mp;
 	case S_GOTO:			/* inst k */
 		t1 = addr(&e1);		/* k */
 		if (t1 != S_EXT) {
-			aerr();
+			xerr('a', "Argument must be an address.");
 		}
 		outrwm(&e1, R_9BIT, op);
 		break;
@@ -526,27 +533,26 @@ struct mne *mp;
 	case S_TRIS:			/* inst [k] */
 		t1 = addr(&e1);		/* k */
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be a #__ or constant.");
 		}
 		abscheck(&e1);
-		if (e1.e_addr != 6) {
-			aerr();
-			e1.e_addr = 6;
+		if ((e1.e_addr < 5) || (e1.e_addr > 7)) {
+			xerr('a', "A value of 5, 6, or 7 is valid.");
 		}
-		outaw(op + e1.e_addr);
+		outaw(op + (e1.e_addr & 0x07));
 		break;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 
 	if (opcycles == OPCY_NONE) {
-		switch(cb[0] & 0x000F) {
+		switch(cb[1] & 0x000F) {
 		case 0x02:
 		case 0x03:
-			if ((cb[1] & 0xC0) == 0xC0) {
+			if ((cb[0] & 0xC0) == 0xC0) {
 				opcycles = 2;
 			} else {
 				opcycles = 1;
@@ -570,7 +576,7 @@ mch12fsr(esp)
 struct expr *esp;
 {
 	if ((esp->e_addr & ~((a_uint) 0x1F)) != pic_fsr) {
-		aerr();
+		xerr('a', "FSR address mismatch.");
 	}
 }
 
@@ -595,7 +601,7 @@ struct mne *mp;
 
 	op = mp->m_valu;
 	if (op == ~0) {			/* Undefined Instructions */
-		err('o');
+		xerr('u', "Undefined Pic14Bit Instruction.");
 		op = 0;
 	}
 	switch (mp->m_type) {
@@ -608,7 +614,7 @@ struct mne *mp;
 			abscheck(&e1);
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 				if (e1.e_addr & 0x7F) {
-					err('b');
+					xerr('b', "Page Boundary Error.");
 				}
 			}
 			e1.e_addr &= ~((a_uint) 0x7F);
@@ -616,7 +622,7 @@ struct mne *mp;
 				getid(id, -1);
 				espa = alookup(id);
 				if (espa == NULL) {
-					err('u');
+					xerr('u', "Undefined Area.");
 				}
 			} else {
 				unget(c);
@@ -635,10 +641,10 @@ struct mne *mp;
 	case S_FW:			/* inst f,d */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* d */
@@ -650,11 +656,11 @@ struct mne *mp;
 		} else {
 			abscheck(&e2);
 			if (e2.e_addr & ~((a_uint) 0x01)) {
-				aerr();
+				xerr('a', "Second argument: W, F or a constant of value 0 or 1.");
 				e2.e_addr &= 0x01;
 			}
 			if (t2 == S_DIR) {
-				aerr();
+				xerr('a', "Second argument: A direct address is invalid.");
 			}
 		}
 		if (is_abs(&e1)) {
@@ -670,10 +676,10 @@ struct mne *mp;
 	case S_F:			/* inst f */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "Argument Ram address is invalid.");
 		}
 		if (is_abs(&e1)) {
 			mch14fsr(&e1);
@@ -687,19 +693,19 @@ struct mne *mp;
 	case S_FBIT:			/* inst f,b */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* b */
 		if ((t2 != S_IMMED) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be a #__ or constant.");
 		}
 		abscheck(&e2);
 		if (e2.e_addr & ~((a_uint) 0x07)) {
-			aerr();
+			xerr('a', "Second argument: Value from 0 -> 7.");
 			e2.e_addr &= 0x07;
 		}
 		if (is_abs(&e1)) {
@@ -714,7 +720,7 @@ struct mne *mp;
 	case S_LIT:			/* inst k */
 		t1 = addr(&e1);		/* k */
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be a #__ or constant.");
 		}
 		outrwm(&e1, R_8BIT, op);
 		break;
@@ -723,7 +729,7 @@ struct mne *mp;
 	case S_GOTO:			/* inst k */
 		t1 = addr(&e1);		/* k */
 		if (t1 != S_EXT) {
-			aerr();
+			xerr('a', "Argument must be an address.");
 		}
 		outrwm(&e1, R_11BIT, op);
 		break;
@@ -737,23 +743,23 @@ struct mne *mp;
 	case S_TRIS:			/* inst [k] */
 		t1 = addr(&e1);	/* k */
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be a #__ or constant.");
 		}
 		abscheck(&e1);
 		if ((e1.e_addr < 5) || (e1.e_addr > 7)) {
-			aerr();
+			xerr('a', "A value of 6 or 7 is valid.");
 		}
 		outaw(op + (e1.e_addr & 0x07));
 		break;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('a', "Internal Opcode Error.");
 		break;
 	}
 
 	if (opcycles == OPCY_NONE) {
-		switch((cb[0] >> 2) & 0x000F) {
+		switch((cb[1] >> 2) & 0x000F) {
 		case 0x02:
 		case 0x03:
 			if ((cb[0] & 0x03) == 0x03) {
@@ -769,8 +775,8 @@ struct mne *mp;
 		case 0x0B:
 		case 0x0D:	opcycles = 2;	break;
 		default:	opcycles = 1;
-			if ((cb[0] == 0) &&
-			   ((cb[1] == 0x08) || (cb[1] == 0x09))) {
+			if ((cb[1] == 0) &&
+			   ((cb[0] == 0x08) || (cb[0] == 0x09))) {
 				opcycles = 2;
 			}			break;
 		}
@@ -786,7 +792,7 @@ mch14fsr(esp)
 struct expr *esp;
 {
 	if ((esp->e_addr & ~((a_uint) 0x7F)) != pic_fsr) {
-		aerr();
+		xerr('a', "FSR address mismatch.");
 	}
 }
 
@@ -864,7 +870,7 @@ struct mne *mp;
 
 	op = mp->m_valu;
 	if (op == ~0) {			/* Undefined Instructions */
-		err('o');
+		xerr('u', "Undefined Pic16Bit Instruction.");
 		op = 0;
 	}
 	switch (mp->m_type) {
@@ -876,7 +882,7 @@ struct mne *mp;
 			expr(&e1, 0);
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 				if (e1.e_addr & 0xFF) {
-					err('b');
+					xerr('b', "Page Boundary Error.");
 				}
 			}
 			e1.e_addr &= ~((a_uint) 0xFF);
@@ -884,7 +890,7 @@ struct mne *mp;
 				getid(id, -1);
 				espa = alookup(id);
 				if (espa == NULL) {
-					err('u');
+					xerr('u', "Undefined Area.");
 				}
 			} else {
 				unget(c);
@@ -906,10 +912,10 @@ struct mne *mp;
 	case S_FW:			/* inst f,d */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* d/s */
@@ -921,11 +927,11 @@ struct mne *mp;
 		} else {
 			abscheck(&e2);
 			if (e2.e_addr & ~((a_uint) 0x01)) {
-				aerr();
+				xerr('a', "Second argument: W, F or a constant of value 0 or 1.");
 				e2.e_addr &= 0x01;
 			}
 			if (t2 == S_DIR) {
-				aerr();
+				xerr('a', "Second argument: A direct address is invalid.");
 			}
 		}
 		if (is_abs(&e1)) {
@@ -940,10 +946,10 @@ struct mne *mp;
 	case S_F:			/* inst f */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		if (is_abs(&e1)) {
 			mch16fsr(&e1);
@@ -957,19 +963,19 @@ struct mne *mp;
 	case S_FBIT:			/* inst f,b */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* b */
 		if ((t2 != S_IMMED) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be a #__ or constant.");
 		}
 		abscheck(&e2);
 		if (e2.e_addr & ~((a_uint) 0x07)) {
-			aerr();
+			xerr('a', "Second argument: Value from 0 -> 7.");
 			e2.e_addr &= 0x07;
 		}
 		if (is_abs(&e1)) {
@@ -984,7 +990,7 @@ struct mne *mp;
 	case S_LIT:			/* inst k */
 		t1 = addr(&e1);		/* k */
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be a #__ or constant.");
 		}
 		outrwm(&e1, R_8BIT, op);
 		break;
@@ -993,7 +999,7 @@ struct mne *mp;
 	case S_GOTO:			/* inst k */
 		t1 = addr(&e1);		/* k */
 		if (t1 != S_EXT) {
-			aerr();
+			xerr('a', "Argument must be an address.");
 		}
 		outrwm(&e1, R_13BIT, op);
 		break;
@@ -1001,7 +1007,7 @@ struct mne *mp;
 	case S_LCALL:			/* inst k */
 		t1 = addr(&e1);		/* k */
 		if (t1 != S_EXT) {
-			aerr();
+			xerr('a', "Argument must be an address.");
 		}
 		outrwm(&e1, R_PAGN | R_8BIT, op);
 		break;
@@ -1009,7 +1015,7 @@ struct mne *mp;
 	case S_MOVLB:			/* movlb k */
 		t1 = addr(&e1);		/* k */
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be a #__ or address.");
 		}
 		outrwm(&e1, R_4BTB, op);
 		break;
@@ -1017,7 +1023,7 @@ struct mne *mp;
 	case S_MOVLR:			/* movlr k */
 		t1 = addr(&e1);		/* k */
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be a #__ or address.");
 		}
 		outrwm(&e1, R_4BTR, op);
 		break;
@@ -1025,19 +1031,19 @@ struct mne *mp;
 	case S_MOVFP:			/* movfp f,p */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* p */
 		if ((t2 != S_DIR) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be an address.");
 		}
 		abscheck(&e2);
 		if (e2.e_addr & ~((a_uint) 0x1F)) {
-			aerr();
+			xerr('a', "Second argument: 0 -> 31.");
 			e2.e_addr &= 0x1F;
 		}
 		if (is_abs(&e1)) {
@@ -1052,20 +1058,20 @@ struct mne *mp;
 	case S_MOVPF:			/* movpf p,f */
 		t2 = addr(&e2);		/* p */
 		if ((t2 != S_DIR) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		}
 		abscheck(&e2);
 		if (e2.e_addr & ~((a_uint) 0x1F)) {
-			aerr();
+			xerr('a', "First argument: 0 -> 31.");
 			e2.e_addr &= 0x1F;
 		}
 		comma(1);
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "Second argument Ram address is invalid.");
 		}
 		if (is_abs(&e1)) {
 			mch16fsr(&e1);
@@ -1080,16 +1086,16 @@ struct mne *mp;
 		t1 = addr(&e1);		/* t */
 		abscheck(&e1);
 		if (e1.e_addr & ~((a_uint) 0x01)) {
-			aerr();
+			xerr('a', "First argument: 0 -> 1.");
 			e1.e_addr &= 0x01;
 		}
 		comma(1);
 		t2 = addr(&e2);		/* f */
 		if ((t2 != S_DIR) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be an address.");
 		} else
 		if (mchramchk(&e2)) {
-			aerr();
+			xerr('a', "Second argument: 0 -> 31.");
 		}
 		if (is_abs(&e2)) {
 			mch16fsr(&e2);
@@ -1104,23 +1110,23 @@ struct mne *mp;
 		t1 = addr(&e1);		/* t */
 		abscheck(&e1);
 		if (e1.e_addr & ~((a_uint) 0x01)) {
-			aerr();
+			xerr('a', "First argument: 0 -> 1.");
 			e1.e_addr &= 0x01;
 		}
 		comma(1);
 		t2 = addr(&e2);		/* i */
 		abscheck(&e2);
 		if (e2.e_addr & ~((a_uint) 0x01)) {
-			aerr();
+			xerr('a', "Second argument: 0 -> 1.");
 			e2.e_addr &= 0x01;
 		}
 		comma(1);
 		t3 = addr(&e3);		/* f */
 		if ((t3 != S_DIR) && (t3 != S_EXT)) {
-			aerr();
+			xerr('a', "Third argument must be an address.");
 		} else
 		if (mchramchk(&e3)) {
-			aerr();
+			xerr('a', "Third argument: 0 -> 31.");
 		}
 		if (is_abs(&e3)) {
 			mch16fsr(&e3);
@@ -1139,14 +1145,14 @@ struct mne *mp;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 
 	if (opcycles == OPCY_NONE) {
-		opcycles = p16pg1[cb[0] & 0xFF];
+		opcycles = p16pg1[cb[1] & 0xFF];
 		if ((opcycles & OPCY_NONE) && (opcycles & OPCY_MASK)) {
-			opcycles = P16Page[opcycles & OPCY_MASK][cb[1] & 0xFF];
+			opcycles = P16Page[opcycles & OPCY_MASK][cb[0] & 0xFF];
 		}
 	}
 }
@@ -1160,7 +1166,7 @@ mch16fsr(esp)
 struct expr *esp;
 {
 	if ((esp->e_addr & ~((a_uint) 0xFF)) != pic_fsr) {
-		aerr();
+		xerr('a', "FSR address mismatch.");
 	}
 }
 
@@ -1225,7 +1231,7 @@ pic20bit(mp)
 struct mne *mp;
 {
 	a_uint op;
-	v_sint v1;
+	int v1;
 	int c;
 	int t1, t2;
 	int r_mode;
@@ -1238,13 +1244,13 @@ struct mne *mp;
 	clrexpr(&e3);
 
 	if (((dot.s_area->a_flag & (A_CSEG|A_DSEG)) == A_CSEG) && (dot.s_addr & (a_uint) 0x0001)) {
-		err('b');
+		xerr('b', "Odd PC Address Detected.");
 		;dot.s_addr += 1;
 	}
 
 	op = mp->m_valu;
 	if (op == ~0) {			/* Undefined Instructions */
-		err('o');
+		xerr('u', "Undefined Pic20Bit Instruction.");
 		op = 0;
 	}
 	switch (mp->m_type) {
@@ -1256,14 +1262,14 @@ struct mne *mp;
 			expr(&e1, 0);
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 				if (e1.e_addr & 0xFF) {
-					err('b');
+					xerr('b', "Page Boundary Error.");
 				}
 			}
 			if ((c = getnb()) == ',') {
 				getid(id, -1);
 				espa = alookup(id);
 				if (espa == NULL) {
-					err('u');
+					xerr('u', "Undefined Area.");
 				}
 			} else {
 				unget(c);
@@ -1279,10 +1285,10 @@ struct mne *mp;
 	case S_FW:			/* inst f,d(,a) */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* d */
@@ -1294,11 +1300,11 @@ struct mne *mp;
 		} else {
 			abscheck(&e2);
 			if (e2.e_addr & ~((a_uint) 0x01)) {
-				aerr();
+				xerr('a', "Second argument: W, F or a constant of value 0 or 1.");
 				e2.e_addr &= 0x01;
 			}
 			if (t2 == S_DIR) {
-				aerr();
+				xerr('a', "Second argument: A direct address is invalid.");
 			}
 		}
 		if (more()) {
@@ -1306,7 +1312,7 @@ struct mne *mp;
 			expr(&e3, 0);	/* a */
 			abscheck(&e3);
 			if (e3.e_addr & ~((a_uint) 0x01)) {
-				aerr();
+				xerr('a', "Third argument: 0 -> 1.");
 				e3.e_addr &= 0x01;
 			}
 			if (is_abs(&e1)) {
@@ -1319,7 +1325,7 @@ struct mne *mp;
 				if (e3.e_addr == 0) {
 					if (((e1.e_addr & ~((a_uint) 0x7F)) != 0x000) &&
 					    ((e1.e_addr & ~((a_uint) 0x7F)) != 0xF80)) {
-						aerr();
+						xerr('a', "First argument: 0x00 -> 0x7F or 0xF80 -> 0xFFF.");
 					}
 				}
 			}
@@ -1363,17 +1369,17 @@ struct mne *mp;
 	case S_F:			/* inst f(,a) */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		if (more()) {
 			comma(1);
 			expr(&e2, 0);	/* a */
 			abscheck(&e2);
 			if (e2.e_addr & ~((a_uint) 0x01)) {
-				aerr();
+				xerr('a', "Second argument: 0 -> 1.");
 				e2.e_addr &= 0x01;
 			}
 			if (is_abs(&e1)) {
@@ -1386,7 +1392,7 @@ struct mne *mp;
 				if (e2.e_addr == 0) {
 					if (((e1.e_addr & ~((a_uint) 0x7F)) != 0x000) &&
 					    ((e1.e_addr & ~((a_uint) 0x7F)) != 0xF80)) {
-						aerr();
+						xerr('a', "First argument: 0x00 -> 0x7F or 0xF80 -> 0xFFF.");
 					}
 				}
 			}
@@ -1428,19 +1434,19 @@ struct mne *mp;
 	case S_FBIT:			/* inst f,b(,a) */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* b */
 		if ((t2 != S_IMMED) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be a #__ or constant.");
 		}
 		abscheck(&e2);
 		if (e2.e_addr & ~((a_uint) 0x07)) {
-			aerr();
+			xerr('a', "Second argument: Value from 0 -> 7.");
 			e2.e_addr &= 0x07;
 		}
 		if (more()) {
@@ -1448,7 +1454,7 @@ struct mne *mp;
 			expr(&e3, 0);	/* a */
 			abscheck(&e3);
 			if (e3.e_addr & ~((a_uint) 0x01)) {
-				aerr();
+				xerr('a', "Third argument: 0 -> 1.");
 				e3.e_addr &= 0x01;
 			}
 			if (is_abs(&e1)) {
@@ -1461,7 +1467,7 @@ struct mne *mp;
 				if (e3.e_addr == 0) {
 					if (((e1.e_addr & ~((a_uint) 0x7F)) != 0x000) &&
 					    ((e1.e_addr & ~((a_uint) 0x7F)) != 0xF80)) {
-						aerr();
+						xerr('a', "First argument: 0x00 -> 0x7F or 0xF80 -> 0xFFF.");
 					}
 				}
 			}
@@ -1503,7 +1509,7 @@ struct mne *mp;
 	case S_LIT:			/* inst k */
 		t1 = addr(&e1);		/* k */
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be a #__ or constant.");
 		}
 		outrwm(&e1, R_8BIT, op);
 		break;
@@ -1515,7 +1521,7 @@ struct mne *mp;
 			expr(&e2, 0);	/* s */
 			abscheck(&e2);
 			if (e2.e_addr & ~((a_uint) 0x01)) {
-				aerr();
+				xerr('a', "Second argument: 0 -> 1.");
 				e2.e_addr &= 0x01;
 			}
 		} else {
@@ -1524,13 +1530,13 @@ struct mne *mp;
 		if (pic_goto) {
 			/* Use PIC Mode for Branch */
 			if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-				aerr();
+			xerr('a', "Argument must be a #__ or constant.");
 			}
 			outr4bm(&e1, R_20BIT | R_MBRO, op + (e2.e_addr << 8) + ((a_uint) 0x0000F000 << 16));
 		} else {
 			/* Use ASxxxx Mode for Branch */
 			if (t1 != S_EXT) {
-				aerr();
+				xerr('a', "First argument must be an address.");
 			}
 			outr4bm(&e1, R_CALL, op + (e2.e_addr << 8) + ((a_uint) 0x0000F000 << 16));
 		}
@@ -1541,13 +1547,13 @@ struct mne *mp;
 		if (pic_goto) {
 			/* Use PIC Mode for Branch */
 			if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-				aerr();
+				xerr('a', "Argument must be a #__ or constant.");
 			}
 			outr4bm(&e1, R_20BIT | R_MBRO, op + ((a_uint) 0x0000F000 << 16));
 		} else {
 			/* Use ASxxxx Mode for Branch */
 			if (t1 != S_EXT) {
-				aerr();
+				xerr('a', "Argument must be an address.");
 			}
 			outr4bm(&e1, R_CALL, op + ((a_uint) 0x0000F000 << 16));
 		}
@@ -1559,19 +1565,18 @@ struct mne *mp;
 		if (pic_goto) {
 			/* Use PIC Mode for Branch */
 			if (is_abs(&e1)) {
-				v1 = e1.e_addr;
+				v1 = (int) e1.e_addr;
 				if ((v1 < -1024) || (v1 > 1023))
-					aerr();
+				xerr('a', "Branching Range Exceeded.");
 				outaw(op + (v1 & 0x7FF));
 			} else {
 				outrwm(&e1, R_SGND | R_11BIT, op);
 			}
 		} else {
 			/* Use ASxxxx Mode for Branch */
-			if (mchpcr(&e1)) {
-				v1 = e1.e_addr - dot.s_addr - 2;
+			if (mchpcr(&e1, &v1, 2)) {
 				if ((v1 < -2048) || (v1 > 2047))
-					aerr();
+					xerr('a', "Branching Range Exceeded.");
 				outaw(op + ((v1 >> 1) & 0x7FF));
 			} else {
 				outrwm(&e1, R_PCR | R_BRA, op);
@@ -1588,19 +1593,18 @@ struct mne *mp;
 		if (pic_goto) {
 			/* Use PIC Mode for Branch */
 			if (is_abs(&e1)) {
-				v1 = e1.e_addr;
+				v1 = (int) e1.e_addr;
 				if ((v1 < -128) || (v1 > 127))
-					aerr();
+					xerr('a', "Branching Range Exceeded.");
 				outaw(op + (v1 & 0xFF));
 			} else {
 				outrwm(&e1, R_SGND | R_8BIT, op);
 			}
 		} else {
 			/* Use ASxxxx Mode for Branch */
-			if (mchpcr(&e1)) {
-				v1 = e1.e_addr - dot.s_addr - 2;
+			if (mchpcr(&e1, &v1, 2)) {
 				if ((v1 < -256) || (v1 > 255))
-					aerr();
+					xerr('a', "Branching Range Exceeded.");
 				outaw(op + ((v1 >> 1) & 0xFF));
 			} else {
 				outrwm(&e1, R_PCR | R_CBRA, op);
@@ -1614,7 +1618,7 @@ struct mne *mp;
 	case S_MOVLB:			/* movlb k */
 		t1 = addr(&e1);		/* k */
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be a #__ or constant.");
 		}
 		outrwm(&e1, R_8BIT, op);
 		break;
@@ -1622,20 +1626,20 @@ struct mne *mp;
 	case S_LFSR:			/* lfsr f,k */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		abscheck(&e1);
 		if ((e1.e_addr & ~((a_uint) 0x03)) || (e1.e_addr == 3)) {
-			aerr();
+				xerr('a', "First argument: 0 -> 2.");
 			e1.e_addr = 0x00;
 		}
 		comma(1);
 		t2 = addr(&e2);		/* k */
 		if (t2 != S_IMMED) {
-			aerr();
+			xerr('a', "Second Argument must be a #__ .");
 		}
 		if (is_abs(&e2)) {
 			r_mode = R_MBRO | R_LFSR;
@@ -1648,18 +1652,18 @@ struct mne *mp;
 	case S_MOVFF:			/* movff f,f */
 		t1 = addr(&e1);		/* f */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* f */
 		if ((t2 != S_DIR) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be an address.");
 		} else
 		if (mchramchk(&e2)) {
-			aerr();
+			xerr('a', "Second argument Ram address is invalid.");
 		}
 		outrwm(&e1, R_12BIT | R_MBRO, op);
 		outrwm(&e2, R_12BIT | R_MBRO, (a_uint) 0x0000F000);
@@ -1697,7 +1701,7 @@ struct mne *mp;
 			expr(&e1, 0);   /* s */
 			abscheck(&e1);
 			if (e1.e_addr & ~((a_uint) 0x01)) {
-				aerr();
+				xerr('a', "First argument: 0 -> 1.");
 				e1.e_addr &= 0x01;
 			}
 		} else {
@@ -1715,13 +1719,13 @@ struct mne *mp;
 		expr(&e1, 0);		/* f */
 		abscheck(&e1);
 		if ((e1.e_addr & ~((a_uint) 0x03)) || (e1.e_addr == 3)) {
-			aerr();
+				xerr('a', "First argument: 0 -> 2.");
 			e1.e_addr = 0x00;
 		}
 		comma(1);
 		t2 = addr(&e2);		/* k */
 		if ((t2 != S_IMMED) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be a #__ or constant.");
 		}
 		outrwm(&e2, R_MBRO | R_6BIT, op + (e1.e_addr << 6));
 		break;
@@ -1729,10 +1733,10 @@ struct mne *mp;
 	case S_ADDULNK:			/* addulnk, subulnk */
 		t1 = addr(&e1);		/* k */
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Argument must be a #__ or constant.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "Argument Ram address is invalid.");
 		}
 		outrwm(&e1, R_MBRO | R_6BIT, op);
 		/* overide cycles table */
@@ -1746,18 +1750,18 @@ struct mne *mp;
 	case S_MOVSS:			/* movss */
 		t1 = addr(&e1);		/* Zs */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* Zd */
 		if ((t2 != S_DIR) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be an address.");
 		} else
 		if (mchramchk(&e2)) {
-			aerr();
+			xerr('a', "Second argument Ram address is invalid.");
 		}
 		outrwm(&e1, R_MBRO | R_7BIT, op);
 		outrwm(&e2, R_MBRO | R_7BIT, (a_uint) 0x0000F000);
@@ -1766,18 +1770,18 @@ struct mne *mp;
 	case S_MOVSF:			/* movfs */
 		t1 = addr(&e1);		/* Zs */
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		} else
 		if (mchramchk(&e1)) {
-			aerr();
+			xerr('a', "First argument Ram address is invalid.");
 		}
 		comma(1);
 		t2 = addr(&e2);		/* f */
 		if ((t2 != S_DIR) && (t2 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be an address.");
 		} else
 		if (mchramchk(&e2)) {
-			aerr();
+			xerr('a', "Second argument Ram address is invalid.");
 		}
 		outrwm(&e1, R_MBRO | R_7BIT, op);
 		outrwm(&e2, R_MBRO | R_12BIT, (a_uint) 0x0000F000);
@@ -1785,19 +1789,19 @@ struct mne *mp;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 
 	if (((dot.s_area->a_flag & (A_CSEG|A_DSEG)) == A_CSEG) && (dot.s_addr & (a_uint) 0x0001)) {
-		err('b');
+		xerr('b', "Odd PC Address Detected.");
 		dot.s_addr += 1;
 	}
 
 	if (opcycles == OPCY_NONE) {
-		opcycles = p20pg1[cb[0] & 0xFF];
+		opcycles = p20pg1[cb[1] & 0xFF];
 		if ((opcycles & OPCY_NONE) && (opcycles & OPCY_MASK)) {
-			opcycles = P20Page[opcycles & OPCY_MASK][cb[1] & 0xFF];
+			opcycles = P20Page[opcycles & OPCY_MASK][cb[0] & 0xFF];
 		}
 	}
 }
@@ -1807,10 +1811,28 @@ struct mne *mp;
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - n);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - n);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {

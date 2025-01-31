@@ -42,7 +42,7 @@
 	.byte	0H024			; 00 24
 	.byte	0x024			; 00 24
 	.byte	0X024			; 00 24
-	.byte	$$24			; 00 24
+	.byte	$@24			; 00 24
 
 	.db	0			; 00 00
 	.dw	0			; 00 00
@@ -73,6 +73,7 @@ word:	.word	.+2			;s00r78
 	.page
 	.sbttl	Boundary Directives
 
+	.area	bndry_1	(ABS,OVR,DSEG)
 	.org	0
 bndry_1:
 
@@ -97,6 +98,7 @@ bndry_1:
 	.page
 	.sbttl	Power of 2 Boundary Modes
 
+	.area	bndry_2	(ABS,OVR,DSEG)
 	.org	0
 
 	.even			; Address == 0
@@ -110,7 +112,6 @@ bndry_1:
 	.bndry	256		; Address == 0
 	.bndry	512		; Address == 0
 	.bndry	1024		; Address == 0
-
 
 	.org	0
 bndry_2:
@@ -162,6 +163,7 @@ bndry_2:
 
 	.page
 
+	.area	bndry_3	(ABS,OVR,DSEG)
 	.org	1
 
 	.even			; Address == 2
@@ -227,6 +229,7 @@ bndry_3:
 	.page
 	.sbttl	Non Power of 2 Boundary Modes
 
+	.area	bndry_4	(ABS,OVR,DSEG)
 	.org	0
 
 	.bndry	1		; Address == 0
@@ -234,12 +237,6 @@ bndry_3:
 	.bndry	7		; Address == 0
 	.bndry	15		; Address == 0
 	.bndry	31		; Address == 0
-	.bndry	63		; Address == 0
-	.bndry	127		; Address == 0
-	.bndry	255		; Address == 0
-	.bndry	511		; Address == 0
-	.bndry	1023		; Address == 0
-
 
 	.org	0
 bndry_4:
@@ -264,29 +261,10 @@ bndry_4:
 	.bndry	31		; Address == 0
 5$:	.word	5$ - bndry_4	; 00 00
 
-	.org	0
-	.bndry	63		; Address == 0
-6$:	.word	6$ - bndry_4	; 00 00
-
-	.org	0
-	.bndry	127		; Address == 0
-7$:	.word	7$ - bndry_4	; 00 00
-
-	.org	0
-	.bndry	255		; Address == 0
-8$:	.word	8$ - bndry_4	; 00 00
-
-	.org	0
-	.bndry	511		; Address == 0
-9$:	.word	9$ - bndry_4	; 00 00
-
-	.org	0
-	.bndry	1023		; Address == 0
-10$:	.word	10$ - bndry_4	; 00 00
-
 
 	.page
 
+	.area	bndry_5	(ABS,OVR,DSEG)
 	.org	1
 
 	.bndry	3		; Address == 3
@@ -294,11 +272,6 @@ bndry_4:
 	.bndry	9		; Address == 9
 	.bndry	17		; Address == 17
 	.bndry	33		; Address == 33
-	.bndry	65		; Address == 65
-	.bndry	129		; Address == 129
-	.bndry	257		; Address == 257
-	.bndry	513		; Address == 513
-	.bndry	1025		; Address == 1025
 
 	.org	0
 bndry_5:
@@ -323,29 +296,10 @@ bndry_5:
 	.bndry	33		; Address == 33
 5$:	.word	5$ - bndry_5	; 00 21
 
-	.org	1
-	.bndry	65		; Address == 65
-6$:	.word	6$ - bndry_5	; 00 41
-
-	.org	1
-	.bndry	129		; Address == 129
-7$:	.word	7$ - bndry_5	; 00 81
-
-	.org	1
-	.bndry	257		; Address == 257
-8$:	.word	8$ - bndry_5	; 01 01
-
-	.org	1
-	.bndry	513		; Address == 513
-9$:	.word	9$ - bndry_5	; 02 01
-
-	.org	1
-	.bndry	1025		; Address == 1025
-10$:	.word	10$ - bndry_5	; 04 01
-
 
 	.page
 
+	.area	bndry_6	(ABS,OVR,DSEG)
 	.org	47
 
 	.bndry	3		; Address == 48
@@ -358,7 +312,6 @@ bndry_5:
 	.bndry	384		; Address == 384
 	.bndry	768		; Address == 768
 	.bndry	1536		; Address == 1536
-
 
 	.org	0
 bndry_6:
@@ -406,6 +359,8 @@ bndry_6:
 
 	.page
 	.sbttl	String Directives
+
+	.area	_DATA			; Data Area
 
 	.ascii	"ab"			; 00 61 00 62
 	.asciz	"ab"			; 00 61 00 62 00 00
@@ -1342,7 +1297,7 @@ lclsym1:
 
 	cnstnt0 == 0xabcd		; global equate
 
-code0:	.word	a0			;s00r00
+code0:	.word	a00			;s00r00
 	.word	cnstnt0			; 0B CD
 
 	; Bank selected as _DSEG
@@ -1351,7 +1306,7 @@ code0:	.word	a0			;s00r00
 
 	cnstnt1 = 0x1234
 
-a0:	.word	0x00ff			; 00 FF
+a00:	.word	0x00ff			; 00 FF
 
 	; Bank selected as _DSEG
 	; Overlay and Data Segment
@@ -1359,17 +1314,17 @@ a0:	.word	0x00ff			; 00 FF
 
 	cnstnt2 = 0x5678
 
-	.word	a1			;s00r00
+	.word	a10			;s00r00
 
 	.area	AreaA
 
 	.=.+0x0020
-	.word	a2			;s00r00
+	.word	a20			;s00r00
 
 	.area	AreaB
 	.org	0x40
 
-	.word	a0,a1,a2		;s00r00s00r00s00r00
+	.word	a00,a10,a20		;s00r00s00r00s00r00
 	.word	AreaB,OVR		;s00r00s00r00
 
 abcdabcd::				; global symbol
@@ -1598,8 +1553,8 @@ A''B''C:  .byte	0x08		; 00 08
 	 .byte	''I,''I - '0	M'J'K'L
 	.endm
 
-	.macro	irpcm2	I	J,K
-	 .asciz	"'I"			K'J
+	.macro	irpcm2	I	J,K,L
+	 .asciz	"'I"			L'J'K
 	.endm
 
 	.irpc	sym	0123456789abcdef
@@ -1608,7 +1563,7 @@ A''B''C:  .byte	0x08		; 00 08
 	  .if	le,''sym - '9
 	   irpcm1	sym	\''sym, ^! 00 0!, \(''sym-'0), ^!; 00 !
 	  .else
-	   irpcm2	sym	\''sym, ^!; 00 !
+	   irpcm2	sym	\''sym, ^! 00 00!, ^!; 00 !
 	  .endif
 	 .endif
 	.endm
@@ -1691,8 +1646,8 @@ Symbol Table
   3 LESS               0000 R   |     OVR                **** GX
   3 XY                 0000 R   |   3 XYZ                0006 R
   3 XZ                 0002 R   |   3 YZ                 0004 R
-  2 a0                 0000 R   |     a1                 **** GX
-    a2                 **** GX  |   3 abcdabcd           0045 GR
+  2 a00                0000 R   |     a10                **** GX
+    a20                **** GX  |   3 abcdabcd           0045 GR
   1 bndry_1            0000 R   |   1 bndry_2            0000 R
   1 bndry_3            0000 R   |   1 bndry_4            0000 R
   1 bndry_5            0000 R   |   1 bndry_6            0000 R

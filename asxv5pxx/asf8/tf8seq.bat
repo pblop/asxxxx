@@ -1,4 +1,3 @@
-call ..\_path symantec
 asf8 -ol tf8ext.asm
 asf8 -gloaxff tf8seq.asm
 asxscn tf8seq.lst

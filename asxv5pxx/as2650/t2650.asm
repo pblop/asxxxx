@@ -340,7 +340,7 @@
 
 	halt				; 40
 	wait				; 40
-;	andz	r0			; 40
+;	andz	r0			; 40	Illegal (HALT)
 	andz	r1			; 41
 	andz	r2			; 42
 	andz	r3			; 43
@@ -709,9 +709,9 @@
 	bcfa	.lt.,BADD		; 9E 76 54
 ;	bcfa	.un.,BADD		; 9F 76 54
 
-	bxa	BADD			; 9F 76 54
-	bxa	[BADD]			; 9F F6 54
-	bxa	@BADD			; 9F F6 54
+	bxa	BADD,r3			; 9F 76 54
+	bxa	[BADD,r3]		; 9F F6 54
+	bxa	@BADD,r3		; 9F F6 54
 
 	bcfa	#DATA2 + 0,BADD		; 9C 76 54
 	bcfa	#DATA2 + 1,BADD		; 9D 76 54
@@ -868,9 +868,9 @@
 	bsfa	.lt.,BADD		; BE 76 54
 ;	bsfa	.un.,BADD		; BF 76 54
 
-	bsxa	BADD			; BF 76 54
-	bsxa	[BADD]			; BF F6 54
-	bsxa	@BADD			; BF F6 54
+	bsxa	BADD,r3			; BF 76 54
+	bsxa	[BADD,r3]		; BF F6 54
+	bsxa	@BADD,r3		; BF F6 54
 
 	bsfa	#DATA2 + 0,BADD		; BC 76 54
 	bsfa	#DATA2 + 1,BADD		; BD 76 54
@@ -900,7 +900,7 @@
 
 	.sbttl	str_ 'Sequential' Instruction Tests
 
-	strz	r0			; C0
+;	strz	r0			; C0	Illegal (NOP)
 	strz	r1			; C1
 	strz	r2			; C2
 	strz	r3			; C3
@@ -1557,7 +1557,7 @@
 
 	halt				; 40
 	wait				; 40
-;	andz	r0			; 40
+;	andz	r0			; 40	Illegal (HALT)
 	andz	r1			; 41
 	andz	r2			; 42
 	andz	r3			; 43
@@ -1926,9 +1926,9 @@
 	bcfa	.lt.,BADD		; 9Ev76u54
 ;	bcfa	.un.,BADD		; 9Fv76u54
 
-	bxa	BADD			; 9Fv76u54
-	bxa	[BADD]			; 9FvF6u54
-	bxa	@BADD			; 9FvF6u54
+	bxa	BADD,r3			; 9Fv76u54
+	bxa	[BADD,r3]		; 9FvF6u54
+	bxa	@BADD,r3		; 9FvF6u54
 
 	bcfa	#DATA2 + 0,BADD		;u9Cv76u54
 	bcfa	#DATA2 + 1,BADD		;u9Dv76u54
@@ -2085,9 +2085,9 @@
 	bsfa	.lt.,BADD		; BEv76u54
 ;	bsfa	.un.,BADD		; BFv76u54
 
-	bsxa	BADD			; BFv76u54
-	bsxa	[BADD]			; BFvF6u54
-	bsxa	@BADD			; BFvF6u54
+	bsxa	BADD,r3			; BFv76u54
+	bsxa	[BADD,r3]		; BFvF6u54
+	bsxa	@BADD,r3		; BFvF6u54
 
 	bsfa	#DATA2 + 0,BADD		;uBCv76u54
 	bsfa	#DATA2 + 1,BADD		;uBDv76u54
@@ -2117,7 +2117,7 @@
 
 	.sbttl	str_ 'Sequential' Instruction Tests
 
-	strz	r0			; C0
+;	strz	r0			; C0	Illegal (NOP)
 	strz	r1			; C1
 	strz	r2			; C2
 	strz	r3			; C3

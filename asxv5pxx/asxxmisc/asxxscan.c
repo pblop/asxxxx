@@ -1,7 +1,7 @@
 /* asxscn.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ int inpfil;		/* Input File Counter		*/
 int radix;		/* Radix Value			*/
 int a_bytes;		/* Address Bytes		*/
 int iflag;		/* Ignore Relocation Flags	*/
+int cflag;		/* Comment starts at last ';'	*/
 int vlines;		/* Valid Lines Scanned		*/
 int aserr;		/* Error Counter		*/
 
@@ -85,6 +86,12 @@ char	ccase[128] = {
 /*x*/	'\170',	'\171',	'\172',	'\173',	'\174',	'\175',	'\176',	'\177'
 };
 
+#ifdef	OTHERSYSTEM
+extern	int	blank(char *p, char *q, int n);
+#else
+extern	int	blank();
+#endif
+
 
 /*)Function	int	main(argc, argv)
  *
@@ -98,7 +105,7 @@ int argc;
 char *argv[];
 {
 	char *p, *q;
-	int c, i, n, m, r;
+	int c, i, j, n, m, k, r, x, y;
 
 	/*
 	 * Set Defaults
@@ -151,8 +158,15 @@ char *argv[];
 					iflag = 1;
 					break;
 
+				case 'c':
+				case 'C':
+					cflag = 1;
+					break;
+
 				default:
-					usage(ER_FATAL);
+					usage();
+					asexit(ER_FATAL);
+					break;
 				}
 		} else {
 			if (++inpfil > 1) {
@@ -168,8 +182,10 @@ char *argv[];
 			}
 		}
 	}
-	if (inpfil == 0)
-		usage(ER_WARNING);
+	if (inpfil == 0) {
+		usage();
+		asexit(ER_WARNING);
+	}
 
 	/*
 	 * Scan file to find assembler errors
@@ -179,7 +195,7 @@ loop:
 		chopcrlf(scline);
 		p = scline;
 
-		/* The Output Formats
+		/* The Output Formats, No Cycle Count
 		| Tabs- |       |       |       |       |       |
 		          11111111112222222222333333333344444-----
 		012345678901234567890123456789012345678901234-----
@@ -190,7 +206,7 @@ loop:
 		                     XXXX
 				   OOOOOO
 				    DDDDD
-
+		
 		| Tabs- |       |       |       |       |       |
 		          11111111112222222222333333333344444-----
 		012345678901234567890123456789012345678901234-----
@@ -201,7 +217,7 @@ loop:
 		                           XXXXXX
 					 OOOOOOOO
 					 DDDDDDDD
-
+		
 		| Tabs- |       |       |       |       |       |
 		          11111111112222222222333333333344444-----
 		012345678901234567890123456789012345678901234-----
@@ -209,6 +225,41 @@ loop:
 		ee  XXXXXXXX xx xx xx xx xx xx xx LLLLL *********	HEX(32)
 		eeOOOOO000000 ooo ooo ooo ooo ooo LLLLL *********	OCTAL(32)
 		ee DDDDDDDDDD ddd ddd ddd ddd ddd LLLLL *********	DECIMAL(32)
+		                         XXXXXXXX
+				      OOOOOOOOOOO
+				       DDDDDDDDDD
+		*/
+		
+		/* The Output Formats,  With Cycle Count [nn]
+		| Tabs- |       |       |       |       |       |
+		          11111111112222222222333333333344444-----
+		012345678901234567890123456789012345678901234-----
+		   |    |               |     | |
+		ee XXXX xx xx xx xx xx[nn]LLLLL *************	HEX(16)
+		ee 000000 ooo ooo ooo [nn]LLLLL *************	OCTAL(16)
+		ee  DDDDD ddd ddd ddd [nn]LLLLL *************	DECIMAL(16)
+		                     XXXX
+				   OOOOOO
+				    DDDDD
+		
+		| Tabs- |       |       |       |       |       |
+		          11111111112222222222333333333344444-----
+		012345678901234567890123456789012345678901234-----
+		     |       |                  |     | |
+		ee    XXXXXX xx xx xx xx xx xx[nn]LLLLL *********	HEX(24)
+		ee   OO000000 ooo ooo ooo ooo [nn]LLLLL *********	OCTAL(24)
+		ee   DDDDDDDD ddd ddd ddd ddd [nn]LLLLL *********	DECIMAL(24)
+		                           XXXXXX
+					 OOOOOOOO
+					 DDDDDDDD
+		
+		| Tabs- |       |       |       |       |       |
+		          11111111112222222222333333333344444-----
+		012345678901234567890123456789012345678901234-----
+		  |          |                  |     | |
+		ee  XXXXXXXX xx xx xx xx xx xx[nn]LLLLL *********	HEX(32)
+		eeOOOOO000000 ooo ooo ooo ooo [nn]LLLLL *********	OCTAL(32)
+		ee DDDDDDDDDD ddd ddd ddd ddd [nn]LLLLL *********	DECIMAL(32)
 		                         XXXXXXXX
 				      OOOOOOOOOOO
 				       DDDDDDDDDD
@@ -223,27 +274,27 @@ loop:
 			r = RAD16;
 			switch(a_bytes) {
 			default:
-			case 2: n = 3; m = 4; /* frmt = "%04X" */; break;
-			case 3: n = 6; m = 6; /* frmt = "%06X" */; break;
-			case 4: n = 4; m = 8; /* frmt = "%08X" */; break;
+			case 2: n = 3; m = 4; k = 6; x = 3;  /* frmt = "%04X" */; break;
+			case 3: n = 6; m = 6; k = 7; x = 3; /* frmt = "%06X" */; break;
+			case 4: n = 4; m = 8; k = 7; x = 3; /* frmt = "%08X" */; break;
 			}
 			break;
 		case 10:
 			r = RAD10;
 			switch(a_bytes) {
 			default:
-			case 2: n = 4; m = 5; /* frmt = "%05u" */; break;
-			case 3: n = 5; m = 8; /* frmt = "%08u" */; break;
-			case 4: n = 3; m = 10; /* frmt = "%010u" */; break;
+			case 2: n = 4; m = 5; k = 4; x = 4; /* frmt = "%05u" */; break;
+			case 3: n = 5; m = 8; k = 5; x = 4; /* frmt = "%08u" */; break;
+			case 4: n = 3; m = 10; k = 5; x = 4; /* frmt = "%010u" */; break;
 			}
 			break;
 		case 8:
 			r = RAD8;
 			switch(a_bytes) {
 			default:
-			case 2: n = 3; m = 6; /* frmt = "%06o" */; break;
-			case 3: n = 5; m = 8; /* frmt = "%08o" */; break;
-			case 4: n = 2; m = 11; /* frmt = "%011o" */; break;
+			case 2: n = 3; m = 6; k = 4; x = 4; /* frmt = "%06o" */; break;
+			case 3: n = 5; m = 8; k = 5; x = 4; /* frmt = "%08o" */; break;
+			case 4: n = 2; m = 11; k = 5; x = 4;  /* frmt = "%011o" */; break;
 			}
 			break;
 		}
@@ -283,10 +334,14 @@ loop:
 			goto loop;
 		}
 
-		/*
-		 * Scan for last ';'
-		 */
-		if ((q = strrchr(p, ';')) == NULL)
+		if (cflag) {
+		/* Scan for last ';' */
+			q = strrchr(p, ';');
+		} else {
+		/* Scan for first ';' */
+			q = strchr(p, ';');
+		}
+		if (q == NULL)
 			goto loop;
 		if (*q++ != ';')
 			goto loop;
@@ -295,19 +350,35 @@ loop:
 		vlines += 1;
 
 		/*
+		 * Reduce Field Count When
+		 * Cycle Count Is Present
+		 */
+		switch(a_bytes) {
+		default:
+		case 2: if (scline[22] == '[') { k -= 1; }	break;
+		case 3:
+		case 4: if (scline[30] == '[') { k -= 1; }	break;
+		}
+
+		/*
 		 * Check Mode of Listing:
 		 *	;nn nn
 		 * or	; nn nn
 		 */
+		y = x;
 		if (dgt(r, q, 1)) {
 			p += 1;
+			y -= 1;
 		}
 
 		/*
-		 * Compare Data Strings
+		 * Compare First Number Field
 		 */
-		n = strlen(q);
-		for (i=0; i<n; i++) {
+		if (blank(p, q, 2)) {
+			/* Terminate On An Emtpy Field */
+			goto loop;
+		}
+		for (j=0; j<y; j++) { /* y Characters Per Field */
 			if (ccase[*p & 0x007F] != ccase[*q & 0x007F]) {
 				switch (dgt(r, p, 1) + dgt(r, q, 1)) {
 				default:
@@ -320,18 +391,90 @@ loop:
 					goto loop;
 				}
 			}
-			p++;
-			q++;
+			p += *p ? 1 : 0;
+			q += *q ? 1 : 0;
+		}
+		/*
+		 * Compare Remaining Number Fields
+		 */
+		for (i=0; i<(k-1); i++) {	/* k Number Fields */
+			if (blank(p, q, 3)) {
+				/* Terminate On An Emtpy Field */
+				goto loop;
+			}
+			for (j=0; j<x; j++) { /* x Characters Per Field */
+				if (ccase[*p & 0x007F] != ccase[*q & 0x007F]) {
+					switch (dgt(r, p, 1) + dgt(r, q, 1)) {
+					default:
+					case 0:
+					case 1:
+						if (iflag) { break; }
+					case 2:
+						printf("''%s''\r\n", scline);
+						aserr += 1;
+						goto loop;
+					}
+				}
+				p += *p ? 1 : 0;
+				q += *q ? 1 : 0;
+			}
 		}
 	}
 	if (vlines) {
-		printf("%d code error(s) found in file %s\n\n", aserr, scfile);
+		printf("%d code difference(s) found in file %s\n\n", aserr, scfile);
 	} else {
 		printf("?ASXSCN-E-Invalid File Format\n\n");
 		aserr += 1;
 	}
 	asexit(aserr ? ER_ERROR : ER_NONE);
 	return(0);
+}
+
+/*)Function	int	blank(p,q,n)
+ *
+ *		char	*p		assembler code pointer
+ *		char	*q		expected code pointer
+ *		int	n		number of characters to check
+ *
+ *	The function blank() verifies that both the assembled code
+ *	and the expected code fields are blank.  Returns (1) if
+ *	the fields are blank or (0) if not.
+ *
+ *	local variables:
+ *		int	i		loop counter
+ *		int	j		blank character counter
+ *
+ *	functions called:
+ *		none
+ *
+ *	side effects:
+ *		none
+ */
+
+int
+blank(p, q, n)
+char *p, *q;
+int n;
+{
+	int i, j;
+
+	/*
+	j = -1;
+	if (*(p+1) == ' ') {
+		j += 1;
+	}
+	*/
+	for (i=0,j=0; i<n; i++) {
+		if ((*p == 0) || (*p == ' ') || (*p == '\t')) {
+			j += 1;
+		}
+		p += ((*p == 0) || (*p == '\t')) ? 0 : 1;
+		if ((*q == 0) || (*q == ' ') || (*q == '\t')) {
+			j += 1;
+		}
+		q += ((*q == 0) || (*q == '\t')) ? 0 : 1;
+	}
+	return((n + n - j) ? 0 : 1);
 }
 
 /*)Function	int	dgt(rdx,str,n)
@@ -341,7 +484,8 @@ loop:
  *		int	n		number of characters to check
  *
  *	The function dgt() verifies that the string under test
- *	is of the specified radix.
+ *	is of the specified radix.  Returns (1) if true and
+ *	(0) if false.
  *
  *	local variables:
  *		int	i		loop counter
@@ -463,16 +607,15 @@ char *usetxt[] = {
 	"  3    24-Bit  address",
 	"  4    32-Bit  address",
 	"  i    ignore relocation flags",
+	"  c    comment starts at last ';'",
 	"",
 	NULL
 };
 
-/*)Function	VOID	usage(n)
- *
- *		int	n		exit code
+/*)Function	VOID	usage()
  *
  *	The function usage() outputs to the stderr device the
- *	program name and version and a list of valid assembler options.
+ *	program name and version and a list of valid program options.
  *
  *	local variables:
  *		char **	dp		pointer to an array of
@@ -482,7 +625,6 @@ char *usetxt[] = {
  *		char *	usetxt[]	array of string pointers
  *
  *	functions called:
- *		VOID	asexit()	asmain.c
  *		int	fprintf()	c_library
  *
  *	side effects:
@@ -490,16 +632,15 @@ char *usetxt[] = {
  */
 
 VOID
-usage(n)
-int n;
+usage()
 {
 	char **dp;
 
 	fprintf(stderr, "\nASxxxx Assembler Listing Scanner %s", VERSION);
-	fprintf(stderr, "\nCopyright (C) 2009  Alan R. Baldwin");
+	fprintf(stderr, "\nCopyright (C) %s  Alan R. Baldwin", COPYRIGHT);
 	fprintf(stderr, "\nThis program comes with ABSOLUTELY NO WARRANTY.\n\n");
-	for (dp = usetxt; *dp; dp++)
+	for (dp = usetxt; *dp; dp++) {
 		fprintf(stderr, "%s\n", *dp);
-	asexit(n);
+	}
 }
 

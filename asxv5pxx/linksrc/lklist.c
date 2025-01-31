@@ -1,7 +1,7 @@
 /* lklist.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,12 @@
  *
  */
 
+/*
+ * Internal Debug Values
+ */
+#define	LNK_DEBUG	0
+#define	HLR_DEBUG	0
+
 #include "aslink.h"
 
 /*)Module	lklist.c
@@ -32,18 +38,21 @@
  *	listing .rst file.
  *
  *	lklist.c contains the following functions:
- *		int	dgt()
- *		VOID	gethlr()
  *		VOID	newpag()
  *		VOID	slew()
+ *		int	dgt()
  *		VOID	lstarea()
- *		VOID	lkulist()
- *		VOID	lkalist()
- *		VOID	lkglist()
- *		VOID	hlralist()
- *		VOID	hlrglist()
  *
- *	lklist.c contains no local variables.
+ *		VOID	lkulist()
+ *		VOID	lklist()
+ *		VOID	lkalist()
+ *		VOID	getlst()
+ *
+ *		VOID	hlrlist()
+ *		VOID	hlralist()
+ *		VOID	hlrclist()
+ *		VOID	hlrelist()
+ *		VOID	gethlr()
  */
 
 /*)Function	VOID	newpag(fp)
@@ -81,23 +90,22 @@ FILE *fp;
 	char *frmt;
 	char np[80];
 	char tp[80];
+	int n;
+
 	/*
 	 *12345678901234567890123456789012345678901234567890123456789012345678901234567890
 	 *ASxxxx Linker Vxx.xx                                                    Page 1
 	 */
+	sprintf(tp, "ASxxxx Linker %-64s", VERSION);
+	sprintf(np, "Page %u", ++page);
  	/*
-	 * Total newpag() string length is 78 characters.
+	 * Total string length is 78 characters.
 	 */
-	sprintf(np, "ASxxxx Linker %-64s", VERSION);
-	/*
-	 * Right justify page number in string.
-	 */
-	sprintf(tp, "Page %u", ++page);
-	strncpy(&np[strlen(np) - strlen(tp)], tp, strlen(tp));
+	n = 78 - strlen(np) - strlen(tp);
 	/*
 	 * Output string.
 	 */
-	fprintf(fp, "\f%s\n", np);
+	fprintf(fp, "\f%s%*s%s\n", tp, n, " " ,np);
 	/*
 	 *12345678901234567890123456789012345678901234567890123456789012345678901234567890
 	 *Hexadecimal [16-Bits]                                 Sun Sep 15 17:22:25 2013
@@ -112,15 +120,15 @@ FILE *fp;
 	case 2:	frmt = "Decimal [%d-Bits]"; break;
 	}
 	sprintf(tp, frmt, 8 * a_bytes);
-	sprintf(np, "%-78s", tp);
+	sprintf(np, "%.24s", ctime(&curtim));
 	/*
-	 * Right justify current time in string.
+	 * Total string length is 78 characters.
 	 */
-	strncpy(&np[strlen(np) - 24], ctime(&curtim), 24);
+	n = 78 - strlen(np) - strlen(tp);
 	/*
 	 * Output string.
 	 */
-	fprintf(fp, "%s\n", np);
+	fprintf(fp, "%s%*s%s\n", tp, n, " ", np);
 	lop = 3;
 }
 
@@ -421,8 +429,9 @@ struct bank *yp;
 		for (i=0; i<NHASH; i++) {
 			sp = symhash[i];
 			while (sp != NULL) {
-				if (oxp == sp->s_axp)
+				if ((oxp == sp->s_axp) && !sp->s_flag) {
 					++nmsym;
+				}
 				sp = sp->s_sp;
 			}
 		}
@@ -454,7 +463,7 @@ struct bank *yp;
 		for (i=0; i<NHASH; i++) {
 			sp = symhash[i];
 			while (sp != NULL) {
-				if (oxp == sp->s_axp) {
+				if ((oxp == sp->s_axp) && !sp->s_flag) {
 					p[nmsym++] = sp;
 				}
 				sp = sp->s_sp;
@@ -625,177 +634,31 @@ struct bank *yp;
 	free(p);
 }
 
-/*)Function	VOID	lkulist(i)
- *
- *		int	i	i # 0	process LST to RST file
- *				i = 0	copy remainder of LST file
- *					to RST file and close files
- *
- *	The function lkulist() creates a relocated listing (.rst)
- *	output file from the ASxxxx assembler listing (.lst)
- *	files.  The .lst file's program address and code bytes
- *	are changed to reflect the changes made by ASlink as
- *	the .rel files are combined into a single relocated
- *	output file.
- *
- *	local variables:
- *		a_uint	cpc		current program counter address in PC increments
- *		int	cbytes		bytes so far in T line
- *
- *	global variables:
- *		int	a_bytes		T Line Address Bytes
- *		int	hilo		byte order
- *		int	gline		get a line from the LST file
- *					to translate for the RST file
- *		a_uint	pc		current program counter address in bytes
- *		char	rb[]		read listing file text line
- *		FILE	*rfp		The file handle to the current
- *					output RST file
- *		int	rtcnt		count of data words
- *		int	rtflg[]		output the data flag
- *		a_uint	rtval[]		relocated data
- *		FILE	*tfp		The file handle to the current
- *					LST file being scanned
- *
- *	functions called:
- *		a_uint	adb_xb()	lkrloc.c
- *		int	fclose()	c_library
- *		int	fgets()		c_library
- *		int	fprintf()	c_library
- *		VOID	lkalist()	lklist.c
- *		VOID	lkglist()	lklist.c
- *		VOID	hlralist()	lklist.c
- *		VOID	hlrglist()	lklist.c
- *
- *	side effects:
- *		A .rst file is created for each available .lst
- *		file associated with a .rel file.
- */
+/*) Function	lsterr(err)
+*/
 
 VOID
-lkulist(i)
-int i;
+lsterr(err)
+int err;
 {
-	a_uint cpc;
-	int cbytes;
-
 	/*
-	 * Exit if listing file is not open
+	 * Output an error line if required
 	 */
-	if (tfp == NULL)
-		return;
+	if (err) {
+		switch(ASxxxx_VERSION) {
+		case 3:
+			fprintf(rfp, "?ASlink-Warning-%s\n", errmsg3[err]);
+			break;
 
-	/*
-	 * Normal processing of LST to RST
-	 */
-	if (i) {
-		/*
-		 * Line with only address
-		 */	
-		if (rtcnt == a_bytes) {
-			if (hfp == NULL) {
-				lkalist(pc);
-			} else {
-				hlralist(pc);
-			}
-		/*
-		 * Line with code bytes
-		 */
-		} else {
-			cpc = pc;
-			cbytes = 0;
-			for (i=a_bytes; i < rtcnt; i++) {
-				if (rtflg[i]) {
-					if (hfp == NULL) {
-						lkglist(cpc, (int) (rtval[i] & 0xFF), rterr[i]);
-					} else {
-						hlrglist(cpc, (int) (rtval[i] & 0xFF), rterr[i]);
-					}
-					cbytes += 1;
-					cpc += (cbytes % pcb) ? 0 : 1;
-				}
-			}
-		}
-	/*
-	 * Copy remainder of LST to RST
-	 */
-	} else {
-		if (gline == 0)
-			fprintf(rfp, "%s", rb);
+		case 4:
+			fprintf(rfp, "?ASlink-Warning-%s\n", errmsg4[err]);
+			break;
 
-		if (hfp) {
-			for (gethlr(1); hfp; gethlr(1)) {
-				if (listing & NLIST) {
-					continue;
-				}
-				for (i=0; getlst(1); i=0) {
-					if ((lmode == ELIST) && (listing & LIST_EQT)) {
-						i = hlrelist();
-					}
-					fprintf(rfp, "%s", rb);
-					if (i == 0) {
-						break;
-					}
-				}
-			}
+		default:
+			break;
 		}
-		while (fgets(rb, sizeof(rb)-2, tfp) != 0) {
-			fprintf(rfp, "%s", rb);
-		}
-		fclose(tfp);
-		tfp = NULL;
-		fclose(rfp);
-		rfp = NULL;
 	}
 }
-
-/*)Function	VOID	lkalist(cpc)
- *
- *		int	cpc		current program counter value
- *
- *	The function lkalist() performs the following functions:
- *
- *	(1)	if the value of gline = 0 then the current listing
- *		file line is copied to the relocated listing file output.
- *
- *	(2)	the listing file is read line by line and copied to
- *		the relocated listing file until a valid source
- *		line number and a program counter value of the correct
- *		radix is found.  The new relocated pc value is substituted
- *		and the line is written to the RST file.
- *
- *	local variables:
- *		int	i		loop counter
- *		int	m		character count
- *		int	n		character index
- *		int	q		character index
- *		int	r		character radix
- *		char *	frmt		temporary format specifier
- *		char	str[]		temporary string
- *
- *	global variables:
- *		int	gline		get a line from the LST file
- *					to translate for the RST file
- *		char	rb[]		read listing file text line
- *		char	*rp		pointer to listing file text line
- *		FILE	*rfp		The file handle to the current
- *					output RST file
- *		FILE	*tfp		The file handle to the current
- *					LST file being scanned
- *
- *	functions called:
- *		int	dgt()		lklist.c
- *		int	fclose()	c_library
- *		int	fgets()		c_library
- *		int	fprintf()	c_library
- *		int	sprintf()	c_library
- *		char *	strncpy()	c_library
- *
- *	side effects:
- *		Lines of the LST file are copied to the RST file,
- *		the last line copied has the code address
- *		updated to reflect the program relocation.
- */
 
 /* The Output Formats,  No Cycle Count
 | Tabs- |       |       |       |       |       |
@@ -867,6 +730,199 @@ ee DDDDDDDDDD ddd ddd ddd ddd [nn]LLLLL *********	DECIMAL(32)
 		       DDDDDDDDDD
 */
 
+/*)Function	VOID	lkulist(i)
+ *
+ *		int	i	i # 0	process LST to RST file
+ *				i = 0	copy remainder of LST file
+ *					to RST file and close files
+ *
+ *	The function lkulist() creates a relocated listing (.rst)
+ *	output file from the ASxxxx assembler listing (.lst)
+ *	files.  The .lst file's program address and code bytes
+ *	are changed to reflect the changes made by ASlink as
+ *	the .rel files are combined into a single relocated
+ *	output file.
+ *
+ *	local variables:
+ *		a_uint	cpc		current program counter address in PC increments
+ *		int	cbytes		bytes so far in T line
+ *
+ *	global variables:
+ *		int	a_bytes		T Line Address Bytes
+ *		int	hilo		byte order
+ *		int	gline		get a line from the LST file
+ *					to translate for the RST file
+ *		a_uint	pc		current program counter address in bytes
+ *		char	rb[]		read listing file text line
+ *		FILE	*rfp		The file handle to the current
+ *					output RST file
+ *		int	rtcnt		count of data words
+ *		int	rtflg[]		output the data flag
+ *		a_uint	rtval[]		relocated data
+ *		FILE	*tfp		The file handle to the current
+ *					LST file being scanned
+ *
+ *	functions called:
+ *		a_uint	adb_xb()	lkrloc.c
+ *		int	fclose()	c_library
+ *		int	fprintf()	c_library
+ *		VOID	lkalist()	lklist.c
+ *		VOID	lklist()	lklist.c
+ *		VOID	hlralist()	lklist.c
+ *		VOID	hlrglist()	lklist.c
+ *
+ *	side effects:
+ *		A .rst file is created for each available .lst
+ *		file associated with a .rel file.
+ */
+
+VOID
+lkulist(i)
+int i;
+{
+	a_uint cpc;
+	int cbytes;
+
+	/*
+	 * Exit if listing file is not open
+	 */
+	if (tfp == NULL)
+		return;
+
+#if LNK_DEBUG || HLR_DEBUG
+	fprintf(stdout, "lkulist: rtcnt = %d\n", rtcnt);
+#endif
+
+	/*
+	 * Normal processing of LST to RST
+	 */
+	if (i) {
+		if (rtcnt == 0)
+			return;
+		/*
+		 * Line with only address
+		 */	
+		if (rtcnt == a_bytes) {
+			cpc = pc;
+			if (hfp == NULL) {
+				lkalist(cpc);
+			} else {
+				hlrlist(cpc, 0, 0);
+			}
+#if LNK_DEBUG || HLR_DEBUG
+			if (hfp == NULL) {
+				fprintf(stdout, "lkulist(A,B): lkalist");
+			} else {
+				fprintf(stdout, "lkulist(A,B): hlrlist");
+			}
+			fprintf(stdout, "(cpc=0x%02X, v=0, err=0)\n", cpc);
+#endif
+		/*
+		 * Line with code bytes
+		 */
+		} else {
+			cpc = pc;
+			cbytes = 0;
+			for (i=a_bytes; i < rtcnt; i++) {
+				if (rtflg[i]) {
+					if (hfp == NULL) {
+						lklist(cpc, (int) (rtval[i] & 0xFF), rterr[i]);
+					} else {
+						hlrlist(cpc, (int) (rtval[i] & 0xFF), rterr[i]);
+					}
+#if LNK_DEBUG || HLR_DEBUG
+					if (hfp == NULL) {
+						fprintf(stdout, "lkulist(N,S,C,E): lklist");
+					} else {
+						fprintf(stdout, "lkulist(N,S,C,E): hlrlist");
+					}
+					fprintf(stdout, "(cpc=0x%02X, rtval[%d]=%02X, rterr[%d]=%d)\n", cpc, i, rtval[i], i, rterr[i]);
+#endif
+					cbytes += 1;
+					cpc += (cbytes % pcb) ? 0 : 1;
+				}
+			}
+		}
+	/*
+	 * Copy remainder of LST to RST
+	 */
+	} else {
+		if (gline == 0)
+			fprintf(rfp, "%s", rb);
+
+		while (gethlr(1)) {
+			if (listing & NLIST) {
+				continue;
+			}
+			if (getlst(1)) {
+				if ((lmode == ELIST) && (listing & LIST_EQT)) {
+					hlrelist();
+				}
+				fprintf(rfp, "%s", rb);
+			}
+		}
+		while (getlst(1)) {
+			fprintf(rfp, "%s", rb);
+		}
+		if (tfp != NULL) {
+			fclose(tfp);
+			tfp = NULL;
+		}
+		if (rfp != NULL) {
+			fclose(rfp);
+			rfp = NULL;
+		}
+	}
+}
+
+/*)Function	VOID	lkalist(cpc)
+ *
+ *		int	cpc		current program counter value
+ *
+ *	The function lkalist() performs the following functions:
+ *
+ *	(1)	if the value of gline = 0 then the current listing
+ *		file line is copied to the relocated listing file output.
+ *
+ *	(2)	the listing file is read line by line and copied to
+ *		the relocated listing file until a valid source
+ *		line number and a program counter value of the correct
+ *		radix is found.  The new relocated pc value is substituted
+ *		and the line is written to the RST file.
+ *
+ *	local variables:
+ *		int	i		loop counter
+ *		int	m		character count
+ *		int	n		character index
+ *		int	q		character index
+ *		int	r		character radix
+ *		char *	frmt		temporary format specifier
+ *		char	str[]		temporary string
+ *
+ *	global variables:
+ *		int	gline		get a line from the LST file
+ *					to translate for the RST file
+ *		char	rb[]		read listing file text line
+ *		char	*rp		pointer to listing file text line
+ *		FILE	*rfp		The file handle to the current
+ *					output RST file
+ *		FILE	*tfp		The file handle to the current
+ *					LST file being scanned
+ *
+ *	functions called:
+ *		int	dgt()		lklist.c
+ *		int	fclose()	c_library
+ *		int	fprintf()	c_library
+ *		int	sprintf()	c_library
+ *		char *	strncpy()	c_library
+ *
+ *	side effects:
+ *		Lines of the LST file are copied to the RST file,
+ *		the last line copied has the code address
+ *		updated to reflect the program relocation.
+ */
+
+
 VOID
 lkalist(cpc)
 a_uint cpc;
@@ -896,7 +952,9 @@ a_uint cpc;
 	/*
 	 * Get next LST text line
 	 */
-loop:	getlst(1);
+loop:	if (getlst(1) == 0) {
+		return;
+	}
 
 	/*
 	 * Must have an address in the expected radix
@@ -977,7 +1035,9 @@ loop:	getlst(1);
 		}
 	}
 	sprintf(str, frmt, cpc);
-	strncpy(&rb[n], str, m);
+	/* With GCC [-Wstringop-truncation] ? */
+	/* strncpy(&rb[n], str, m); */
+	memcpy(&rb[n], str, m);
 
 	/*
 	 * Copy updated LST text line to RST
@@ -985,13 +1045,13 @@ loop:	getlst(1);
 	fprintf(rfp, "%s", rb);
 }
 
-/*)Function	VOID	lkglist(cpc,v,err)
+/*)Function	VOID	lklist(cpc,v,err)
  *
  *		int	cpc		current program counter value
  *		int 	v		value of byte at this address
  *		int	err		error flag for this value
  *
- *	The function lkglist() performs the following functions:
+ *	The function lklist() performs the following functions:
  *
  *	(1)	if the value of gline = 1 then the listing file
  *		is read line by line and copied to the
@@ -1030,7 +1090,6 @@ loop:	getlst(1);
  *	functions called:
  *		int	dgt()		lklist.c
  *		int	fclose()	c_library
- *		int	fgets()		c_library
  *		int	fprintf()	c_library
  *		int	sprintf()	c_library
  *		char *	strncpy()	c_library
@@ -1040,78 +1099,8 @@ loop:	getlst(1);
  *		with updated data values and code addresses.
  */
 
-/* The Output Formats, No Cycle Count
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-   |    |               |     | |
-ee XXXX xx xx xx xx xx xx LLLLL *************	HEX(16)
-ee 000000 ooo ooo ooo ooo LLLLL *************	OCTAL(16)
-ee  DDDDD ddd ddd ddd ddd LLLLL *************	DECIMAL(16)
-                     XXXX
-		   OOOOOO
-		    DDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-     |       |                  |     | |
-ee    XXXXXX xx xx xx xx xx xx xx LLLLL *********	HEX(24)
-ee   OO000000 ooo ooo ooo ooo ooo LLLLL *********	OCTAL(24)
-ee   DDDDDDDD ddd ddd ddd ddd ddd LLLLL *********	DECIMAL(24)
-                           XXXXXX
-			 OOOOOOOO
-			 DDDDDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-  |          |                  |     | |
-ee  XXXXXXXX xx xx xx xx xx xx xx LLLLL *********	HEX(32)
-eeOOOOO000000 ooo ooo ooo ooo ooo LLLLL *********	OCTAL(32)
-ee DDDDDDDDDD ddd ddd ddd ddd ddd LLLLL *********	DECIMAL(32)
-                         XXXXXXXX
-		      OOOOOOOOOOO
-		       DDDDDDDDDD
-*/
-
-/* The Output Formats,  With Cycle Count [nn]
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-   |    |               |     | |
-ee XXXX xx xx xx xx xx[nn]LLLLL *************	HEX(16)
-ee 000000 ooo ooo ooo [nn]LLLLL *************	OCTAL(16)
-ee  DDDDD ddd ddd ddd [nn]LLLLL *************	DECIMAL(16)
-                     XXXX
-		   OOOOOO
-		    DDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-     |       |                  |     | |
-ee    XXXXXX xx xx xx xx xx xx[nn]LLLLL *********	HEX(24)
-ee   OO000000 ooo ooo ooo ooo [nn]LLLLL *********	OCTAL(24)
-ee   DDDDDDDD ddd ddd ddd ddd [nn]LLLLL *********	DECIMAL(24)
-                           XXXXXX
-			 OOOOOOOO
-			 DDDDDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-  |          |                  |     | |
-ee  XXXXXXXX xx xx xx xx xx xx[nn]LLLLL *********	HEX(32)
-eeOOOOO000000 ooo ooo ooo ooo [nn]LLLLL *********	OCTAL(32)
-ee DDDDDDDDDD ddd ddd ddd ddd [nn]LLLLL *********	DECIMAL(32)
-                         XXXXXXXX
-		      OOOOOOOOOOO
-		       DDDDDDDDDD
-*/
-
 VOID
-lkglist(cpc,v,err)
+lklist(cpc,v,err)
 a_uint cpc;
 int v;
 int err;
@@ -1135,7 +1124,9 @@ int err;
 	 * Get next LST text line
 	 */
 loop:	if (gline) {
-		getlst(0);
+		if (getlst(0) == 0) {
+			return;
+		}
 	}
 
 	/*
@@ -1222,7 +1213,9 @@ loop:	if (gline) {
 	 * Output new data value, overwrite relocation codes
 	 */
 	sprintf(str, frmt, v);
-	strncpy(rp-1, str, s);
+	/* With GCC 10.2.0 [-Wstringop-truncation] ? */
+	/*strncpy(rp-1, str, s); */
+	memcpy(rp-1, str, s);
 
 	/*
 	 * Output relocated code address
@@ -1230,7 +1223,9 @@ loop:	if (gline) {
 	if (gcntr == 0) {
 		if (dgt(r, &rb[n], m)) {
 			sprintf(str, afrmt, cpc);
-			strncpy(&rb[n], str, m);
+			/* With GCC 10.2.0 [-Wstringop-truncation] ? */
+			/* strncpy(&rb[n], str, m); */
+			memcpy(&rb[n], str, m);
 		}
 	}
 
@@ -1266,19 +1261,15 @@ loop:	if (gline) {
 	}
 }
 
-/*)Function	VOID	getlst(ngline)
+/*)Function	int	getlst(ngline)
  *
  *		int	ngline		set gline to this value
  *
- *	If a file having the same name as the list file but with the
- *	extension .hlr exists then the function gethlr() reads a line
- *	from the .hlr file.  Each line contains the line number of the
- *	assembled line, the listed parameters in the line, the assembler
- *	mode, and the number of bytes output from this assembled line.
- *	If the file does not exist then the previous .lst to .rst conversion
- *	routines are used.  These routines 'REQUIRE' that the assembler
- *	always outputs the address and all byte values in the .lst file.
- *	This is accomplished by enabling LOC, BIN, and MEB during assembly.
+ *	This routine is part of the .lst to .rst conversion option.
+ *
+ *	Read the next line from the .lst file into the rb[]
+ *	line buffer.  At end of .lst file close the .lst and
+ *	.rst files.
  *
  *	local variables:
  *		int	i		repeat counter
@@ -1307,6 +1298,11 @@ int ngline;
 	int i;
 
 	/*
+	 * Set parameters
+	 */
+	gline = ngline;
+	gcntr = 0;
+	/*
 	 * Clear text line buffer
 	 */
 	for (i=0,rp=rb; i<sizeof(rb); i++) {
@@ -1316,282 +1312,26 @@ int ngline;
 	/*
 	 * Get next LST text line
 	 */
-	if (fgets(rb, sizeof(rb)-2, tfp) == NULL) {
-		fclose(tfp);
-		tfp = NULL;
-		fclose(rfp);
-		rfp = NULL;
+	if (tfp != NULL) {
+		if (fgets(rb, sizeof(rb), tfp) == NULL) {
+			fclose(tfp);
+			tfp = NULL;
+			fclose(rfp);
+			rfp = NULL;
+		}
 	}
-	gline = ngline;
-	gcntr = 0;
 	return(tfp ? 1 : 0);
 }
 
-/*)Function	VOID	hlralist(cpc)
- *
- *		int	cpc		current program counter value
- *
- *	The function hlralist() performs the following function:
- *
- *	(1)	If the value of gline = 0 then the current listing
- *		file line is copied to the relocated listing file output.
- *
- *	(2)	The LRT hint and LST files are read until
- *		an ALIST or BLIST line is found.
- *
- *	(3)	If the ALIST or BLIST line is NOT listed the function
- *		returns else the LST line will be updated with the
- *		the new relocated pc value if the location was output
- *		to the LST file.
- *
- *	(4)	The updated line is written to the RST file.
- *
- *	local variables:
- *		int	i		loop counter
- *		int	m		character count
- *		int	n		character index
- *		char *	afrmt		address format specifier
- *		char	str[]		temporary string
- *
- *	global variables:
- *		int	bytcnt		number of bytes output on this line
- *		int	gline		get a line from the LST file
- *					to translate for the RST file
- *		int	hline		get a line from the LRT file
- *					to get hints for the translation
- *		int	listing		encoded bits for an assembled line
- *		int	lmode		the assembler line mode
- *		char	rb[]		read listing file text line
- *		char	*rp		pointer to listing file text line
- *		FILE	*rfp		The file handle to the current
- *					output RST file
- *		FILE	*tfp		The file handle to the current
- *					LST file being scanned
- *		FILE	*hfp		The file handle to the current
- *					LRT file being scanned
- *
- *	functions called:
- *		int	dgt()		lklist.c
- *		int	fclose()	c_library
- *		int	fgets()		c_library
- *		int	fprintf()	c_library
- *		VOID	gethlr()	lklist.c
- *		int	sprintf()	c_library
- *		char *	strncpy()	c_library
- *
- *	side effects:
- *		Lines of the LST file are copied to the RST file,
- *		the last line copied has the code address
- *		updated to reflect the program relocation.
- */
-
-/* The Output Formats,  No Cycle Count
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-   |    |               |     | |
-ee XXXX xx xx xx xx xx xx LLLLL *************	HEX(16)
-ee 000000 ooo ooo ooo ooo LLLLL *************	OCTAL(16)
-ee  DDDDD ddd ddd ddd ddd LLLLL *************	DECIMAL(16)
-                     XXXX
-		   OOOOOO
-		    DDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-     |       |                  |     | |
-ee    XXXXXX xx xx xx xx xx xx xx LLLLL *********	HEX(24)
-ee   OO000000 ooo ooo ooo ooo ooo LLLLL *********	OCTAL(24)
-ee   DDDDDDDD ddd ddd ddd ddd ddd LLLLL *********	DECIMAL(24)
-                           XXXXXX
-			 OOOOOOOO
-			 DDDDDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-  |          |                  |     | |
-ee  XXXXXXXX xx xx xx xx xx xx xx LLLLL *********	HEX(32)
-eeOOOOO000000 ooo ooo ooo ooo ooo LLLLL *********	OCTAL(32)
-ee DDDDDDDDDD ddd ddd ddd ddd ddd LLLLL *********	DECIMAL(32)
-                         XXXXXXXX
-		      OOOOOOOOOOO
-		       DDDDDDDDDD
-*/
-
-/* The Output Formats,  With Cycle Count [nn]
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-   |    |               |     | |
-ee XXXX xx xx xx xx xx[nn]LLLLL *************	HEX(16)
-ee 000000 ooo ooo ooo [nn]LLLLL *************	OCTAL(16)
-ee  DDDDD ddd ddd ddd [nn]LLLLL *************	DECIMAL(16)
-                     XXXX
-		   OOOOOO
-		    DDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-     |       |                  |     | |
-ee    XXXXXX xx xx xx xx xx xx[nn]LLLLL *********	HEX(24)
-ee   OO000000 ooo ooo ooo ooo [nn]LLLLL *********	OCTAL(24)
-ee   DDDDDDDD ddd ddd ddd ddd [nn]LLLLL *********	DECIMAL(24)
-                           XXXXXX
-			 OOOOOOOO
-			 DDDDDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-  |          |                  |     | |
-ee  XXXXXXXX xx xx xx xx xx xx[nn]LLLLL *********	HEX(32)
-eeOOOOO000000 ooo ooo ooo ooo [nn]LLLLL *********	OCTAL(32)
-ee DDDDDDDDDD ddd ddd ddd ddd [nn]LLLLL *********	DECIMAL(32)
-                         XXXXXXXX
-		      OOOOOOOOOOO
-		       DDDDDDDDDD
-*/
-
-VOID
-hlralist(cpc)
-a_uint cpc;
-{
-	char str[16];
-	char *afrmt;
-	int m, n;
-
-	/*
-	 * Exit if listing file is not open
-	 */
-	if (tfp == NULL)
-		return;
-
-	/*
-	 * Truncate (int) to N-Bytes
-	 */
-	cpc &= a_mask;
-
-	/*
-	 * Cleanup
-	 */
-	if (gline == 0) {
-		fprintf(rfp, "%s", rb);
-	}
-	gline = 1;
-	hline = 1;
-
-	/*
-	 * Get Listing Hints
-	 */
-loop:	gethlr(1);
-
-	if (listing & LIST_NLST) {
-		if ((lmode == ALIST) || (lmode == BLIST)) {
-			return;
-		} else {
-			goto loop;
-		}
-	}
-
-	/*
-	 * Get next LST text line
-	 */
-	getlst(1);
-
-	if (lmode == ELIST) {
-		if (listing & LIST_EQT) {
-			hlrelist();
-		}
-	}
-
-	if ((lmode != ALIST) && (lmode != BLIST)) {
-		fprintf(rfp, "%s", rb);
-		goto loop;
-	}
-
-	if (listing & LIST_LOC) {
-		/*
-		 * Character positions and address format.
-		 */
-#ifdef	LONGINT
-		switch(radix) {
-		default:
-		case 16:
-			switch(a_bytes) {
-			default:
-			case 2: n = 3; m = 4; afrmt = "%04lX"; break;
-			case 3: n = 6; m = 6; afrmt = "%06lX"; break;
-			case 4: n = 4; m = 8; afrmt = "%08lX"; break;
-			}
-			break;
-		case 10:
-			switch(a_bytes) {
-			default:
-			case 2: n = 4; m = 5; afrmt = "%05lu"; break;
-			case 3: n = 5; m = 8; afrmt = "%08lu"; break;
-			case 4: n = 3; m = 10; afrmt = "%010lu"; break;
-			}
-			break;
-		case 8:
-			switch(a_bytes) {
-			default:
-			case 2: n = 3; m = 6; afrmt = "%06lo"; break;
-			case 3: n = 5; m = 8; afrmt = "%08lo"; break;
-			case 4: n = 2; m = 11; afrmt = "%011lo"; break;
-			}
-			break;
-		}
-#else
-		switch(radix) {
-		default:
-		case 16:
-			switch(a_bytes) {
-			default:
-			case 2: n = 3; m = 4; afrmt = "%04X"; break;
-			case 3: n = 6; m = 6; afrmt = "%06X"; break;
-			case 4: n = 4; m = 8; afrmt = "%08X"; break;
-			}
-			break;
-		case 10:
-			switch(a_bytes) {
-			default:
-			case 2: n = 4; m = 5; afrmt = "%05u"; break;
-			case 3: n = 5; m = 8; afrmt = "%08u"; break;
-			case 4: n = 3; m = 10; afrmt = "%010u"; break;
-			}
-			break;
-		case 8:
-			switch(a_bytes) {
-			default:
-			case 2: n = 3; m = 6; afrmt = "%06o"; break;
-			case 3: n = 5; m = 8; afrmt = "%08o"; break;
-			case 4: n = 2; m = 11; afrmt = "%011o"; break;
-			}
-			break;
-		}
-#endif
-
-		/*
-		 * Copy updated LST text line to RST
-		 */
-		sprintf(str, afrmt, cpc);
-		strncpy(&rb[n], str, m);
-	}
-	fprintf(rfp, "%s", rb);
-}
-
-/*)Function	VOID	hlrglist(cpc,v,err)
+/*)Function	VOID	hlrlist(cpc,v,err)
  *
  *		int	cpc		current program counter value
  *		int 	v		value of byte at this address
  *		int	err		error flag for this value
  *
- *	The function hlrglist() performs the following function:
+ *	The function hlrlist() performs the following function:
  *
- *	(1)	The LRT hint file is read.
+ *	(1)	The HLR hint file is read.
  *		(A)	NON listed lines are skipped with
  *			output bytes discarded.
  *			Repeat (1) until:
@@ -1642,7 +1382,6 @@ loop:	gethlr(1);
  *	functions called:
  *		int	dgt()		lklist.c
  *		int	fclose()	c_library
- *		int	fgets()		c_library
  *		VOID	gethlr()	lklist.c
  *		int	fprintf()	c_library
  *		int	sprintf()	c_library
@@ -1653,87 +1392,12 @@ loop:	gethlr(1);
  *		with updated data values and code addresses.
  */
 
-/* The Output Formats, No Cycle Count
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-   |    |               |     | |
-ee XXXX xx xx xx xx xx xx LLLLL *************	HEX(16)
-ee 000000 ooo ooo ooo ooo LLLLL *************	OCTAL(16)
-ee  DDDDD ddd ddd ddd ddd LLLLL *************	DECIMAL(16)
-                     XXXX
-		   OOOOOO
-		    DDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-     |       |                  |     | |
-ee    XXXXXX xx xx xx xx xx xx xx LLLLL *********	HEX(24)
-ee   OO000000 ooo ooo ooo ooo ooo LLLLL *********	OCTAL(24)
-ee   DDDDDDDD ddd ddd ddd ddd ddd LLLLL *********	DECIMAL(24)
-                           XXXXXX
-			 OOOOOOOO
-			 DDDDDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-  |          |                  |     | |
-ee  XXXXXXXX xx xx xx xx xx xx xx LLLLL *********	HEX(32)
-eeOOOOO000000 ooo ooo ooo ooo ooo LLLLL *********	OCTAL(32)
-ee DDDDDDDDDD ddd ddd ddd ddd ddd LLLLL *********	DECIMAL(32)
-                         XXXXXXXX
-		      OOOOOOOOOOO
-		       DDDDDDDDDD
-*/
-
-/* The Output Formats,  With Cycle Count [nn]
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-   |    |               |     | |
-ee XXXX xx xx xx xx xx[nn]LLLLL *************	HEX(16)
-ee 000000 ooo ooo ooo [nn]LLLLL *************	OCTAL(16)
-ee  DDDDD ddd ddd ddd [nn]LLLLL *************	DECIMAL(16)
-                     XXXX
-		   OOOOOO
-		    DDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-     |       |                  |     | |
-ee    XXXXXX xx xx xx xx xx xx[nn]LLLLL *********	HEX(24)
-ee   OO000000 ooo ooo ooo ooo [nn]LLLLL *********	OCTAL(24)
-ee   DDDDDDDD ddd ddd ddd ddd [nn]LLLLL *********	DECIMAL(24)
-                           XXXXXX
-			 OOOOOOOO
-			 DDDDDDDD
-
-| Tabs- |       |       |       |       |       |
-          11111111112222222222333333333344444-----
-012345678901234567890123456789012345678901234-----
-  |          |                  |     | |
-ee  XXXXXXXX xx xx xx xx xx xx[nn]LLLLL *********	HEX(32)
-eeOOOOO000000 ooo ooo ooo ooo [nn]LLLLL *********	OCTAL(32)
-ee DDDDDDDDDD ddd ddd ddd ddd [nn]LLLLL *********	DECIMAL(32)
-                         XXXXXXXX
-		      OOOOOOOOOOO
-		       DDDDDDDDDD
-*/
-
 VOID
-hlrglist(cpc,v,err)
+hlrlist(cpc,v,err)
 a_uint cpc;
 int v;
 int err;
 {
-	char str[16];
-	char *afrmt, *dfrmt;
-	int a, n, m, r, s, u;
-	int i, j;
-
  	/*
 	 * Exit if listing file is not open
 	 */
@@ -1746,24 +1410,10 @@ int err;
 	 cpc &= a_mask;
 
 	/*
-	 * Get Listing Hints
+	 * Get next HLR text line
 	 */
-loop:	if (hline) {
-		gethlr(0);
-	}
-	/*
-	 * If line was not listed
-	 * then discard the bytcnt bytes
-	 */
-	if (listing & LIST_NLST) {
-		if (bytcnt == 0) {
-			hline = 1;
-			goto loop;
-		} else {
-			bytcnt -= bytcnt ? 1 : 0;
-			if (bytcnt == 0) {
-				hline = 1;
-			}
+lpHLR:	if (hline) {
+		if (gethlr(0) == 0) {
 			return;
 		}
 	}
@@ -1771,26 +1421,374 @@ loop:	if (hline) {
 	/*
 	 * Get next LST text line
 	 */
-	if (gline) {
-		getlst(0);
-	}
-
-	/*
-	 * Equate Processing
-	 */
-	if (listing & LIST_EQT) {
-		if (hlrelist()) {
-			gline = 1;
-			goto loop;
+lpLST:	if (gline) {
+		if (getlst(0) == 0) {
+			return;
 		}
 	}
 
-	if (bytcnt == 0) {
-		fprintf(rfp, "%s", rb);
-		hline = 1;
-		gline = 1;
-		goto loop;
+#if HLR_DEBUG
+	fprintf(stdout, "hlrlist(cpc=0x%02X, v=0x%02X, err=%d) : ", cpc, v, err);
+	switch(lmode) {
+	default:
+	case NLIST:	fprintf(stdout, "NLIST");	break;
+	case SLIST:	fprintf(stdout, "SLIST");	break;
+	case ALIST:	fprintf(stdout, "ALIST");	break;
+	case BLIST:	fprintf(stdout, "BLIST");	break;
+	case CLIST:	fprintf(stdout, "CLIST");	break;
+	case ELIST:	fprintf(stdout, "ELIST");	break;
 	}
+#endif
+
+	switch(lmode) {
+	case NLIST:	/* No Listing */
+		if (bytcnt == bgncnt) {
+			if (bytcnt == 0) {
+				hline = 1;
+			} else {
+				if ((bytcnt ? --bytcnt : 0) == 0) {
+					hline = 1;
+				}
+				return;	/* Discard Byte */
+			}
+		} else {
+			if ((bytcnt ? --bytcnt : 0) == 0) {
+				hline = 1;
+			}
+			return;	/* Discard Byte */
+		}
+		break;
+
+	case SLIST:	/* Source Only */
+		if (bytcnt == bgncnt) {
+			if (listing && !(listing & HLR_NLST)) {
+				fprintf(rfp, "%s", rb);
+#if HLR_DEBUG
+				fprintf(stdout, "%s", rb);
+#endif
+			}
+			if (bytcnt == 0) {
+				setgh();
+			} else {
+				if (listing && !(listing & HLR_NLST)) {
+					if (err) { lsterr(err); }
+				}
+				if ((bytcnt ? --bytcnt : 0) == 0) {
+					setgh();
+				}
+				return;	/* Discard Byte */
+			}
+		} else {
+			if (listing && !(listing & HLR_NLST)) {
+				if (err) { lsterr(err); }
+			}
+			if ((bytcnt ? --bytcnt : 0) == 0) {
+				setgh();
+			}
+			return;	/* Discard Byte */
+		}
+		break;
+
+	case ALIST:	/* Address Only */
+	case BLIST:	/* Address Only With Allocation */
+		/*
+		 * Always called with rtcnt == 2
+		 * ----- bytcnt is ignored -----
+		 */
+		if (listing && !(listing & HLR_NLST)) {
+			hlralist(cpc);
+			fprintf(rfp, "%s", rb);
+#if HLR_DEBUG
+			fprintf(stdout, "%s", rb);
+#endif
+		}
+		setgh();
+		return;	/* Discard Byte */
+
+	case CLIST:	/* Code */
+		if (bytcnt == bgncnt) {
+			if (bytcnt == 0) {
+				if (listing && !(listing & HLR_NLST)) {
+					fprintf(rfp, "%s", rb);
+#if HLR_DEBUG
+					fprintf(stdout, "%s", rb);
+#endif
+				}
+				setgh();
+			} else {
+				if (listing && !(listing & HLR_NLST)) {
+					hlrclist(cpc,v);
+					if (err) { lsterr(err); }
+				}
+				if ((bytcnt ? --bytcnt : 0) == 0) {
+					if (listing && !(listing & HLR_NLST)) {
+						fprintf(rfp, "%s", rb);
+#if HLR_DEBUG
+						fprintf(stdout, "%s", rb);
+#endif
+					}
+					setgh();
+					return;	/* Discard Byte */
+				}
+			}
+		} else {
+			if (listing && !(listing & HLR_NLST)) {
+				hlrclist(cpc,v);
+				if (err) { lsterr(err); }
+			}
+			if ((bytcnt ? --bytcnt : 0) == 0) {
+				if (listing && !(listing & HLR_NLST)) {
+					fprintf(rfp, "%s", rb);
+#if HLR_DEBUG
+					fprintf(stdout, "%s", rb);
+#endif
+				}
+				setgh();
+			}
+			return;	/* Discard Byte */
+		}
+		break;
+
+	case ELIST:	/* Equate Processing */
+		if (bytcnt == bgncnt) {
+			if (listing && !(listing & HLR_NLST)) {
+				if (listing & LIST_EQT) {
+					hlrelist();
+				}
+				fprintf(rfp, "%s", rb);
+#if HLR_DEBUG
+				fprintf(stdout, "%s", rb);
+#endif
+			}
+			if (bytcnt == 0) {
+				setgh();
+			} else {
+				if ((bytcnt ? --bytcnt : 0) == 0) {
+					setgh();
+				}
+				return;	/* Discard Byte */
+			}
+		} else {
+			if ((bytcnt ? --bytcnt : 0) == 0) {
+				setgh();
+			}
+			return;	/* Discard Byte */
+		}
+		break;
+
+	default:
+		break;
+	}
+
+	if (hline) { goto lpHLR; }
+	if (gline) { goto lpLST; }
+}
+
+/*)Function	VOID	setgh()
+*/
+
+VOID
+setgh()
+{
+	if (listing && !(listing & HLR_NLST)) {
+		gline = 1;
+	}
+	hline = 1;
+}
+
+/*)Function	VOID	hlralist(cpc)
+ *
+ *		int	cpc		current program counter value
+ *
+ *	The function hlralist() updates the code address
+ *	in the listing line to be output to the .rst file.
+ *
+ *
+ *	local variables:
+ *		int	i		loop counter
+ *		int	m		character count
+ *		int	n		character index
+ *		int	q		m+n to <q blank
+ *		int	r		number radix
+ *		char *	afrmt		address format specifier
+ *		char	str[]		temporary string
+ *
+ *	global variables:
+ *		a_uint	a_bytes		byte per address
+ *		int	listing		listing parameters
+ *		int	radix		current listing radix
+ *		char	rb[]		.lst line to scan
+ *
+ *	functions called:
+ *		int	dgt()		lklist.c
+ *		int	fprintf()	c_library
+ *		char *	memcpy()	c_library
+ *		int	sprintf()	c_library
+ *		int	strlen()	c_library
+ *
+ *	side effects:
+ *		Listing Text Line Address is updated.
+ */
+
+VOID
+hlralist(cpc)
+a_uint cpc;
+{
+	char str[16];
+	char *frmt;
+	int i, m, n, q, r;
+
+	/*
+	 * Must have an address in the expected radix
+	 */
+#ifdef	LONGINT
+	switch(radix) {
+	default:
+	case 16:
+		r = RAD16;
+		switch(a_bytes) {
+		default:
+		case 2: n = 3; m = 4; q = 26; frmt = "%04lX"; break;
+		case 3: n = 6; m = 6; q = 34; frmt = "%06lX"; break;
+		case 4: n = 4; m = 8; q = 34; frmt = "%08lX"; break;
+		}
+		break;
+	case 10:
+		r = RAD10;
+		switch(a_bytes) {
+		default:
+		case 2: n = 4; m = 5; q = 26; frmt = "%05lu"; break;
+		case 3: n = 5; m = 8; q = 34; frmt = "%08lu"; break;
+		case 4: n = 3; m = 10; q = 34; frmt = "%010lu"; break;
+		}
+		break;
+	case 8:
+		r = RAD8;
+		switch(a_bytes) {
+		default:
+		case 2: n = 3; m = 6; q = 26; frmt = "%06lo"; break;
+		case 3: n = 5; m = 8; q = 34; frmt = "%08lo"; break;
+		case 4: n = 2; m = 11; q = 34; frmt = "%011lo"; break;
+		}
+		break;
+	}
+#else
+	switch(radix) {
+	default:
+	case 16:
+		r = RAD16;
+		switch(a_bytes) {
+		default:
+		case 2: n = 3; m = 4; q = 26; frmt = "%04X"; break;
+		case 3: n = 6; m = 6; q = 34; frmt = "%06X"; break;
+		case 4: n = 4; m = 8; q = 34; frmt = "%08X"; break;
+		}
+		break;
+	case 10:
+		r = RAD10;
+		switch(a_bytes) {
+		default:
+		case 2: n = 4; m = 5; q = 26; frmt = "%05u"; break;
+		case 3: n = 5; m = 8; q = 34; frmt = "%08u"; break;
+		case 4: n = 3; m = 10; q = 34; frmt = "%010u"; break;
+		}
+		break;
+	case 8:
+		r = RAD8;
+		switch(a_bytes) {
+		default:
+		case 2: n = 3; m = 6; q = 26; frmt = "%06o"; break;
+		case 3: n = 5; m = 8; q = 34; frmt = "%08o"; break;
+		case 4: n = 2; m = 11; q = 34; frmt = "%011o"; break;
+		}
+		break;
+	}
+#endif
+
+	/*
+	 * Must have an address
+	 * in the expected radix.
+	 */
+	if (listing & LIST_LOC) {
+		if (!dgt(r, &rb[n], m)) {
+#if HLR_DEBUG
+			fprintf(stdout, "hlralist: Bad LIST_LOC\n");
+#endif
+			return;
+		}
+	}
+	/*
+	 * Must have blank data bytes
+	 */
+	if ((int) strlen(rb) > (n + m + 2)) {
+		for (i=(n+m); i<q; i++) {
+			if (rb[i] != ' ') {
+#if HLR_DEBUG
+				fprintf(stdout, "hlralist: Bad Blank\n");
+#endif
+				return;
+			}
+		}
+	}
+	if (listing & LIST_LOC) {
+		sprintf(str, frmt, cpc);
+		/* With GCC 10.2.0 [-Wstringop-truncation] ? */
+		/* strncpy(&rb[n], str, m); */
+		memcpy(&rb[n], str, m);
+	}
+}
+
+/*)Function	int	hlrclist()
+ *
+ *		int	cpc		current program counter value
+ *		int	v		current byte value
+ *
+ *	The function hlrclist() updates the code address
+ *	and byte values in the listing line to be output
+ *	to the .rst file.
+ *
+ *
+ *	local variables:
+ *		int	a		byte data start position
+ *		int	i		blank space loop counter
+ *		int	j		blank space loop temporary
+ *		int	m		characters per byte
+ *		int	n		offset to address
+ *		int	r		number radix
+ *		int	s		character count per byte
+ *		int	u		bytes per line
+ *		char *	afrmt		address format specifier
+ *		char *	dfrmt		data format specifier
+ *		char	str[]		temporary string
+ *
+ *	global variables:
+ *		a_uint	a_bytes		byte per address
+ *		int	bytcnt		byte position in listing
+ *		int	gcntr		number times function entered
+ *		int	listing		listing parameters
+ *		int	radix		current listing radix
+ *		char	rb[]		.lst line to scan
+ *
+ *	functions called:
+ *		int	dgt()		lklist.c
+ *		int	fprintf()	c_library
+ *		char *	memcpy()	c_library
+ *		int	sprintf()	c_library
+ *
+ *	side effects:
+ *		Listing Text Line Address and/or
+ *		byte code is updated.
+*/
+
+VOID
+hlrclist(cpc,v)
+a_uint cpc;
+int v;
+{
+	char str[16];
+	char *afrmt, *dfrmt;
+	int a, n, m, r, s, u;
+	int i, j;
 
 	/*
 	 *Listing Format
@@ -1870,9 +1868,11 @@ loop:	if (hline) {
 	 */
 	if (listing & LIST_LOC) {
 		if (!dgt(r, &rb[n], m)) {
-			fprintf(rfp, "%s", rb);
-			gline = 1;
-			goto loop;
+#if HLR_DEBUG
+			fprintf(stdout, "hlrclist: Bad LIST_LOC\n");
+			fprintf(stdout, "%s\n", rb);
+#endif
+			return;
 		}
 	}
 
@@ -1888,9 +1888,10 @@ loop:	if (hline) {
 	if (listing & LIST_BIN) {
 		for (i=0,j=u; i<j; i++) {
 			if (!dgt(r, &rb[a + (s * i)], s-1)) {
-				fprintf(rfp, "%s", rb);
-				gline = 1;
-				goto loop;
+#if HLR_DEBUG
+				fprintf(stdout, "hlrclist: Bad LIST_BIN\n");
+#endif
+				return;
 			}
 		}
 	}
@@ -1901,7 +1902,9 @@ loop:	if (hline) {
 	if (listing & LIST_LOC) {
 		if (gcntr == 0) {
 			sprintf(str, afrmt, cpc);
-			strncpy(&rb[n], str, m);
+			/* With GCC 10.2.0 [-Wstringop-truncation] ? */
+			/* strncpy(&rb[n], str, m); */
+			memcpy(&rb[n], str, m);
 		}
 	}
 
@@ -1910,37 +1913,15 @@ loop:	if (hline) {
 	 */
 	if (listing & LIST_BIN) {
 		sprintf(str, dfrmt, v);
-		strncpy(&rb[a + (s * gcntr) - 1], str, s);
+		/* With GCC 10.2.0 [-Wstringop-truncation] ? */
+		/* strncpy(&rb[a + (s * gcntr) - 1], str, s); */
+		memcpy(&rb[a + (s * gcntr) - 1], str, s);
 	}
 
-	/*
-	 * Output text line when updates finished
-	 */
-	if ((u == 0) || (++gcntr == u)) {
-		fprintf(rfp, "%s", rb);
-		hline = 1;
-		gline = 1;
-		/*
-		 * Output an error line if required
-		 */
-		if (err) {
-			switch(ASxxxx_VERSION) {
-			case 3:
-				fprintf(rfp, "?ASlink-Warning-%s\n", errmsg3[err]);
-				break;
-
-			case 4:
-				fprintf(rfp, "?ASlink-Warning-%s\n", errmsg4[err]);
-				break;
-
-			default:
-				break;
-			}
-		}
-	}
+	gcntr++;
 }
 
-/*)Function	int	hlrelist()
+/*)Function	VOID	hlrelist()
  *
  *	The function hlrelist() verifies that a relocation is required
  *	by checking the associated eqt_id for an area name.  If the
@@ -1949,18 +1930,19 @@ loop:	if (hline) {
  *	it is in a valid ELIST formatted line.  If the line is not in
  *	the ELIST format a value of 1 is returned.  When a valid line
  *	is found the equate value from the list line is updated to
- *	reflect the relocation an a value of 0 is returned.
+ *	reflect the relocation and a value of 0 is returned.
  *
  *	local variables:
  *		int	a		position in list line
- *		char *	afrmt		pointer to an address format
  *		a_uint	eqtv		equate value from list line
  *		int	i		repeat counter
  *		int	m		number of characters in format
  *		int	r		radix code
+ *		char *	afrmt		pointer to an address format
  *		char	str[]		temporary character string buffer
  *
  *	global variables:
+ *		a_uint	a_bytes		byte per address
  *		a_uint	a_mask		address mask
  *		char *	eqt_id		name of area equate is in
  *		struct head *hp		pointer to the current head structure
@@ -1978,10 +1960,10 @@ loop:	if (hline) {
  *
  *	side effects:
  *		the equate value may be
- *		updated in the .lst line.
+ *		updated in the .rst line.
  */
 
-int
+VOID
 hlrelist()
 {
 	char str[16];
@@ -2063,16 +2045,20 @@ hlrelist()
 		 */
 		for (i=2; i<a; i++) {
 			if (rb[i] != ' ') {
-				fprintf(rfp, "%s", rb);
-				return(1);
+#if HLR_DEBUG
+				fprintf(stdout, "hlrelist: Bad Blank\n");
+#endif
+				return;
 			}
 		}
 		/*
 		 * Require equate in correct radix.
 		 */
 		if (!dgt(r, &rb[a], m)) {
-			fprintf(rfp, "%s", rb);
-			return(1);
+#if HLR_DEBUG
+			fprintf(stdout, "hlrelist: Bad LIST_EQT\n");
+#endif
+			return;
 		}
 		/*
 		 * Evaluate the equate value.
@@ -2089,15 +2075,16 @@ hlrelist()
 			if (symeq(eqt_id, hp->a_list[i]->a_bap->a_id, 1)) {
 				eqtv += hp->a_list[i]->a_addr;
 				sprintf(str, afrmt, eqtv & a_mask);
-				strncpy(&rb[a], str, m);
+				/* With GCC 10.2.0 [-Wstringop-truncation] ? */
+				/* strncpy(&rb[a], str, m); */
+				memcpy(&rb[a], str, m);
 				break;
 			}
 		}
 	}
-	return(0);
 }
 
-/*)Function	VOID	gethlr()
+/*)Function	int	gethlr()
  *
  *	If a file having the same name as the list file but with the
  *	extension .hlr exists then the function gethlr() reads a line
@@ -2119,6 +2106,7 @@ hlrelist()
  *	global variables:
  *		FILE *	hfp		.hlr file handle
  *		int	bytcnt		bytes output for this line
+ *		int	bgncnt		bytes output for this line
  *		char *	eqt_id		name of area equate is in
  *		int	hline		get a line from the HLR file
  *					to get hints for the translation
@@ -2128,6 +2116,7 @@ hlrelist()
  *	functions called:
  *		int	fclose()	c_library
  *		int	fgets()		c_library
+ *		int	sscanf()	c_library
  *
  *	side effects:
  *		parameters are read from the .hlr file
@@ -2147,10 +2136,14 @@ int nhline;
 	listing = 0;
 	lmode = 0;
 	bytcnt = 0;
+	bgncnt = 0;
 	if (hfp != NULL) {
 		if (fgets(hlr, sizeof(hlr), hfp) == NULL) {
 			fclose(hfp);
 			hfp = NULL;
+#if HLR_DEBUG
+			fprintf(stdout, "gethlr: EOF Found\n");
+#endif
 		} else {
 			a = 0;
 			eqt_id[0] = 0;
@@ -2169,6 +2162,10 @@ int nhline;
 			if (hlr[a] == ' ') {
 				sscanf(&hlr[a], " %s", eqt_id);
 			}
+			bgncnt = bytcnt;
+#if HLR_DEBUG
+			fprintf(stdout, "%s", hlr);
+#endif
 		}
 	}
 	hline = nhline;

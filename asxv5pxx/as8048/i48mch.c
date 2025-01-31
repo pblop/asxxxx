@@ -1,7 +1,7 @@
 /* i48mch.c */
 
 /*
- *  Copyright (C) 2009-2014  Alan R. Baldwin
+ *  Copyright (C) 2009-2018  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@ int	mchtyp;
 #define	OPCY_SDP	((char) (0xFF))
 #define	OPCY_ERR	((char) (0xFE))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	UN		((char) (OPCY_NONE | 0x00))
 
@@ -79,6 +79,12 @@ struct mne *mp;
 	int op, t1, t2, v1, v2;
 	struct expr e1, e2;
 
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
+
 	clrexpr(&e1);
 	clrexpr(&e2);
 
@@ -105,31 +111,35 @@ struct mne *mp;
 				if (v1 == 0) {
 					if (mchtyp & ~X_8048) {
 						opcycles = OPCY_ERR;
-						err('o');
+						xerr('o', "An 8048 instruction.");
 						break;
 					}
 					switch (op) {
 					case 0x53:	outab(0x98 | v1);	outrb(&e2, R_NORM);	break;
  		        		case 0x43:	outab(0x88 | v1);	outrb(&e2, R_NORM);	break;
-					default:	aerr();			break;
+					default:
+						xerr('o', "Internal Opcode Error.");
+						break;
 					}
 					break;
 				}
 				if ((v1 == 1) || (v1 == 2))  {
 					if (mchtyp & ~(X_8041 | X_8048)) {
 						opcycles = OPCY_ERR;
-						err('o');
+						xerr('o', "An 8041 / 8048 instruction.");
 						break;
 					}
 					switch (op) {
 					case 0x53:	outab(0x98 | v1);	outrb(&e2, R_NORM);	break;
  		        		case 0x43:	outab(0x88 | v1);	outrb(&e2, R_NORM);	break;
-					default:	aerr();			break;
+					default:
+						xerr('o', "Internal Opcode Error.");
+						break;
 					}
 					break;
 				}
 			} else {
-				aerr();
+				xerr('a', "Second argument must be #__.");
 			}
 		} else
 		if (t1 == S_A) {
@@ -151,7 +161,9 @@ struct mne *mp;
 			case 0xD3:	outab(0xD0 | v1);	break;
 			case 0x53:	outab(0x50 | v1);	break;
 			case 0x43:	outab(0x40 | v1);	break;
-			default:	aerr();			break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 			break;
 
@@ -162,16 +174,18 @@ struct mne *mp;
 			case 0xD3:	outab(0xD8 | v1);	break;
 			case 0x53:	outab(0x58 | v1);	break;
 			case 0x43:	outab(0x48 | v1);	break;
-			default:	aerr();			break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 			break;
 
 		default:
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
 		if (more()) {
-			aerr();
+			xerr('q', "Extra argument(s).");
 		}
 		break;
 
@@ -182,12 +196,12 @@ struct mne *mp;
 		t2 = addr(&e2);
 
 		if (t2 != S_A) {
-			aerr();
+			xerr('a', "Second argument must be A.");
 		} else
 		if ((t1 == S_PORT) && (v1 > 3) && (v1 < 8)) {
 			outab(op | (v1 & 0x03));
 		} else {
-			aerr();
+			xerr('a', "Valid ports are P4, P5, P6, and P7.");
 		}
 		break;
 
@@ -200,13 +214,15 @@ struct mne *mp;
 			t1 = addr(&e1);
 		}
 		v1 = (int) e1.e_addr;
-		if (t1 == S_IR) {
-			outab(op | v1);
-		} else
-		if ((t1 == S_R) && (mp->m_type == S_XCH)) {
-			outab(op | 0x08 | v1);
-		} else {
-			aerr();
+		switch (t1) {
+		case S_IR:	outab(op | v1);		break;
+		case S_R:
+			if (mp->m_type == S_XCH) {
+				outab(op | 0x08 | v1);	break;
+			}
+		default:
+			xerr('a', "Invalid Addressing Mode.");
+			break;
 		}
 		break;
 
@@ -214,18 +230,18 @@ struct mne *mp;
 		if (more()) {
 			t1 = addr(&e1);
 			v1 = (int) e1.e_addr;
-			if (t1 == S_A) {
-				outab(op);
-			} else
-			if (t1 == S_R) {
+			switch (t1) {
+			case S_A:	outab(op);	break;
+			case S_R:
 				if (mchtyp & ~(X_8041 | X_8048)) {
 					opcycles = OPCY_ERR;
-					err('o');
+					xerr('o', "An 8041 / 8048 instruction.");
 					break;
 				}
-				outab(0xC8 | v1);
-			} else {
-				aerr();
+				outab(0xC8 | v1);	break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 		} else {
 			outab(op);
@@ -236,21 +252,19 @@ struct mne *mp;
 		if (more()) {
 			t1 = addr(&e1);
 			v1 = (int) e1.e_addr;
-			if (t1 == S_A) {
-				outab(op);
-			} else
-			if (t1 == S_R) {
-				outab(0x18 | v1);
-			} else
-			if (t1 == S_IR) {
+			switch (t1) {
+			case S_A:	outab(op);		break;
+			case S_R:	outab(0x18 | v1);	break;
+			case S_IR:
 				if (mchtyp & ~(X_8041 | X_8048)) {
 					opcycles = OPCY_ERR;
-					err('o');
+					xerr('o', "An 8041 / 8048 instruction.");
 					break;
 				}
-				outab(0x10 | v1);
-			} else {
-				aerr();
+				outab(0x10 | v1);		break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 		} else {
 			outab(op);
@@ -262,7 +276,7 @@ struct mne *mp;
 			t1 = addr(&e1);
 			if (((t1 == S_F0) || (t1 == S_F1)) && (mchtyp & ~(X_8041 | X_8048))) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8041 / 8048 instruction.");
 				break;
 			}
 			switch (t1) {
@@ -270,7 +284,9 @@ struct mne *mp;
 			case S_F0:	outab(op + 0x5E);	break;
 			case S_C:	outab(op + 0x70);	break;
 			case S_F1:	outab(op + 0x7E);	break;
-			default:	aerr();			break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 		} else {
 			outab(op);
@@ -282,13 +298,13 @@ struct mne *mp;
 		if (more()) {
 			t1 = addr(&e1);
 			if (t1 != S_A) {
-				aerr();
+				xerr('a', "Optional argument must be A.");
 				break;
 			}
 		}
 		if ((op == 0x80) && (mchtyp & ~X_8022)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "An 8022 instruction.");
 			break;
 		}
 		outab(op);
@@ -304,7 +320,7 @@ struct mne *mp;
 			v2 = (int) e2.e_addr;
 			if ((t2 == S_PSW) && (mchtyp & ~(X_8041 | X_8048))) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8041 / 8048 instruction.");
 				break;
 			}
 			switch (t2) {
@@ -313,7 +329,9 @@ struct mne *mp;
 			case S_PSW:	outab(0xC7);		break;
 			case S_IR:	outab(0xF0 | v2);	break;
 			case S_R:	outab(0xF8 | v2);	break;
-			default:	aerr();			break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 			break;
 
@@ -322,7 +340,7 @@ struct mne *mp;
 				comma(1);
 				t2 = addr(&e2);
 				if (t2 != S_A) {
-					aerr();
+					xerr('a', "Second argument must be A.");
 					break;
 				}
 				op = 0xD7;
@@ -331,7 +349,7 @@ struct mne *mp;
 			}
 			if (mchtyp & ~(X_8041 | X_8048)) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8041 / 8048 instruction.");
 				break;
 			}
 			outab(op);
@@ -342,7 +360,7 @@ struct mne *mp;
 				comma(1);
 				t2 = addr(&e2);
 				if (t2 != S_A) {
-					aerr();
+					xerr('a', "Second argument must be A.");
 					break;
 				}
 				outab(0x62);
@@ -358,7 +376,9 @@ struct mne *mp;
 				switch (t2) {
 				case S_A:	outab(0xA8 | v1);	break;
 				case S_IMMED:	outab(0xB8 | v1);	outrb(&e2, R_NORM);	break;
-				default:	aerr();			break;
+				default:
+					xerr('a', "Valid format: MOV  Rn,A; Rn,#DATA.");
+					break;
 				}
 			} else {
 				outab(0xF8 | v1);
@@ -372,7 +392,9 @@ struct mne *mp;
 				switch (t2) {
 				case S_A:	outab(0xA0 | v1);	break;
 				case S_IMMED:	outab(0xB0 | v1);	outrb(&e2, R_NORM);	break;
-				default:	aerr();			break;
+				default:	
+					xerr('a', "Valid format: MOV  @R,A; @R,#DATA.");
+					break;
 				}
 			} else {
 				outab(0xF0 | v1);
@@ -381,7 +403,7 @@ struct mne *mp;
 
 		case S_IMMED:	/* MOV  A,#DATA */
 			if (more()) {
-				aerr();
+				xerr('q', "Short form MOV #DATA has an extra argument.");
 			} else {
 				outab(0x23);
 				outrb(&e1, R_NORM);
@@ -389,7 +411,7 @@ struct mne *mp;
 			break;
 
 		default:
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
 		break;
@@ -404,7 +426,7 @@ struct mne *mp;
 			if ((t2 == S_PORT) && (v2 > 3) && (v2 < 8)) {
 				outab(op | (v2 & 0x03));
 			} else {
-				aerr();
+				xerr('a', "Valid ports are P4, P5, P6, and P7.");
 			}
 			break;
 		} else
@@ -413,19 +435,19 @@ struct mne *mp;
 				comma(1);
 				t2 = addr(&e2);
 				if (t2 != S_A) {
-					aerr();
+					xerr('a', "Optional second argument must be A.");
 					break;
 				}
 				if (mchtyp & ~(X_8021 | X_8041 | X_8048)) {
 					opcycles = OPCY_ERR;
-					err('o');
+					xerr('o', "An 8021 / 8041 / 8048 instruction.");
 					break;
 				}
 				op = op | 0x30;
 			}
 			outab(op | (v1 & 0x03));
 		} else {
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		break;
 
@@ -441,12 +463,12 @@ struct mne *mp;
 		if (t1 == S_IA) {
 			if ((mp->m_type == S_MOVP3) && (mchtyp & ~(X_8041 | X_8048))) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8041 / 8048 instruction.");
 				break;
 			}
 			outab(op);
 		} else {
-			aerr();
+			xerr('a', "Second argument must be indirect(@).");
 		}
 		break;
 
@@ -459,13 +481,13 @@ struct mne *mp;
 			v2 = (int) e2.e_addr;
 			if (mchtyp & ~X_8048) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8048 instruction.");
 				break;
 			}
 			if (t2 == S_IR) {
 				outab(op | v2);
 			} else {
-				aerr();
+				xerr('a', "Second argument must be indirect(@).");
 			}
 			break;
 		} else
@@ -474,19 +496,19 @@ struct mne *mp;
 				comma(1);
 				t2 = addr(&e2);
 				if (t2 != S_A) {
-					aerr();
+					xerr('a', "Optional second argument must be A.");
 					break;
 				}
 				op = 0x90;
 			}
 			if (mchtyp & ~X_8048) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8048 instruction.");
 				break;
 			}
 			outab(op | v1);
 		} else {
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		break;
 
@@ -505,7 +527,7 @@ struct mne *mp;
 		if (t1 == S_IA) {
 			outab(op);
 		} else {
-			aerr();
+			xerr('a', "Correct form is JMP @A.");
 		}
 		break;
 
@@ -517,7 +539,7 @@ struct mne *mp;
 		mchrel(&e1);
 		if (mchtyp & ~(X_8041 | X_8048)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "An 8041 / 8048 instruction.");
 			break;
 		}
 		outrwm(&e1, R_PAGX0 | R_J8, op << 8);
@@ -536,7 +558,7 @@ struct mne *mp;
 			default:	outrwm(&e1, R_PAGX0 | R_J8, op << 8);	break;
 			case 0xD6: /* JNIBF */
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "Not an 8048 instruction.");
 				break;
 			}
 			break;
@@ -545,7 +567,7 @@ struct mne *mp;
 			default:	outrwm(&e1, R_PAGX0 | R_J8, op << 8);	break;
 			case 0x86: /* JNI / JOBF */
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "Not an 8041 instruction.");
 				break;
 			}
 			break;
@@ -561,7 +583,7 @@ struct mne *mp;
 			case 0xB6: /* JF0 */
 			case 0xD6: /* JNIBF */
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "Not an 8021 / 8022 instruction.");
 				break;
 			}
 			break;
@@ -577,19 +599,19 @@ struct mne *mp;
 			mchrel(&e2);
 			outrwm(&e2, R_PAGX0 | R_J8, (op | v1) << 8);
 		} else {
-			aerr();
+			xerr('a', "First argument must be Rn.");
 		}
 		break;
 
 	case S_INH:		/* NOP / RET / RETR */
 		if ((op == 0x93) && (mchtyp & ~(X_8041 | X_8048))) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "An 8041 / 8048 instruction.");
 			break;
 		}
 		if ((op == 0x00) && (mchtyp & ~(X_8021 | X_8041 | X_8048))) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "An 8021 / 8041 / 8048 instruction.");
 			break;
 		}
 		outab(op);
@@ -599,13 +621,15 @@ struct mne *mp;
 		t1 = addr(&e1);
 		if (mchtyp & ~(X_8041 | X_8048)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "An 8041 / 8048 instruction.");
 			break;
 		}
 		switch (t1) {
 		case S_I:	outab(op);		break;
 		case S_TCNTI:	outab(op + 0x20);	break;
-		default:	aerr();			break;
+		default:
+			xerr('a', "Invalid Addressing Mode.");
+			break;
 		}
 		break;
 
@@ -623,12 +647,12 @@ struct mne *mp;
 		if (t1 == S_DBB) {
 			if (mchtyp & ~X_8041) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8041 instruction.");
 				break;
 			}
 			outab(0x22);
 		} else {
-			aerr();
+			xerr('a', "Valid arguments are A,P1/ A,P2 or A,DBB.");
 		}
 		break;
 
@@ -643,12 +667,12 @@ struct mne *mp;
 		if ((t1 == S_PORT) && (v1 == 0)) {
 			if (mchtyp & ~X_8048) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8048 instruction.");
 				break;
 			}
 			outab(op);
 		} else {
-			aerr();
+			xerr('a', "Correct form is INS A,BUS.");
 		}
 		break;
 
@@ -659,14 +683,14 @@ struct mne *mp;
 			comma(1);
 			t2 = addr(&e2);
 			if (t2 != S_A) {
-				aerr();
+				xerr('a', "Optional second argument must be A.");
 				break;
 			}
 		}
 		if (t1 == S_DBB) {
 			if (mchtyp & ~X_8041) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8041 instruction.");
 				break;
 			}
 			outab(op);
@@ -674,7 +698,7 @@ struct mne *mp;
 		if ((t1 == S_PORT) && (v1 == 0)) {
 			outab(op);
 		} else {
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		break;
 
@@ -685,14 +709,14 @@ struct mne *mp;
 			comma(1);
 			t2 = addr(&e2);
 			if (t2 != S_A) {
-				aerr();
+				xerr('a', "Optional second argument must be A.");
 				break;
 			}
 		}
 		if ((t1 == S_PORT) && (v1 == 0)) {
 			if (mchtyp & ~X_8048) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8048 instruction.");
 				break;
 			}
 			outab(op);
@@ -700,7 +724,7 @@ struct mne *mp;
 		if ((t1 == S_PORT) && (v1 > 0) && (v1 < 3)) {
 				outab(0x38 | v1);
 		} else {
-			aerr();
+			xerr('a', "Second argument must be P1 or P2.");
 		}
 		break;
 
@@ -708,12 +732,14 @@ struct mne *mp;
 		t1 = addr(&e1);
 		if (mchtyp & ~X_8048) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "An 8048 instruction.");
 			break;
 		}
 		switch (t1) {
 		case S_CLK:	outab(op);		break;
-		default:	aerr();			break;
+		default:
+			xerr('a', "Second argument must be CLK.");
+			break;
 		}
 		break;
 
@@ -722,7 +748,9 @@ struct mne *mp;
 		switch (t1) {
 		case S_CNT:	outab(op);		break;
 		case S_T:	outab(0x55);		break;
-		default:	aerr();			break;
+		default:
+			xerr('a', "Second argument must be CNT or T.");
+			break;
 		}
 		break;
 
@@ -730,7 +758,9 @@ struct mne *mp;
 		t1 = addr(&e1);
 		switch (t1) {
 		case S_TCNT:	outab(op);		break;
-		default:	aerr();			break;
+		default:
+			xerr('a', "Second argument must be TCNT.");
+			break;
 		}
 		break;
 
@@ -738,43 +768,55 @@ struct mne *mp;
 		t1 = addr(&e1);
 		v1 = (int) e1.e_addr;
 		switch (v1) {
-		case 0x85: /* AN0 */
+		case 0x85: /* AN0 */	/* 8022 Only */
 		case 0x95: /* AN1 */
 			if (mchtyp & ~X_8022) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8022 instruction.");
 				break;
 			}
 			outab(v1);
 			break;
-		case 0xC5: /* RB0 */
-		case 0xD5: /* RB1 */
-		case 0xE5: /* MB0 */
+		case 0xE5: /* MB0 */	/* 8048 Only */
 		case 0xF5: /* MB1 */
 			if (mchtyp & ~X_8048) {
 				opcycles = OPCY_ERR;
-				err('o');
+				xerr('o', "An 8048 instruction.");
+				break;
+			}
+			outab(v1);
+			break;
+		case 0xC5: /* RB0 */	/* 8041 or 8048 */
+		case 0xD5: /* RB1 */
+			if (mchtyp & ~(X_8041 | X_8048)) {
+				opcycles = OPCY_ERR;
+				xerr('o', "An 8041 / 8048 instruction.");
 				break;
 			}
 			outab(v1);
 			break;
 		default:
-			err('o');
+			xerr('a', "An invalid instruction.");
 			break;
 		}
 		break;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 	if (opcycles == OPCY_NONE) {
 		opcycles = i48pg1[cb[0] & 0xFF];
 		if (opcycles == 0) {
-			err('o');
+			xerr('o', "Opcode Cycle Count Error.");
 		}
 	}
+ 	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*

@@ -20,8 +20,8 @@ addressing  scheme:   the   instruction   addressing  is  1  per
 instruction word, each instruction uses a word of memory varying
 from 12 to 16 bits in length.  The processor  data is  addressed
 as 1  per  byte of  data.   To properly address the program/data
-spaces you, the programmer, must seperate your program and  data
-into seperate code  and  data areas.  The data area is addressed
+spaces you, the programmer, must separate your program and  data
+into separate code  and  data areas.  The data area is addressed
 as  1  per  byte  and  the  code  area  is  addressed  as  1 per
 instruction.  The  assembler/linker  processes  the  instruction
 code so that the linker will output 2 bytes for each instruction
@@ -48,7 +48,20 @@ define the register file address page.
 
 Format:  
 
-        .pic    "string" 
+        .pic     /string/               or 
+
+        .pic    ^/string/ 
+
+
+where:  string  represents a text string.  The string is the pic
+                processor type.  
+
+        /  /    represent   the  delimiting  characters.   These
+                delimiters   may   be   any   paired    printing
+                characters,  as  long  as the characters are not
+                contained within  the  string  itself.   If  the
+                delimiting  characters  do  not  match, the .pic
+                directive will give the <q> error.  
 
      The assembler uses the delimited string to define a proces-
 sor  specific  symbol.   e.g:   "p12c508"  produces  the  symbol
@@ -158,7 +171,7 @@ output to the created .rel file.
 variable type to  global  causing  its  definition to be  output
 to  the .rel file.  The inclusion of the definition of the vari-
 able '.__.CPU.' might be  a  useful  means  of  validating  that
-seperately  assembled files have been compiled for the same pro-
+separately  assembled files have been compiled for the same pro-
 cessor type.  The linker will report an error for variables with
 multiple non equal definitions.  
 
@@ -192,7 +205,7 @@ Format:
 
      Where  address is a single location and lo:hi is a range of
 addresses that should not be used.   Multiple  locations  and/or
-ranges  may  be  specified  by  seperating  the arguments with a
+ranges  may  be  specified  by  separating  the arguments with a
 comma:  
 
         .badram         0x23, 0x28:0x2F, ...
@@ -240,7 +253,7 @@ assembler arguments:
 
         where:  f       register file address
                 d       destination select:
-                                (0, -> w), (1 -> f)
+                                (0, -&gt w), (1 -&gt f)
                                 the letters w or f may be used
                                 to select the destination
                 b       bit address in an 8-bit file register
@@ -369,19 +382,19 @@ assembler arguments:
 
         where:  f       register file address
                 d       destination select:
-                                (0, -> w), (1 -> f)
+                                (0, -&gt w), (1 -&gt f)
                                 the letters w or f may be used
                                 to select the destination
                 s       destination select:
-                                (0, -> f and w), (1, -> f)
+                                (0, -&gt f and w), (1, -&gt f)
                                 the letters w or f may be used
                                 to select the destination
                 t       table byte select:
-                                (0, -> lower byte)
-                                (1, -> upper byte)
+                                (0, -&gt lower byte)
+                                (1, -&gt upper byte)
                 i       table pointer control
-                                (0, -> no change)
-                                (1, -> post increment)
+                                (0, -&gt no change)
+                                (1, -&gt post increment)
                 b       bit address of an 8-bit file register
                 p       peripheral register file address
                 k       literal constant
@@ -430,20 +443,20 @@ following assembler arguments:
                 fs      register file source
                 fd      register file destination
                 a       ram access bit
-                                (0, -> ACCESS RAM)
-                                (1, -> RAM BANK)
+                                (0, -&gt ACCESS RAM)
+                                (1, -&gt RAM BANK)
                 d       destination select:
-                                (0, -> w), (1 -> f)
+                                (0, -&gt w), (1 -&gt f)
                                 the letters w or f may be used
                                 to select the destination
                 s       fast call/return mode:
-                                (0, -> SLOW), (1, -> FAST)
+                                (0, -&gt SLOW), (1, -&gt FAST)
                 b       bit address of an 8-bit file register
                 mm      TBLRD and TBLWT suffixs
-                                ('*',  -> no change)
-                                ('*+', -> post-increment)
-                                ('*-', -> post-decrement)
-                                ('+*', -> pre-increment)
+                                ('*',  -&gt no change)
+                                ('*+', -&gt post-increment)
+                                ('*-', -&gt post-decrement)
+                                ('+*', -&gt pre-increment)
                 k       literal constant
                 label   label name
 
@@ -597,6 +610,6 @@ mode argument.
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

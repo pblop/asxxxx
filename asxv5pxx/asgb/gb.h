@@ -1,7 +1,7 @@
 /* gb.h */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2022  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -131,27 +131,35 @@
 /*
  * Symbol types
  */
-#define	S_IMMED	30
-#define	S_R8	31
-#define	S_R16	33
-#define	S_R16X	34   /* AF */
-#define	S_CND	35
-#define	S_FLAG	36
+#define	S_R8	30
+#define	S_R16	31
+#define	S_R16X	32	/* AF */
+#define	S_CND	33
+#define	S_FLAG	34	/* Not Used By Game Boy */
+/*
+ * Regular Addressing Modes
+ */
+#define	S_IMMED	35
+#define	S_DIR	34
+#define	S_EXT	36
 
 /*
- * Indexing modes
+ * Indirect Addressing Modes
  */
-#define	S_INDB	40
-#define	S_IDC	41
-#define	S_INDR	50
-#define	S_IDBC	50
-#define	S_IDDE	51
-#define	S_IDHL	52
-#define	S_IDSP	53
-#define	S_IDAF	54
-#define	S_IDHLD	55
-#define	S_IDHLI	56
-#define	S_INDM	57
+#define	S_INDB	40	/* 8-Bit Base Index */
+#define	S_IDC	41	/* (C) */
+
+#define	S_INDR	50	/* 16-Bit Base Index */
+#define	S_IDBC	50	/* (BC) */
+#define	S_IDDE	51	/* (DE) */
+#define	S_IDHL	52	/* (HL) */
+#define	S_IDSP	53	/* (SP) n(SP) Syntax for SP+n */
+#define	S_IDAF	54	/* (AF) Not Used By Game Boy */
+#define	S_IDHLD	55	/* ldd (hl),a | ldd a,(hl) | ld a,(hl-) | ld (hl-),a */
+#define	S_IDHLI	56	/* ldi (hl),a | ldi (hl),a | ld a,(hl+) | ld (hl+),a */
+
+#define	S_INDM	57	/* (address) */
+#define	S_IDIR	58	/* (*address) */
 
 /*
  * Instruction types
@@ -165,23 +173,27 @@
 #define	S_INC	66
 #define	S_DEC	67
 #define	S_ADD	68
-#define	S_ADC	69
-#define	S_AND	70
-#define	S_EX	71
-#define	S_PUSH	72
-#define	S_LDH	73
-#define	S_IN	74	/* Loads from zero page */
-#define	S_OUT	75	/* Stores to zero page */
-#define	S_RL	76
-#define	S_RST	77
-#define	S_IM	78
-#define	S_INH1	79
-#define	S_SUB	80
-#define	S_SBC	81
-#define S_LDHL	90	/* LDHL SP,offset */
-#define S_LDX	91	/* Loads which increment/decrement HL */
-#define S_SWAP	92	/* SWAP A, nybble swaps the accumulator */
-#define S_TILE	93	/* .TILE pseudo-op */
+#define	S_ACC	69
+#define	S_PTYP	70
+#define	S_RL	71
+#define	S_RST	72
+#define	S_INH	73
+#define	S_STOP	74	/* Requires 2 bytes due to bug */
+/*
+ * Defined Instructions
+ */
+#define	S_IN	80	/* Loads from zero page */
+#define	S_OUT	81	/* Stores to zero page */
+#define	S_LDH	82	/* Load/Store to zero page */
+#define S_LDX	83	/* Loads which increment/decrement HL */
+#define	S_LDA	84	/* LDA arg  <<==  LD A,arg */
+#define S_LDHL	85	/* LDHL SP,offset  <<==  LD HL, SP+offset */
+/*
+ * Machine Specific
+ */
+#define	S_SPG	90	/* I/O Page */
+#define S_TILE	91	/* .TILE pseudo-op */
+
 
 struct adsym
 {
@@ -199,30 +211,26 @@ extern	struct	adsym	CND[];
 
 #ifdef	OTHERSYSTEM
 	
-	/* z80adr.c */
+	/* gbadr.c */
 extern	int		addr(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
-	/* z80mch.c */
+	/* gbmch.c */
 extern	int		genop(int pop, int op, struct expr *esp, int f);
-extern	int		gixiy(int v);
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 
 #else
 
-	/* z80adr.c */
+	/* gbadr.c */
 extern	int		addr();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
-	/* z80mch.c */
+	/* gbmch.c */
 extern	int		genop();
-extern	int		gixiy();
 extern	VOID		machine();
 extern	int		mchpcr();
 extern	VOID		minit();

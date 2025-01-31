@@ -4,10 +4,10 @@
 	
 	.r65c02
 	
-	idx   == $$83
-	value == $$85
-	ext   == $$C789
-	dir   == $$AB
+	idx   == $@83
+	value == $@85
+	ext   == $@C789
+	dir   == $@AB
 	
 	brk			;00
 	ora	[idx,x]		;01 83

@@ -1,7 +1,7 @@
 /* i61adr.c */
 
 /*
- *  Copyright (C) 2013-2014  Alan R. Baldwin
+ *  Copyright (C) 2013-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,6 +30,18 @@ addr(esp)
 struct expr *esp;
 {
 	int c, d, e_mode;
+	char *p;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	/*
 	 * Indirect Addressing Mode
@@ -49,7 +61,7 @@ struct expr *esp;
 	if ((d = getnb()) == '[') {
 		if ((c = getnb()) == '*') {
 			if (e_mode & S_ZP) {
-				aerr();
+				xerr('a', "Duplicate Zero Page Specifier.");
 			} else {
 				e_mode |= S_ZP;
 			}
@@ -57,7 +69,7 @@ struct expr *esp;
 			unget(c);
 		}
 		if (e_mode & S_IND) {
-			aerr();
+			xerr('a', "Duplicate Indexed Specifier.");
 		} else {
 			e_mode |= S_IND;
 		}
@@ -72,7 +84,7 @@ struct expr *esp;
 	 * End of Indirect Addressing Mode
 	 */
 	if ((d == '[') && (getnb() != ']')) {
-		qerr();
+		xerr('q', "Missing ']'.");
 	}
 	/*
 	 * Zero Page Check
@@ -82,6 +94,23 @@ struct expr *esp;
 	}
 	return (esp->e_mode = e_mode);
 }
+
+/*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
 
 /*
  * Enter admode() to search a specific addressing mode table
@@ -132,24 +161,10 @@ char *str;
 	}
 
 	if (!*str)
-		if (any(*ptr," \t\n,];")) {
+		if (!(ctype[*ptr & 0x007F] & LTR16)) {
 			ip = ptr;
 			return(1);
 		}
-	return(0);
-}
-
-/*
- *	any --- does str contain c?
- */
-int
-any(c,str)
-int c;
-char *str;
-{
-	while (*str)
-		if(*str++ == c)
-			return(1);
 	return(0);
 }
 

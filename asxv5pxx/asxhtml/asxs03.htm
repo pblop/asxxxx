@@ -19,27 +19,40 @@
    Starting  an  ASxxxx assembler without any arguments provides
 the following option list and then exits:  
 
-Usage: [-Options] file
-Usage: [-Options] outfile file1 [file2 file3 ...]
+Usage: [-Options] [-Option with arg] file1 [file2 ...]
+  -h   or NO ARGUMENTS  Show this help list
+Output:
+  -o   Enable  object output  (-o+ change file1[.rel])
+    -o+  Conditional Options   -o+[ ][name][.ext]
+    '-o+.ext'      (or)  '-o+  .ext'      ->  file1.ext
+    '-o+name'      (or)  '-o+  name'      ->  name[.rel]
+    '-o+name.ext'  (or)  '-o+  name.ext'  ->   name.ext
+  -l   Create list   file1[.lst]   (file1  <-  name)
+  -s   Create symbol file1[.sym]   (file1  <-  name)
+Listing:
   -d   Decimal listing
   -q   Octal   listing
   -x   Hex     listing (default)
-  -g   Undefined symbols made global
-  -a   All user symbols made global
   -b   Display .define substitutions in listing
   -bb  and display without .define substitutions
   -c   Disable instruction cycle count in listing
-  -j   Enable NoICE Debug Symbols
-  -y   Enable SDCC  Debug Symbols
-  -l   Create list   output (out)file[.lst]
-  -o   Create object output (out)file[.rel]
-  -s   Create symbol output (out)file[.sym]
-  -p   Disable listing pagination
-  -u   Disable .list/.nlist processing
-  -w   Wide listing format for symbol table
-  -z   Disable case sensitivity for symbols
   -f   Flag relocatable references by  `   in listing file
   -ff  Flag relocatable references by mode in listing file
+  -k   Disable error messages to listing file
+  -p   Disable automatic listing pagination
+  -u   Disable .list/.nlist processing
+  -w   Wide listing format for symbol table
+Assembly:
+  -i   Insert assembler line before input file(s)
+  -v   Enable out of range signed / unsigned errors
+  -n#  Set the maximum number of 'Pass 2' scans
+Symbols:
+  -a   All user symbols made global
+  -g   Undefined symbols made global
+  -z   Disable case sensitivity for symbols
+Debugging:
+  -j   Enable NoICE Debug Symbols
+  -y   Enable SDCC  Debug Symbols
 
 
 
@@ -47,40 +60,51 @@ Usage: [-Options] outfile file1 [file2 file3 ...]
 require the option(s) and file(s) arguments to follow the ASxxxx
 assembler name:  
 
-  as6809 -[Options] file
-
-  as6809 [-Options] outfile file1 [file2 ...]
+  as6809 [-Options] [-Option with arg] file1 [file2 ...]
 
 
 Some  systems  may  request the arguments after the assembler is
 started at a system specific prompt:  
 
   as6809
-  argv: -[Options] file
-
-  as6809
-  argv: [-Options] outfile file1 [file2 ...]
+  argv: [-Options] [-Option with arg] file1 [file2 ...]
 
 
 The ASxxxx options in some more detail:  
 
+        -h      List the ASxxxx options
+
+    Output:
+        -o      enable  object output file1.rel
+
+        The object output file name and/or extension can
+        be changed as desired using the -o+ option.
+        The list and symbol file names are changed to match
+        that of the object output file name.  The list and
+        symbol file extensions cannot be changed as the
+        linker requires a .LST extension in order to create
+        the relocated, .RST, listing file.
+
+          -o+   Conditional Options -o+[ ][name][.ext]
+          '-o+.ext'      (or)  '-o+ .ext'      ->  file1.ext
+          '-o+name'      (or)  '-o+ name'      ->   name.rel
+          '-o+name.ext]  (or)  '-o+ name.ext'  ->   name.ext
+
+        -l      create list   file1[.lst] (file1 <- name)
+
+                If -s (symbol table output) is not
+                specified then the symbol table is
+                included at the end of the listing file.
+
+        -s      create symbol file1[.sym] (file1 <- name)
+
+    Listing:
         -d      decimal listing
         -q      octal   listing
         -x      hex     listing (default)
 
                 The listing radix affects the
-                .lst, .rel, and .sym files.
-
-        -g      undefined symbols made global
-
-                Unresolved (external) variables
-                and symbols are flagged as global.
-
-        -a      all user symbols made global
-
-                All defined (not local or external)
-                variables and symbols are flagged
-                as global.
+                .lst, .rel, .hlr, and .sym files.
 
         -b      display .define substitutions in listing
 
@@ -102,17 +126,20 @@ The ASxxxx options in some more detail:
                 Instruction cycle counts cannot be enabled
                 if the -c option is specified.
 
-        -j      enable NOICE debug symbols
-        -y      enable SDCC debug symbols
+        -f      by  `   in the listing file
+        -ff     by mode in the listing file
 
-        -l      create list   output (out)file.lst
+                Relocatable modes are flagged by byte
+                position (LSB, Byte 2, Byte 3, MSB)
+                *nMN    paged,
+                uvUV    unsigned,
+                rsRS    signed,
+                pqPQ    program counter relative.
 
-                If -s (symbol table output) is not
-                specified the symbol table is included
-                at the end of the listing file.
+        -k      disable error messages to listing file
 
-        -o      create object output (out)file.rel
-        -s      create symbol output (out)file.sym
+                This option inhibits the listing of
+                error messages in the listing file
 
         -p      disable listing pagination
 
@@ -133,17 +160,51 @@ The ASxxxx options in some more detail:
 
         -w      wide listing format for symbol table
 
+    Assembly:
+        -i      Insert assembler line before input file(s)
+
+                This option inserts an assembly source
+                line before the first file to be assembled.
+                e.g.:  -i BUILD=2
+                If the insert contains white space then
+                delimit the insert.  Inserted lines are
+                by default not listed. To list an inserted
+                line preced the insert with a .list insert.
+                e.g.:   -i .list -i BUILD=2
+
+        -v      Enable out of range signed / unsigned errors
+
+                This option enables checking for out of
+                range signed / unsigned values in symbol
+                equates and arithmetic operations.  This
+                option has some ambiguities as internally
+                the assemblers use unsigned arithmetic
+                for calculations. (e.g. for a 2-byte machine
+                -32768 and 32768 are both represented as 0x8000)
+
+        -n#     Set the maximum number of 'Pass 2' scans
+
+                Specify a maximum number of 'Pass 2' scans
+                to resolve multiple level forward referencing
+                and variable length instruction formats.
+                
+    Symbols:
+        -a      all user symbols made global
+
+                All defined (not local or external)
+                variables and symbols are flagged
+                as global.
+
+        -g      undefined symbols made global
+
+                Unresolved (external) variables
+                and symbols are flagged as global.
+
         -z      disable case sensitivity for symbols
 
-        -f      by  `   in the listing file
-        -ff     by mode in the listing file
-
-                Relocatable modess are flagged by byte
-                position (LSB, Byte 2, Byte 3, MSB)
-                *nMN    paged,
-                uvUV    unsigned,
-                rsRS    signed,
-                pqPQ    program counter relative.
+    Debugging:
+        -j      enable NOICE debug symbols
+        -y      enable SDCC debug symbols
 
    The file name for the .lst, .rel, .hlr, and .sym files is the
 first file name specified in the command line.  All output files
@@ -159,16 +220,21 @@ have different radices.
    The  ASxxxx  assemblers  also  have  several 'hidden' options
 which are not shown in the usage message.  These are:  
 
-        -h      Print the usage message and exit
-
         -r      Include assembler line numbers
                 in the .hlr hint file
         -rr     Also include non listed line
                 numbers in the .hlr hint file
 
-        -t      Show Include File and Macro Expansion
-                levels and memory allocations for
+        -t      Show Assembler Pass Count (-n#),
+                Include File and Macro Expansion
+                levels, and memory allocations for
                 the assembler and macro processor
+
+        -tt     Show Assembler Pass Count (-n#),
+                Include File and Macro Expansion
+                levels, and memory allocations for the
+                assembler and macro processor without
+                the macro allocation optimization
 
 </PRE></B></H4>
 <H5><A HREF="asmblr.htm#Index">  Return to the Assembler Index</A></H5>
@@ -186,59 +252,81 @@ listing file and printed on the stderr device.
 
    The assembler reports the errors on the stderr device as 
 
-        ?ASxxxx-Error-<*> in line nnn of filename
+        ?ASxxxx-Error-&lt;*&gt; in line nnn of filename
 
 where  * is the error code, nnn is the line number, and filename
-is the source/include file.  
+is the source/include file.  This line is followed by a  generic
+error message for the <*> error code.
 
    The errors are:  
 
-      (.)   This  error  is caused by an absolute direct assign-
+      &lt;.&gt;   This  error  is caused by an absolute direct assign-
             ment of the current location counter 
                   . = expression (incorrect) 
             rather than the correct 
                   . = . + expression 
 
-      (a)   Indicates  a machine specific addressing or address-
+      &lt;a&gt;   Indicates  a machine specific addressing or address-
             ing mode error.  
 
-      (b)   Indicates a direct page boundary error.  
+      &lt;b&gt;   Indicates a direct page boundary error.  
 
-      (d)   Indicates a direct page addressing error.  
+      &lt;c&gt;   Indicates modulus of .bndry directives to large.  
 
-      (e)   Caused by a .error or .assume directive.  
+      &lt;d&gt;   Indicates a direct page addressing error.  
 
-      (i)   Caused  by  an  .include file error or an .if/.endif
+      &lt;e&gt;   Caused by a .error or .assume directive.  
+
+      &lt;i&gt;   Caused  by  an  .include file error or an .if/.endif
             mismatch.  
 
-      (m)   Multiple  definitions  of  the  same label, multiple
+      &lt;m&gt;   Multiple  definitions  of  the  same label, multiple
             .module directives, multiple conflicting  attributes
             in  an  .area or .bank directive or the use of .hilo
             and lohi within the same assembly.  
 
-      (n)   An  .mexit,  .endm,  or .narg directive outside of a
+      &lt;n&gt;   An  .mexit,  .endm,  or .narg directive outside of a
             macro, repeat block or indefinite repeat block.  
 
-      (o)   Directive  or  mnemonic error or the use of the .org
+      &lt;o&gt;   Directive  or  mnemonic error or the use of the .org
             directive in a relocatable area.  
 
-      (p)   Phase error:  label location changing between passes
+      &lt;p&gt;   Phase error:  label location changing between passes
             2 and 3.  Normally caused by having  more  than  one
             level of forward referencing.  
 
-      (q)   Questionable syntax:  missing or improper operators,
+      &lt;q&gt;   Questionable syntax:  missing or improper operators,
             terminators, or delimiters.  
 
-      (r)   Relocation  error:   logic  operation attempted on a
+      &lt;r&gt;   Relocation  error:   logic  operation attempted on a
             relocatable term, addition of two relocatable terms,
             subtraction  of two relocatable terms not within the
             same programming area or external symbols.  
 
-      (s)   String Substitution / recursion error.  
+      &lt;s&gt;   String Substitution / recursion error.  
 
-      (u)   Undefined symbol encountered during assembly.  
+      &lt;u&gt;   Undefined symbol encountered during assembly.  
 
-      (z)   Divide by 0 or Modulus by 0 error:  result is 0.  
+      &lt;z&gt;   Divide by 0 or Modulus by 0 error:  result is 0.  
+
+
+   Most  assemblers  now include more descriptive error messages
+for &lt;a&gt;, &lt;o&gt;, and &lt;q&gt; errors.  Those assemblers updated to  pro-
+vide  the  expanded  error messages will show three lines on the
+stdout device as shown by this error:  
+
+    ?ASxxxx-Error-&lt;a&gt; in line 1867 of tez80e.asm
+                  &lt;a&gt; '1867         ld.l    sp,(var1)       ;a'
+                  &lt;a&gt; Only .SIS and .LIL suffixes allowed.
+
+
+   The  first line is the basic error in line xxxx message.  The
+second line lists the actual line in error followed by  a  third
+line containing the more specific error.  
+
+   The  listing  file (.lst) will have the first and third lines
+of the error message inserted preceding the line containing  the
+error.  
 
 </PRE></B></H4>
 <H5><A HREF="asmblr.htm#Index">  Return to the Assembler Index</A></H5>
@@ -256,7 +344,7 @@ page of output contains a five line header:
 
      1.  The ASxxxx program name and page number 
 
-     2.  Assembler Radix and Address Bits 
+     2.  Assembler Radix, Address Bits, Date, and Time
 
      3.  Title from a .title directive (if any) 
 
@@ -313,9 +401,9 @@ source line with substitutions.
 
    Two  data  field  options  are  available to flag those bytes
 which will be relocated by the linker.   If  the  -f  option  is
-specified  then  each  byte to be relocated will be preceeded by
-the '`' character.  If the -ff option  is  specified  then  each
-byte  to  be relocated will be preceeded by one of the following
+specified then each byte to be relocated will be preceded by the
+'`' character.  If the -ff option is specified then each byte to
+be   relocated   will  be  preceded  by  one  of  the  following
 characters:  
 
      1.  *   paged relocation 
@@ -444,8 +532,8 @@ following designators:
 designators and the format of the information contained  in  the
 object file.  
 
-<H5><A HREF="asmblr.htm#Index">  Return to the Assembler Index</A></H5>
 </PRE></B></H4>
+<H5><A HREF="asmblr.htm#Index">  Return to the Assembler Index</A></H5>
 
 <IMG width=576 height=5 border=0 SRC="rnbow.gif">
 <A NAME = "Hint"></A>
@@ -456,7 +544,7 @@ object file.
 <H4><B><PRE>
    The  hint file is an ascii file containing information needed
 by the linker to convert the listing file into a relocated list-
-ing  file.   Each  line  in the .hlr file coresponds to a single
+ing  file.   Each  line in the .hlr file corresponds to a single
 line in the listing file.  The text line usually contains 3 or 4
 parameters  in  the radix selected for the assembler as shown in
 the following table:  
@@ -466,6 +554,7 @@ Line Position:  123456789012
 Octal:           111 222 333
 Decimal:         111 222 333
 Hex:             11 22 33
+
 
 Parameter 1 specifies the parameters listed in the line.
 A bit is set for each listing option enabled during the
@@ -524,8 +613,8 @@ Line Position:  123456789012345678901234567890
    The  linker understands these formats without any user inter-
 action.  
 
-<H5><A HREF="asmblr.htm#Index">  Return to the Assembler Index</A></H5>
 </PRE></B></H4>
+<H5><A HREF="asmblr.htm#Index">  Return to the Assembler Index</A></H5>
 
 <IMG width=576 height=5 border=0 SRC="rnbow.gif">
 
@@ -539,6 +628,6 @@ action.
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

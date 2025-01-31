@@ -1,7 +1,7 @@
 /* i51adr.c */
 
 /*
- *  Copyright (C) 1998-2014  Alan R. Baldwin
+ *  Copyright (C) 1998-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -56,6 +56,18 @@ struct expr *esp;
 {
 	int c;
 	unsigned rd;
+	char *p;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	if ((c = getnb()) == '#') {
 		/*  Immediate mode */
@@ -87,10 +99,10 @@ struct expr *esp;
 					esp->e_mode = S_AT_ADP;
 					esp->e_addr = 0;
 				} else {
-					aerr();
+					xerr('a', "@A+DPTR and A,@A+PC are the allowed modes.");
 				}
 			} else
-				aerr();
+				xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
 
@@ -109,7 +121,7 @@ struct expr *esp;
 			esp->e_mode = S_DIR;
 		}
 		if (esp->e_addr & ~0xFF)
-			err('d');
+			xerr('d', "A Direct Page addressing error.");
 	} 
 	else if (c == '/') {
 		/* Force inverted bit  */
@@ -158,6 +170,23 @@ struct expr *esp;
 }
 	
 /*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
+
+/*
  * Enter admode() to search a specific addressing mode table
  * for a match. Return the addressing value on a match or
  * -1 for no match.
@@ -201,24 +230,10 @@ char *str;
 	}
 
 	if (!*str)
-		if (any(*ptr," \t\n,];")) {
+		if (!(ctype[*ptr & 0x007F] & LTR16)) {
 			ip = ptr;
 			return(1);
 		}
-	return(0);
-}
-
-/*
- *	any --- does str contain c?
- */
-int
-any(c,str)
-int c;
-char *str;
-{
-	while (*str)
-		if(*str++ == c)
-			return(1);
 	return(0);
 }
 

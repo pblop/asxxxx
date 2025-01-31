@@ -1,5 +1,7 @@
-	.title	Test of 8085/8080 Assembler
-	.sbttl	All 8085/8080 instructions
+	.title	Test of 8085 Assembler
+	.sbttl	All 8085 instructions
+
+	.8085
 
 	aci	#1			; CE 01
 
@@ -107,6 +109,9 @@ jmpadr:	.word	jmpadr			;r5Ds00
 
 	lhlx				; ED
 
+	lxi	b,#0xeeee		; 01 EE EE
+	lxi	d,#0xeeee		; 11 EE EE
+	lxi	h,#0xeeee		; 21 EE EE
 	lxi	sp,#0xeeee		; 31 EE EE
 
 	mov	c,d			; 4A

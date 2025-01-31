@@ -1,6 +1,6 @@
 	.title	Macro Processor Tests
-	.nlist	(md)
-	.list	(me)
+	;.nlist	(md)
+	.list	(mel)
 
 	;	The Macro Processor directives are:
 	;
@@ -20,6 +20,7 @@
 	;	.ntyp	typ,symbol		Return Symbol Type - (ABS = 0, REL = 1)
 	;	.nval	val,symbol		Return Value of Symbol (As Absolute Value)
 	;
+
 
 	.page
 	.sbttl	Macro Creation
@@ -45,6 +46,53 @@ B:	  .byte	A
 	setb	0x02, K		; Use label K
 
 	setb	0x03		; Create a local symbol
+
+	.page
+	; Macro definition with the
+	; name setabc with 3 regular arguments
+	; testing argument delimiters
+	;
+	.macro	setabc,   A,B,C	; Define macro seta
+	  .iifnb A	.byte	A
+	  .iifnb B	.byte	B
+	  .iifnb C	.byte	C
+	.endm
+
+	setabc
+	setabc	1
+	setabc	,2
+	setabc	1,2
+	setabc	,,3
+	setabc	1,,3
+	setabc	,2,3
+	setabc	1,2,3
+
+	setabc
+	setabc	1
+	setabc	, 2
+	setabc	1 2
+	setabc	,, 3
+	setabc	1, ,3
+	setabc	, 2 3
+	setabc	1 2 3
+
+	setabc,
+	setabc,	1
+	setabc,	,2
+	setabc,	1,2
+	setabc,	,,3
+	setabc,	1,,3
+	setabc,	,2,3
+	setabc,	1,2,3
+
+	setabc,
+	setabc,	1
+	setabc,	, 2
+	setabc,	1 2
+	setabc,	,, 3
+	setabc,	1, ,3
+	setabc,	, 2 3
+	setabc,	1 2 3
 
 	.page
 	; Macro definition with the
@@ -193,6 +241,19 @@ A''B''C:  .byte	0x08
 
 
 	.page
+	; Macro Definition With Default Arguments
+	.macro default	A,B=0x1234,?C,D,?E
+'C:	  .iifnb A,	.word	A
+	  .iifnb B,	.word	B
+'E:	  .iifnb D,	.word	D
+	.endm
+
+	default	'A,,,'D
+
+	default	'A,'B,xy,'D,yz
+
+
+	.page
 	.sbttl	Repeat Macro
 	; Repeat Macro Definition.
 
@@ -224,6 +285,33 @@ A''B''C:  .byte	0x08
 	.irp	sym	^!.word	0x1234!,	^!.byte	0xFF	; End of .irp!
 	 sym
 	.endm
+
+
+	.page
+	.sbttl	MACRO Evaluation Definitions
+
+	SCtrl = 20
+
+	.macro	bld	BLOCK=10,CTRL=\SCtrl
+	  .word	BLOCK
+	  .word	CTRL
+	.endm
+
+	SCtrl = 40
+
+	bld				; BLOCK=10, CTRL=20 (Value at Macro build time)
+
+	bld	1,BLOCK=3		; BLOCK=3 WIll Overwrite Argument 1
+
+	bld	CTRL=2,BLOCK=1		; Define Elements
+
+	bld	CTRL=5,BLOCK=\SCtrl	; Use '\' Evaluation (Current Value)
+
+	; NOTE: Defined Elements Do Not Count As Arguments
+
+	bld	CTRL=6,BLOCK=5,1,2	; BLOCK becomes 1, CTRL becomes 2
+
+	bld	1,2,CTRL=6,BLOCK=5	; Block becomes 5, CTRL becomes 6
 
 
 	.page
@@ -276,6 +364,14 @@ LESS:	.opcode	2		;LESS is defined as a label
 	  .iif    tf	LESS	sym1,sym1
 	  .byte	0xE3
 	.endif
+
+	  .byte	0xE0
+	  .iif    f	LESS	sym1,sym2	; must be inside .if/.else/.endif block
+	  .byte 0xE1
+	  .iif	  t	LESS	sym2,sym1	; must be inside .if/.else/.endif block
+	  .byte	0xE2
+	  .iif    tf	LESS	sym1,sym1	; must be inside .if/.else/.endif block
+	  .byte	0xE3
 
 	.if	eq,0
 	  .byte	0xF0

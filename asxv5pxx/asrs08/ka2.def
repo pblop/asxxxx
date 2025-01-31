@@ -1,0 +1,143 @@
+;****************************************************************************
+; ka2.def
+;
+; Include This File To Define RS08KA2 Registers
+;
+;	!!! NOTE !!!
+;		Only Registers And
+;		Register Bits Are Defined
+;
+;****************************************************************************
+;
+	; Set UPPER_CASE_DEF Non Zero To Define Upper Case DEFs
+	; Set LOWER_CASE_DEF Non Zero To Define Lower Case DEFs
+	; Else Both Upper And Lower Case DEFs Will Be Defined
+
+	.ifeq	UPPER_CASE_DEF + LOWER_CASE_DEF
+		UPPER_CASE_DEF = 1
+		LOWER_CASE_DEF = 1
+	.endif
+
+;
+;****************************************************************************
+;
+	; Macro To Define Register and Register Bit Names
+	.macro	.reg.bits.	addr,	reg, str7, str6, str5, str4, str3, str2, str1, str0
+	  ; Create Register Symbol
+	  .ifnb	reg
+	    .iifdef  reg	.error  'reg - addr	; Register Defined With Multiple Addresses
+	reg == addr
+	  .endif
+	  ; Creates Symbols str0 = 0, str1 = 1, ..., str7 = 7
+	  .cntr. =: 7
+	  .irp	str, str7, str6, str5, str4, str3, str2, str1, str0
+	    .ifnb str
+	      .iifdef  'str	.error  'str - .cntr.	; Bit Defined With Multiple Values
+	'str == .cntr.
+	    .endif
+	    .cntr. =: .cntr. - 1
+	  .endm
+	.endm
+
+;
+;****************************************************************************
+
+.ifne	UPPER_CASE_DEF
+	.list	(!,src)
+;	RS08KA2/KA1 Upper Case Registers          Defined
+	.nlist
+
+	.reg.bits.	0x10,	PTAD,		,	,	PTAD5,	PTAD4,	PTAD3,	PTAD2,	PTAD1,	PTAD0
+
+	.reg.bits.	0x11,	PTADD,		,	,	PTADD5,	PTADD4,	,	,	PTADD1,	PTADD0
+
+	.reg.bits.	0x13,	ACMPSC,		ACME,	ACBGS,	ACF,	ACIE,	ACO,	ACOPE,	ACMOD1,	ACMOD0
+
+	.reg.bits.	0x14,	ICSC1,		,	CLKS,	,	,	,	,	,IREFSTEN
+	.reg.bits.	0x15,	ICSC2,		BDIV1,	BDIV0,	,	,	LP
+	.reg.bits.	0x16,	ICSTRM,		TRIM7,	TRIM6,	TRIM5,	TRIM4,	TRIM3,	TRIM2,	TRIM1,	TRIM0
+	.reg.bits.	0x17,	ICSSC,		,	,	,	,	,	CLKST,	,	FTRIM
+
+	.reg.bits.	0x18,	MTIM1SC,	TOF,	TOIE,	TRST,	TSTP
+	.reg.bits.	0x19,	MTIM1CLK,	,	,	MCLKS1,	MCLKS0,	PS3,	PS2,	PS1,	PS0
+	.reg.bits.	0x1A	MTIM1CNT,	COUNT7,	COUNT6,	COUNT5,	COUNT4,	COUNT3,	COUNT2,	COUNT1,	COUNT0
+	.reg.bits.	0x1B,	MYIM1MOD,	MOD7,	MOD6,	MOD5,	MOD4,	MOD3,	MOD2,	MOD1,	MOD0
+
+	.reg.bits.	0x1C,	KBISC,		,	,	,	,	KBF,	KBACK,	KBIE,	KBMOD
+	.reg.bits.	0x1D,	KBIPE,		,	,	KBIP5,	KBIP4,	,	KBIP2,	KBIP1,	KPIP0
+	.reg.bits.	0x1E,	KBIES,		,	,	KBEDG5,	KBEDG4,	,	KBEDG2,	KBEDG1,	KPEDG0
+
+	.reg.bits.	0x1F,	PAGESEL,	AD13,	AD12,	AD11,	AD10,	AD9,	AD8,	AD7,	AD6
+
+  	.reg.bits.	0x200,	SRS,		POR,	PIN,	COP,	ILOP,	ILAD,	,	SRLVD
+	.reg.bits.	0x201,	S0PT,		COPE, COPT,	STOPE,	,	,	,	BKGDPE,	RSTPE
+	.reg.bits.	0x202,	SIP1,		,	,	,	KBI,	ACMP,	MTIM,	RTI,	SILVD
+
+	.reg.bits.	0x206,	SDIDH,		REV3,	REV2,	REV1,	REV0,	ID11,	ID10,	ID9,	ID8
+	.reg.bits.	0x207,	SDIDL,		ID7,	ID6,	ID5,	ID4,	ID3,	ID2,	ID1,	ID0
+
+	.reg.bits.	0x208,	SRTISC,		RTIF,	RTIACK,	RTICLKS,RTIE,	,	RTIS2,	RTIS1,	RTIS0
+	.reg.bits.	0x209,	SPMSC1,		LVDF,	LVDACK,	LVDIE,	LVDRE,	LVDSE,	LVDE,	,	BGBE
+
+	.reg.bits.	0x210,	FOPT,		,	,	,	,	,	,	,	SECD
+	.reg.bits.	0x211,	FLCR,		,	,	,	,	HVEN,	MASS,	,	PGM
+
+	.reg.bits.	0x220,	PTAPE,		,	,	PTAPE5,	PTAPE4,,	PTAPE2,	PTAPE1,	PTAPE0
+	.reg.bits.	0x221,	PTAPUD,		,	,	PTAPUD5,PTAPUD4,,	PATPUD2,PTAPUD1,PTAPUD0
+	.reg.bits.	0x222,	PTASE,		,	,	PTASE5,	PTASE4,	PTASE3,	,	PTASE1,	PTASE0
+
+	.reg.bits.	0x3FFB,	,		,	,	,	,	,	,	,	FTRIM
+	.reg.bits.	0x3FFC,	NVOPT,		,	,	,	,	,	,	,	SECD
+
+.endif
+
+
+.ifne	LOWER_CASE_DEF
+	.list	(!,src)
+;	RS08KA2/KA1 Lower Case Registers          Defined
+	.nlist
+
+	.reg.bits.	0x10,	ptad,		,	,	ptad5,	ptad4,	ptad3,	ptad2,	ptad1,	ptad0
+
+	.reg.bits.	0x11,	ptadd,		,	,	ptadd5,	ptadd4,	,	,	ptadd1,	ptadd0
+
+	.reg.bits.	0x13,	acmpsc,		acme,	acbgs,	acf,	acie,	aco,	acope,	acmod1,	acmod0
+
+	.reg.bits.	0x14,	icsc1,		,	clks,	,	,	,	,	,irefsten
+	.reg.bits.	0x15,	icsc2,		bdiv1,	bdiv0,	,	,	lp
+	.reg.bits.	0x16,	icstrm,		trim7,	trim6,	trim5,	trim4,	trim3,	trim2,	trim1,	trim0
+	.reg.bits.	0x17,	icssc,		,	,	,	,	,	clkst,	,	ftrim
+
+	.reg.bits.	0x18,	mtim1sc,	tof,	toie,	trst,	tstp
+	.reg.bits.	0x19,	mtim1clk,	,	,	mclks1,	mclks0,	ps3,	ps2,	ps1,	ps0
+	.reg.bits.	0x1a	mtim1cnt,	count7,	count6,	count5,	count4,	count3,	count2,	count1,	count0
+	.reg.bits.	0x1b,	myim1mod,	mod7,	mod6,	mod5,	mod4,	mod3,	mod2,	mod1,	mod0
+
+	.reg.bits.	0x1c,	kbisc,		,	,	,	,	kbf,	kback,	kbie,	kbmod
+	.reg.bits.	0x1d,	kbipe,		,	,	kbip5,	kbip4,	,	kbip2,	kbip1,	kpip0
+	.reg.bits.	0x1e,	kbies,		,	,	kbedg5,	kbedg4,	,	kbedg2,	kbedg1,	kpedg0
+
+	.reg.bits.	0x1f,	pagesel,	ad13,	ad12,	ad11,	ad10,	ad9,	ad8,	ad7,	ad6
+
+  	.reg.bits.	0x200,	srs,		por,	pin,	cop,	ilop,	ilad,	,	srlvd
+	.reg.bits.	0x201,	s0pt,		cope, copt,	stope,	,	,	,	bkgdpe,	rstpe
+	.reg.bits.	0x202,	sip1,		,	,	,	kbi,	acmp,	mtim,	rti,	silvd
+
+	.reg.bits.	0x206,	sdidh,		rev3,	rev2,	rev1,	rev0,	id11,	id10,	id9,	id8
+	.reg.bits.	0x207,	sdidl,		id7,	id6,	id5,	id4,	id3,	id2,	id1,	id0
+
+	.reg.bits.	0x208,	srtisc,		rtif,	rtiack,	rticlks,rtie,	,	rtis2,	rtis1,	rtis0
+	.reg.bits.	0x209,	spmsc1,		lvdf,	lvdack,	lvdie,	lvdre,	lvdse,	lvde,	,	bgbe
+
+	.reg.bits.	0x210,	fopt,		,	,	,	,	,	,	,	secd
+	.reg.bits.	0x211,	flcr,		,	,	,	,	hven,	mass,	,	pgm
+
+	.reg.bits.	0x220,	ptape,		,	,	ptape5,	ptape4,,	ptape2,	ptape1,	ptape0
+	.reg.bits.	0x221,	ptapud,		,	,	ptapud5,ptapud4,,	patpud2,ptapud1,ptapud0
+	.reg.bits.	0x222,	ptase,		,	,	ptase5,	ptase4,	ptase3,	,	ptase1,	ptase0
+
+	.reg.bits.	0x3ffb,	,		,	,	,	,	,	,	,	ftrim
+	.reg.bits.	0x3ffc,	nvopt,		,	,	,	,	,	,	,	secd
+
+.endif
+

@@ -1,7 +1,7 @@
 /* m11mch.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,8 +40,8 @@ char	*dsft	= "asm";
 #define	OPCY_SDP	((char) (0xFF))
 #define	OPCY_ERR	((char) (0xFE))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	UN	((char) (OPCY_NONE | 0x00))
 #define	P2	((char) (OPCY_NONE | 0x01))
@@ -136,6 +136,7 @@ static char *Page[4] = {
     m11pg1, m11pg2, m11pg3, m11pg4
 };
 
+struct area *zpg;
 
 /*
  * Process a machine op.
@@ -146,9 +147,15 @@ struct mne *mp;
 {
 	int op, t1, t2;
 	struct expr e1, e2, e3;
-	struct area *espa;
+	struct sym *sp;
 	char id[NCPS];
 	int c, reg, cpg, type, v1, v3;
+
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
 
 	clrexpr(&e1);
 	clrexpr(&e2);
@@ -161,32 +168,41 @@ struct mne *mp;
 
 	case S_SDP:
 		opcycles = OPCY_SDP;
-		espa = NULL;
+		zpg = dot.s_area;
 		if (more()) {
 			expr(&e1, 0);
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 				if (e1.e_addr) {
-					err('b');
+					e1.e_addr = 0;
+					xerr('b', "Only Page 0 Allowed.");
 				}
 			}
 			if ((c = getnb()) == ',') {
 				getid(id, -1);
-				espa = alookup(id);
-				if (espa == NULL) {
-					err('u');
+				zpg = alookup(id);
+				if (zpg == NULL) {
+					zpg = dot.s_area;
+					xerr('u', "Undefined Area.");
 				}
 			} else {
 				unget(c);
 			}
 		}
-		if (espa) {
-			outdp(espa, &e1, 0);
-		} else {
-			outdp(dot.s_area, &e1, 0);
-		}
+		outdp(zpg, &e1, 0);
 		lmode = SLIST;
 		break;
 
+	case S_PGD:
+		do {
+			getid(id, -1);
+			sp = lookup(id);
+			sp->s_flag &= ~S_LCL;
+			sp->s_flag |=  S_GBL;
+			sp->s_area = (zpg != NULL) ? zpg : dot.s_area;
+ 		} while (comma(0));
+		lmode = SLIST;
+		break;
+ 
 	case S_INH2:
 		outab(PAGE2);
 
@@ -213,16 +229,15 @@ struct mne *mp;
 			outab(op+6);
 			break;
 		}
-		aerr();
+		xerr('a', "Register D Is Invalid.");
 		break;
 
 	case S_BRA:
 		expr(&e1, 0);
 		outab(op);
-		if (mchpcr(&e1)) {
-			v1 = (int) (e1.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e1, &v1, 1)) {
 			if ((v1 < -128) || (v1 > 127))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outab(v1);
 		} else {
 			outrb(&e1, R_PCR);
@@ -250,7 +265,7 @@ struct mne *mp;
 				outab(0x05);
 				break;
 			}
-			aerr();
+			xerr('a', "Register D Is Invalid.");
 			break;
 		}
 		if (t1 == S_INDX || t1 == S_INDY) {
@@ -265,14 +280,13 @@ struct mne *mp;
 			outrw(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_TYP2:
-		if ((reg = admode(abdxy)) == 0)
-			aerr();
-
 	case S_TYP3:
+		if (((reg = admode(abdxy)) == 0) && (type == S_TYP2))
+			xerr('a', "Register A, B, Or D Required.");
 		if (!reg) {
 			reg = op & 0x40;
 		} else
@@ -289,17 +303,17 @@ struct mne *mp;
 			if (op == 0x8B) {
 				op = 0xC3;
 			} else {
-				aerr();
+				xerr('a', "Register D Is Invalid.");
 			}
 			reg = 0x00;
 		} else {
-			aerr();
+			xerr('a', "Register X Or Y Is Invalid.");
 			reg = 0x00;
 		}
 		t1 = addr(&e1);
 		if (t1 == S_IMMED) {
 			if ((op|0x40) == 0xC7)
-				aerr();
+				xerr('a', "STA #__ And STB #__ Are Invalid.");
 			if (op == 0x83 || op == 0xC3) {
 				outab(op|reg);
 				outrw(&e1, 0);
@@ -326,14 +340,14 @@ struct mne *mp;
 			outrw(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_TYP4:
 		t1 = addr(&e1);
 		if (t1 == S_IMMED) {
 			if ((op&0x0D) == 0x0D)
-				aerr();
+				xerr('a', "STS #__ , STD #__, and JSR #__ Are Invalid.");
 			outab(op);
 			outrw(&e1, 0);
 			break;
@@ -355,7 +369,7 @@ struct mne *mp;
 			outrw(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_TYP5:
@@ -372,7 +386,7 @@ struct mne *mp;
 			outrw(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_PG3:
@@ -385,7 +399,7 @@ struct mne *mp;
 		t1 = addr(&e1);
 		if (t1 == S_IMMED) {
 			if (op == 0xCF)
-				aerr();
+				xerr('a', "STX #__ And STY #__ Are Invalid.");
 			if (cpg)
 				outab(cpg);
 			outab(op);
@@ -423,7 +437,7 @@ struct mne *mp;
 			outrw(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_BTB:
@@ -452,16 +466,15 @@ struct mne *mp;
 		} else {
 			outab(op);
 			outrb(&e1, 0);
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		if (t2 != S_IMMED)
-			aerr();
+			xerr('a', "Immediate(#) Mode Is Invalid.");
 		outrb(&e2, 0);
 		if (type == S_BTB) {
-			if (mchpcr(&e3)) {
-				v3 = (int) (e3.e_addr - dot.s_addr - 1);
+			if (mchpcr(&e3, &v3, 1)) {
 				if ((v3 < -128) || (v3 > 127))
-					aerr();
+					xerr('a', "Branching Range Exceeded.");
 				outab(v3);
 			} else {
 				outrb(&e3, R_PCR);
@@ -473,7 +486,7 @@ struct mne *mp;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 
@@ -483,16 +496,39 @@ struct mne *mp;
 			opcycles = Page[opcycles & OPCY_MASK][cb[1] & 0xFF];
 		}
 	}
+ 	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - n);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - n);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {
@@ -520,4 +556,9 @@ minit()
 	 * Byte Order
 	 */
 	hilo = 1;
+
+	/*
+	 * Zero Page
+	 */
+	zpg = NULL;
 }

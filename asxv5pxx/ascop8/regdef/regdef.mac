@@ -1,0 +1,22 @@
+.nlist
+;
+;****************************************************************************
+;
+	; Macro To Define Name, Bit Names, and Bit Numbers
+	.macro	.reg	name, addr, str7, str6, str5, str4, str3, str2, str1, str0
+	  name =: addr
+	  $.btn.$ =: 8
+	  .irp	str, str7, str6, str5, str4, str3, str2, str1, str0
+	    $.btn.$ = $.btn.$ - 1
+	    .ifnb str
+	name'.'str =: $.btn.$
+	    .endif
+	  .endm
+	  .irpc c ^/01234567/
+	name'.'c =: 'c
+	  .endm
+	.endm
+;
+;****************************************************************************
+;
+

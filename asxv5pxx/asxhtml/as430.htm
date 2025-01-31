@@ -77,29 +77,29 @@ The following table lists all MPS430 family mnemonics recognized
 by the AS430 assembler.  The designations src and dst  refer  to
 required source and/or destination addressing mode arguments.  
 
-        * ADC[.W];ADC.B  dst        dst + C -> dst
-          ADD[.W];ADD.B  src,dst    src + dst -> dst
-          ADDC[.W];ADDC.B           src,dst src + dst + C -> dst
-          AND[.W];AND.B  src,dst    src .and. dst -> dst
-          BIC[.W];BIC.B src,dst     .not.src .and. dst -> dst
-          BIS[.W];BIS.B src,dst     src .or. dst -> dst
+        * ADC[.W];ADC.B  dst        dst + C -&gt; dst
+          ADD[.W];ADD.B  src,dst    src + dst -&gt; dst
+          ADDC[.W];ADDC.B           src,dst src + dst + C -&gt; dst
+          AND[.W];AND.B  src,dst    src .and. dst -&gt; dst
+          BIC[.W];BIC.B src,dst     .not.src .and. dst -&gt; dst
+          BIS[.W];BIS.B src,dst     src .or. dst -&gt; dst
           BIT[.W];BIT.B src,dst     src .and. dst
         * BR dst                Branch to .......
         * BRANCH dst            Branch to .......
-          CALL dst              PC+2 -> stack, dst -> PC
+          CALL dst              PC+2 -&gt; stack, dst -&gt; PC
         * CLR[.W];CLR.B dst     Clear destination
         * CLRC                  Clear carry bit
         * CLRN                  Clear negative bit
         * CLRZ                  Clear zero bit
           CMP[.W];CMP.B src,dst     dst - src
-        * DADC[.W];DADC.B dst       dst + C -> dst (decimal)
-          DADD[.W];DADD.B src,dst   src + dst + C -> dst (decimal)
-        * DEC[.W];DEC.B dst     dst - 1 -> dst
-        * DECD[.W];DECD.B dst   dst - 2 -> dst
+        * DADC[.W];DADC.B dst       dst + C -&gt; dst (decimal)
+          DADD[.W];DADD.B src,dst   src + dst + C -&gt; dst (decimal)
+        * DEC[.W];DEC.B dst     dst - 1 -&gt; dst
+        * DECD[.W];DECD.B dst   dst - 2 -&gt; dst
         * DINT                  Disable interrupt
         * EINT                  Enable interrupt
-        * INC[.W];INC.B dst     dst + 1 -> dst
-        * INCD[.W];INCD.B dst   dst + 2 -> dst
+        * INC[.W];INC.B dst     dst + 1 -&gt; dst
+        * INCD[.W];INCD.B dst   dst + 2 -&gt; dst
         * INV[.W];INV.B dst     Invert destination
           JC/JHS Label          Jump to Label if Carry-bit is set
           JEQ/JZ Label          Jump to Label if Zero-bit is set
@@ -109,30 +109,30 @@ required source and/or destination addressing mode arguments.
           JN Label              Jump to Label if Negative-bit is set
           JNC/JLO Label         Jump to Label if Carry-bit is reset
           JNE/JNZ Label         Jump to Label if Zero-bit is reset
-          MOV[.W];MOV.B src,dst     src -> dst
+          MOV[.W];MOV.B src,dst     src -&gt; dst
         * NOP                   No operation
-        * POP[.W];POP.B dst     Item from stack, SP+2 -> SP
-          PUSH[.W];PUSH.B src   SP - 2 -> SP, src -> @SP
+        * POP[.W];POP.B dst     Item from stack, SP+2 -&gt; SP
+          PUSH[.W];PUSH.B src   SP - 2 -&gt; SP, src -&gt; @SP
           RETI                  Return from interrupt
-                                    TOS -> SR, SP + 2 -> SP
-                                    TOS -> PC, SP + 2 -> SZP
+                                    TOS -&gt; SR, SP + 2 -&gt; SP
+                                    TOS -&gt; PC, SP + 2 -&gt; SZP
         * RET                   Return from subroutine
-                                    TOS -> PC, SP + 2 -> SP
+                                    TOS -&gt; PC, SP + 2 -&gt; SP
         * RLA[.W];RLA.B dst     Rotate left arithmetically
         * RLC[.W];RLC.B dst     Rotate left through carry
-          RRA[.W];RRA.B dst     MSB -> MSB . ....LSB -> C
-          RRC[.W];RRC.B dst     C -> MSB . ......LSB -> C
+          RRA[.W];RRA.B dst     MSB -&gt; MSB . ....LSB -&gt; C
+          RRC[.W];RRC.B dst     C -&gt; MSB . ......LSB -&gt; C
         * SBC[.W];SBC.B dst     Subtract carry from destination
         * SETC                  Set carry bit
         * SETN                  Set negative bit
         * SETZ                  Set zero bit
-          SUB[.W];SUB.B src,dst     dst + .not.src + 1 -> dst
-          SUBC[.W];SUBC.B src,dst   dst + .not.src + C -> dst
-          SBB[.W];SBB.B src,dst     dst + .not.src + C -> dst
+          SUB[.W];SUB.B src,dst     dst + .not.src + 1 -&gt; dst
+          SUBC[.W];SUBC.B src,dst   dst + .not.src + C -&gt; dst
+          SBB[.W];SBB.B src,dst     dst + .not.src + C -&gt; dst
           SWPB dst              swap bytes
-          SXT dst               Bit7 -> Bit8 ........ Bit15
+          SXT dst               Bit7 -&gt; Bit8 ........ Bit15
         * TST[.W];TST.B dst     Test destination
-          XOR[.W];XOR.B src,dst     src .xor. dst -> dst
+          XOR[.W];XOR.B src,dst     src .xor. dst -&gt; dst
                 Note: Asterisked Instructions
                 Asterisked (*) instructions are emulated.
                 They are replaced with coreinstructions
@@ -153,6 +153,7 @@ required source and/or destination addressing mode arguments.
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>
+

@@ -1,7 +1,7 @@
 /* m6808.h */
 
 /*
- *  Copyright (C) 1993-2014  Alan R. Baldwin
+ *  Copyright (C) 1993-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -96,7 +96,12 @@ struct adsym
  * Special Types
  */
 #define	S_SDP	80
-#define	S_CPU	81
+#define	S_PGD	81
+
+/*
+ * CPU Option
+ */
+#define	S_CPU	82
 
 /*
  * Processor Types (S_CPU)
@@ -106,7 +111,10 @@ struct adsym
 #define	X_6805	2
 #define	X_HC05	3
 
-
+/*
+ * Extended Addressing Modes
+ */
+#define	R_3BIT	0x0100		/* 3-Bit Addressing Mode */
 
 
 	/* machine dependent functions */
@@ -117,12 +125,12 @@ struct adsym
 extern	struct	adsym	axs[];
 extern	int		addr(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
 	/* m08mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 
 #else
@@ -131,10 +139,10 @@ extern	VOID		minit(void);
 extern	struct	adsym	axs[];
 extern	int		addr();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
 	/* m08mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine();
 extern	int		mchpcr();
 extern	VOID		minit();

@@ -1,7 +1,7 @@
 /* m16pst.c */
 
 /*
- *  Copyright (C) 1991-2014  Alan R. Baldwin
+ *  Copyright (C) 1991-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -54,6 +54,13 @@ char	mode0[32] = {	/* R_NORM */
 	'\230',	'\231',	'\232',	'\233',	'\234',	'\235',	'\236',	'\237'
 };
 
+char	mode1[32] = {	/* R_20BIT */
+	'\200',	'\201',	'\202',	'\203',	'\204',	'\205',	'\206',	'\207',
+	'\210',	'\211',	'\212',	'\213',	'\214',	'\215',	'\216',	'\217',
+	'\220',	'\221',	'\222',	'\223',	'\024',	'\025',	'\026',	'\027',
+	'\030',	'\031',	'\032',	'\033',	'\034',	'\035',	'\036',	'\037'
+};
+
 /*
  * Additional Relocation Mode Definitions
  */
@@ -74,15 +81,23 @@ char	mode0[32] = {	/* R_NORM */
  *		a_uint	m_sbits;	Source Bit Mask
  *	};
  */
-struct	mode	mode[1] = {
-    {	&mode0[0],	0,	0x0000FFFF,	0x0000FFFF	}
+#ifdef	LONGINT
+struct	mode	mode[2] = {
+    {	&mode0[0],	0,	0x0000FFFFl,	0x0000FFFFl	},
+    {	&mode1[0],	0,	0x000FFFFFl,	0x000FFFFFl	}
 };
+#else
+struct	mode	mode[2] = {
+    {	&mode0[0],	0,	0x0000FFFF,	0x0000FFFF	},
+    {	&mode1[0],	0,	0x000FFFFF,	0x000FFFFF	}
+};
+#endif
 
 /*
  * Array of Pointers to mode Structures
  */
 struct	mode	*modep[16] = {
-	&mode[0],	NULL,		NULL,		NULL,
+	&mode[0],	&mode[1],	NULL,		NULL,
 	NULL,		NULL,		NULL,		NULL,
 	NULL,		NULL,		NULL,		NULL,
 	NULL,		NULL,		NULL,		NULL
@@ -93,34 +108,19 @@ struct	mode	*modep[16] = {
  */
 struct	mne	mne[] = {
 
-	/* machine */
+	/* assembler */
 
-    {	NULL,	"CSEG",		S_ATYP,		0,	A_CSEG|A_1BYTE	},
-    {	NULL,	"DSEG",		S_ATYP,		0,	A_DSEG|A_1BYTE	},
-
-    {	NULL,	".setdp",	S_SDP,		0,	0	},
-
-	/* system */
-
-    {	NULL,	"BANK",		S_ATYP,		0,	A_BNK	},
-    {	NULL,	"CON",		S_ATYP,		0,	A_CON	},
-    {	NULL,	"OVR",		S_ATYP,		0,	A_OVR	},
-    {	NULL,	"REL",		S_ATYP,		0,	A_REL	},
-    {	NULL,	"ABS",		S_ATYP,		0,	A_ABS	},
-    {	NULL,	"NOPAG",	S_ATYP,		0,	A_NOPAG	},
-    {	NULL,	"PAG",		S_ATYP,		0,	A_PAG	},
-
-    {	NULL,	"BASE",		S_BTYP,		0,	B_BASE	},
-    {	NULL,	"SIZE",		S_BTYP,		0,	B_SIZE	},
-    {	NULL,	"FSFX",		S_BTYP,		0,	B_FSFX	},
-    {	NULL,	"MAP",		S_BTYP,		0,	B_MAP	},
-
+    {	NULL,	".enabl",	S_OPTN,		0,	O_ENBL	},
+    {	NULL,	".dsabl",	S_OPTN,		0,	O_DSBL	},
     {	NULL,	".page",	S_PAGE,		0,	0	},
     {	NULL,	".title",	S_HEADER,	0,	O_TITLE	},
     {	NULL,	".sbttl",	S_HEADER,	0,	O_SBTTL	},
     {	NULL,	".module",	S_MODUL,	0,	0	},
-    {	NULL,	".include",	S_INCL,		0,	0	},
+    {	NULL,	".include",	S_INCL,		0,	I_CODE	},
+    {	NULL,	".incbin",	S_INCL,		0,	I_BNRY	},
     {	NULL,	".area",	S_AREA,		0,	0	},
+    {	NULL,	".psharea",	S_AREA,		0,	O_PSH	},
+    {	NULL,	".poparea",	S_AREA,		0,	O_POP	},
     {	NULL,	".bank",	S_BANK,		0,	0	},
     {	NULL,	".org",		S_ORG,		0,	0	},
     {	NULL,	".radix",	S_RADIX,	0,	0	},
@@ -171,17 +171,20 @@ struct	mne	mne[] = {
     {	NULL,	".word",	S_DATA,		0,	O_2BYTE	},
     {	NULL,	".dw",		S_DATA,		0,	O_2BYTE	},
     {	NULL,	".fdb",		S_DATA,		0,	O_2BYTE	},
-/*    {	NULL,	".3byte",	S_DATA,		0,	O_3BYTE	},	*/
-/*    {	NULL,	".triple",	S_DATA,		0,	O_3BYTE	},	*/
+    {	NULL,	".3byte",	S_DATA,		0,	O_3BYTE	},
+    {	NULL,	".triple",	S_DATA,		0,	O_3BYTE	},
+/*    {	NULL,	".dl",		S_DATA,		0,	O_4BYTE	},	*/
 /*    {	NULL,	".4byte",	S_DATA,		0,	O_4BYTE	},	*/
 /*    {	NULL,	".quad",	S_DATA,		0,	O_4BYTE	},	*/
+/*    {	NULL,	".long",	S_DATA,		0,	O_4BYTE	},	*/
     {	NULL,	".blkb",	S_BLK,		0,	O_1BYTE	},
     {	NULL,	".ds",		S_BLK,		0,	O_1BYTE	},
     {	NULL,	".rmb",		S_BLK,		0,	O_1BYTE	},
     {	NULL,	".rs",		S_BLK,		0,	O_1BYTE	},
     {	NULL,	".blkw",	S_BLK,		0,	O_2BYTE	},
-/*    {	NULL,	".blk3",	S_BLK,		0,	O_3BYTE	},	*/
+    {	NULL,	".blk3",	S_BLK,		0,	O_3BYTE	},
 /*    {	NULL,	".blk4",	S_BLK,		0,	O_4BYTE	},	*/
+/*    {	NULL,	".blkl",	S_BLK,		0,	O_4BYTE	},	*/
     {	NULL,	".ascii",	S_ASCIX,	0,	O_ASCII	},
     {	NULL,	".ascis",	S_ASCIX,	0,	O_ASCIS	},
     {	NULL,	".asciz",	S_ASCIX,	0,	O_ASCIZ	},
@@ -197,14 +200,21 @@ struct	mne	mne[] = {
     {	NULL,	".msg"	,	S_MSG,		0,	0	},
     {	NULL,	".assume",	S_ERROR,	0,	O_ASSUME},
     {	NULL,	".error",	S_ERROR,	0,	O_ERROR	},
-/*    {	NULL,	".msb",		S_MSB,		0,	0	},	*/
+    {	NULL,	".msb",		S_MSB,		0,	0	},
 /*    {	NULL,	".lohi",	S_MSB,		0,	O_LOHI	},	*/
 /*    {	NULL,	".hilo",	S_MSB,		0,	O_HILO	},	*/
 /*    {	NULL,	".8bit",	S_BITS,		0,	O_1BYTE	},	*/
 /*    {	NULL,	".16bit",	S_BITS,		0,	O_2BYTE	},	*/
 /*    {	NULL,	".24bit",	S_BITS,		0,	O_3BYTE	},	*/
 /*    {	NULL,	".32bit",	S_BITS,		0,	O_4BYTE	},	*/
+    {	NULL,	".trace",	S_TRACE,	0,	O_TRC	},
+    {	NULL,	".ntrace",	S_TRACE,	0,	O_NTRC	},
+/*    {	NULL,	"_______",	S_CONST,	0,	VALUE	},	*/
     {	NULL,	".end",		S_END,		0,	0	},
+
+	/* 6816 Assembler Specific Directives */
+
+    {	NULL,	".setdp",	S_SDP,		0,	0	},
 
 	/* Macro Processor */
 
@@ -231,6 +241,11 @@ struct	mne	mne[] = {
     {	NULL,	"aiy",		S_IMMA,		0,	0x3D	},
     {	NULL,	"aiz",		S_IMMA,		0,	0x3E	},
 
+    {	NULL,	"ais.b",	S_IMMB,		0,	0x3F	},
+    {	NULL,	"aix.b",	S_IMMB,		0,	0x3C	},
+    {	NULL,	"aiy.b",	S_IMMB,		0,	0x3D	},
+    {	NULL,	"aiz.b",	S_IMMB,		0,	0x3E	},
+
     {	NULL,	"andp",		S_IM16,		0,	0x3A	},
     {	NULL,	"orp",		S_IM16,		0,	0x3B	},
 
@@ -244,6 +259,7 @@ struct	mne	mne[] = {
     {	NULL,	"brset",	S_BRBT,		0,	0x0B	},
 
     {	NULL,	"lded",		S_LDED,		0,	0x71	},
+    {	NULL,	"sted",		S_LDED,		0,	0x73	},
 
     {	NULL,	"mac",		S_MAC,		0,	0x7B	},
     {	NULL,	"rmac",		S_MAC,		0,	0xFB	},
@@ -254,8 +270,10 @@ struct	mne	mne[] = {
     {	NULL,	"jmp",		S_JXX,		0,	0x4B	},
     {	NULL,	"jsr",		S_JXX,		0,	0x89	},
 
-    {	NULL,	"movb",		S_MOVB,		0,	0x30	},
-    {	NULL,	"movw",		S_MOVW,		0,	0x31	},
+    {	NULL,	"movb",		S_MOV,		0,	0x30	},
+    {	NULL,	"xmovb",	S_MOVX,		0,	0x30	},
+    {	NULL,	"movw",		S_MOV,		0,	0x31	},
+    {	NULL,	"xmovw",	S_MOVX,		0,	0x31	},
 
     {	NULL,	"cps",		S_CMP,		0,	0x4F	},
     {	NULL,	"cpx",		S_CMP,		0,	0x4C	},
@@ -309,6 +327,8 @@ struct	mne	mne[] = {
     {	NULL,	"ste",		S_DOPE,		0,	0x4A	},
     {	NULL,	"sube",		S_DOPE,		0,	0x40	},
 
+    {	NULL,	"adde.b",	S_DOPEB,	0,	0x41	},
+
     {	NULL,	"adcd",		S_DOPD,		0,	0x83	},
     {	NULL,	"addd",		S_DOPD,		0,	0x81	},
     {	NULL,	"andd",		S_DOPD,		0,	0x86	},
@@ -319,6 +339,8 @@ struct	mne	mne[] = {
     {	NULL,	"sbcd",		S_DOPD,		0,	0x82	},
     {	NULL,	"std",		S_DOPD,		0,	0x8A	},
     {	NULL,	"subd",		S_DOPD,		0,	0x80	},
+
+    {	NULL,	"addd.b",	S_DOPDB,	0,	0x81	},
 
     {	NULL,	"adca",		S_DOP,		0,	0x43	},
     {	NULL,	"adcb",		S_DOP,		0,	0xC3	},
@@ -453,7 +475,6 @@ struct	mne	mne[] = {
     {	NULL,	"rti",		S_INH27,	0,	0x77	},
     {	NULL,	"rts",		S_INH27,	0,	0xF7	},
     {	NULL,	"sde",		S_INH27,	0,	0x79	},
-    {	NULL,	"sted",		S_INH27,	0,	0x73	},
     {	NULL,	"sxt",		S_INH27,	0,	0xF8	},
     {	NULL,	"tbek",		S_INH27,	0,	0xFA	},
     {	NULL,	"tde",		S_INH27,	0,	0x7B	},

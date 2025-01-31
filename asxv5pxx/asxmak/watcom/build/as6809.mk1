@@ -110,7 +110,7 @@ j,asexpr.obj,aslex.obj,aslist.obj,asmain.obj,asmcro.obj,asout.obj,assubr.obj&
  @%append as6809.lk1 LIBR as6809.imp
 !endif
 !ifneq BLANK ""
- @%append as6809.lk1 
+ @%append as6809.lk1 op resource=
 !endif
- *wlink name as6809 d all sys nt op m op maxe=25 op q op symf @as6809.lk1
+ *wlink name as6809 d all SYS nt op m op maxe=25 op q op symf @as6809.lk1
 

@@ -36,7 +36,7 @@ mode supported by ASST7:
         #data           immediate data byte
 
         *saddr          8-bit zero page addressing
-                        0x00 <= dir <= 0xFF
+                        0x00 &lt= dir &lt= 0xFF
 
         laddr           16-bit addressing
 
@@ -57,7 +57,7 @@ mode supported by ASST7:
                         defined constant then
                         the (sofst,r).b mode
                         is selected when
-                        0x00 <= ofst <= 0xFF else
+                        0x00 &lt= ofst &lt= 0xFF else
                         the (lofst,r).w mode
                         is selected
 
@@ -82,7 +82,7 @@ mode supported by ASST7:
                         defined constant then
                         the [saddr].b mode
                         is selected when
-                        0x00 <= addr <= 0xFF else
+                        0x00 &lt= addr &lt= 0xFF else
                         the [laddr].w mode
                         is selected
 
@@ -109,7 +109,7 @@ mode supported by ASST7:
                         defined constant then
                         the ([saddr],r).b mode
                         is selected when
-                        0x00 <= addr <= 0xFF else
+                        0x00 &lt= addr &lt= 0xFF else
                         the ([laddr],r).w mode
                         is selected
 
@@ -232,6 +232,6 @@ Call to Subroutine and Jump Instructions
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: October 2010</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

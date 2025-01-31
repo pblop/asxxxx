@@ -1,0 +1,1027 @@
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+</HEAD>
+<BODY BGCOLOR="#C0C0C0">
+
+<A href="../home.htm">
+<IMG width=343 height=58 border=0 SRC="welcom.gif" ALT="Welcome"></A>
+
+<H2>AS68CF  Assembler</H2>
+
+<A NAME = "TOP"> </A> 
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+   The  ColdFire assembler, AS68CF, supports the instruction set
+as described in the Freescale CFPRM Rev 3  (C)  03/2005  manual.
+Additional  instructions have been added to ColdFire as the core
+has matured.  Many are included in this version  of  the  assem-
+bler.  
+
+   This  assembler does not support cycle counts per instruction
+as the ColdFire is available in chip or IP Core form.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+AS6CF ASSEMBLER SPECIFIC DIRECTIVES 
+
+.setdp Directive 
+
+Format:  
+
+        .setdp [base [,area]] 
+
+
+   The  .setdp  directive is used to inform the assembler of the
+current direct page region and the  offset  address  within  the
+selected area.  The normal invocation methods are:  
+
+        .area   DIRECT  (PAG)
+        .setdp
+
+        or
+
+        .setdp  #,DIRECT
+
+
+   AS68CF  has  two  paging regions, the first 32K bytes and the
+last 32K bytes of the 32-bit addressing space.   The  paged  ad-
+dressing      ranges      are      0x00000000-0x00007FFF     and
+0xFFFF8000-0xFFFFFFFF.  Define a different area for each of  the
+regions:  
+
+        .area   LOPAGE  (PAG)
+        .setdp  0x00000000,LOPAGE
+
+        .area   HIPAGE  (PAG)
+        .setdp  0xFFFF8000,HIPAGE
+
+
+   These  two regions must both be linked with a base address of
+0x00000000 to position them so that  instructions  can  use  the
+16-bit  short  forms  to  access these regions.  Explicit direct
+page addressing is invoked by using the '*' prefix to a label or
+symbol.  Automatic direct page addressing can be invoked by ena-
+bling the autodpcnst (Automatic Direct  Page  Constants)  and/or
+the autodpsmbl (Automatic Direct Page Symbols) options.  
+
+   The  assembler  verifies  that  any  local variable used in a
+direct variable reference is located in one of these areas.  Lo-
+cal  variable  and  constant  value  direct access addresses are
+checked to be within the paging address ranges.  The linker will
+check  all  external direct page relocations to verify that they
+are within the correct area.  
+
+   External  global  references are normally specified using the
+.globl directive.  However the two paging areas of AS68K require
+additional  information  for  the  external references.  This is
+done by the directives .lodpgbl and .hidpgbl.  
+
+
+.lodpgbl Directive 
+
+
+   Format:  
+
+        .lodpgbl arg1, arg2, ...  
+
+            Where the arguments are labels or
+            symbols with values that are in the
+            0x00000000-0x00007FFF direct page.
+            If the low page area has not been
+            specified then the arguments are
+            defined as being in the current area.
+
+
+.hidpgbl Directive 
+
+Format:  
+
+        .hidpgbl arg1, arg2, ...  
+
+            Were the arguments are labels or
+            symbols with values that are in the
+            0xFFFF8000-0xFFFFFFFF direct page.
+            If the high page area has not been
+            specified then the arguments are
+            defined as being in the current area.
+
+
+.flt16, .flt32, and .flt64 
+
+   There are three supported floating point formats available in
+the AS68CF assembler  where arg1, arg2, ...   represent  one  or
+more floating-point numbers.  
+Format:  
+
+        .flt16 arg1, arg2, ...  
+
+            .flt16 causes one word of storage
+            to be generated for each argument.
+
+        Word: 16-Bit Floating Point Format:
+
+        15      14     7        6     0
+         S      EEEEEEEE        MMMMMMM
+
+                Mantissa  (7 bits)
+                Exponent  (8 bits) Biased
+                Sign      (1 bit)
+
+
+Format:  
+
+        .flt32 arg1, arg2, ...  
+
+            .flt32 causes two words of storage
+            to be generated for each argument.
+
+        Single: 32-Bit Floating Point:
+
+        31      30    23        22        0
+         S      EEEEEEEE        MMM.....MMM
+
+                Mantissa  (23 bits)
+                Exponent  (8 bits) Biased
+                Sign      (1 bit)
+
+Format:  
+
+        .flt64 arg1, arg2, ...  
+
+            .flt64 generates 4 words of storage
+            for each argument.
+
+        Double: 64-Bit Floating Point
+
+        63      62       52     51        0
+         S      EEEEEEEEEEE     MMM.....MMM
+
+                Mantissa  (52 bits)
+                Exponent  (11 bits) Biased
+                Sign      (1 bit)
+
+   The arguments are evaluated and the results are stored in the
+object module.  Unlike the .word directive only the sign  opera-
+tors   (+)   and  (-)  may  be  used  in  the  evaluation  of  a
+floating-point argument.  No arithmetic operations  are  allowed
+in the floating-point argument.  
+
+   A floating-point number is represented by a string of decimal
+digits.  The string (which can be a single digit in length)  may
+contain  an optional decimal point and may be followed by an op-
+tional exponent indicator in the form of 'E' or 'e' followed  by
+a  signed  decimal integer exponent.  The number may not contain
+embedded blanks, tabs, or angle brackets and may not be  an  ex-
+pression.  
+
+   The  AS68CF assembler returns a value of the appropriate size
+and precision via one of  the  floating-point  directives.   The
+values  returned  may be truncated or rounded as selected by the
+'.enabl (fpt)' or '.dsabl (fpt)' respectively.  
+
+   Floating-point numbers are normally rounded.  That is, when a
+floating-point number exceeds the limits of the field  in  which
+it is to be stored, the high-order bit of the unretained portion
+is added to the low-order bit of the retained portion.  
+
+
+^F - The Temporary Floating-Point Operator 
+
+   Format:  
+
+        ^F 
+
+   ^F  is  a unary operator for numeric control which allows you
+to specify an  argument  that  is  either  a  1-word  or  2-word
+floating-point number.  For example, the following statement:  
+
+        A:      MOVE.W  #^F3.7,D0
+
+creates an immediate 1-word floating-point number containing the
+value 3.7 formatted as shown in the .flt16 description in a pre-
+vious section.  
+
+The following statement:  
+
+        B:      MOVE.L  #^F3.7,D0
+
+creates an immediate 2-word floating-point number containing the
+value 3.7 formatted as shown in the .flt32 description in a pre-
+vious section.  
+
+   The ^F operator is only allowed in an instruction.  
+
+
+.enabl and .dsabl 
+
+   Format:  
+
+        .enabl (arg1, arg2, ...) 
+        .dsabl (arg1, arg2, ...) 
+
+where:  arg1, arg2, ...    represent one or more
+                           of the following options
+
+        alt          Allow Alternate Instructions
+        autodpcnst   Automatic Direct Paging For Constants
+        autodpsmbl   Automatic Direct Paging For Symbols
+        mac          Multiply-Accumulate Unit
+        emac         Extended Multiply-Accumulate Unit
+        flt          Floating Point Instructions
+        fpt          Floating-Point Truncation
+
+alt:  controls whether the automatic translation of instructions
+to alternate instruction  forms  is  enabled.   The  default  is
+enabled.  The following translations may be performed:  
+
+        MOVE [],An  ->  MOVEA [],An
+        MOVE #,Dn   ->  MOVEQ #,Dn  (#: -128 to +127)
+
+        ADD Dn,An   ->  ADDA Dn,An
+        ADD #,Dn    ->  ADDI #,Dn
+        ADD #,Dn    ->  ADDQ #,Dn   (#: 1 to 8)
+
+        AND #,Dn    ->  ANDI #,Dn
+
+        CMP [],An   ->  CMPA [],An
+        CMP #,Dn    ->  CMPI #,Dn
+
+        EOR #,[]    ->  EORI #,[]
+
+        OR #,Dn     ->  ORI #,Dn
+
+        SUB [],An   ->  SUBA [],An
+        SUB #,Dn    ->  SUBI #,Dn
+        SUB #,Dn    ->  SUBQ #,Dn   (#: 1 to 8)
+
+autodpcnst:  controls whether instructions without length quali-
+fies, .B, .W, .L, can automatically use  short  forms  when  the
+constants  are  within  the ranges of 0x00000000-0x00007FFF (low
+paging region) or 0xFFFF8000-0xFFFFFFFF (high paging region)  or
+are  external globals.  The paging regions must have been speci-
+fied for this option to take effect.  The default is enabled.  
+
+autodpsmbl:  controls whether instructions without length quali-
+fies, .B, .W, .L, can automatically use  short  forms  when  the
+symbols are within the ranges of 0x00000000-0x00007FFF (low pag-
+ing region) or 0xFFFF8000-0xFFFFFFFF (high paging region) or are
+external  globals.   The paging regions must have been specified
+for this option to take effect.  The default is enabled.  
+
+mac:   controls whether the multiply-accumulate instructions are
+assembled.  Normally disabled.  
+
+emac:   controls  whether  the  extended multiply-accumulate in-
+structions are assembled.  Normally disabled.  
+
+flt:   controls  whether  floating-point  instructions  are  as-
+sembled.  Normally disabled.  
+
+fpt:   controls  whether  floating-point  truncation  is active.
+Normal mode is fpt disabled and rounding is enabled.  
+
+   Note  that  'mac' and 'emac' are mutually exclusive, enabling
+one disables the other.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+COLDFIRE REGISTER SET 
+
+   The  following  is  a  list of the ColdFire registers used by
+AS68CF.  Eight 32-bit data  registers  provide  data  as  bytes,
+words,  and longs.  Eight address registers provide addresses as
+words or longs.  Other  registers  include  the  32-bit  program
+counter  and  the  8-bit status register.  The control registers
+are not described in this document.  
+
+    Data Registers
+        |- Long ---------------------------|
+                         |- Word-----------|
+                                  |- Byte -|
+         31            16 15     8 7      0
+        |----------------|--------|--------|
+        |-               |        |       -| D0
+        |----------------|--------|--------|
+        |-               |        |       -| D1
+        |----------------|--------|--------|
+        |-               |        |       -| D2
+        |----------------|--------|--------|
+        |-               |        |       -| D3
+        |----------------|--------|--------|
+        |-               |        |       -| D4
+        |----------------|--------|--------|
+        |-               |        |       -| D5
+        |----------------|--------|--------|
+        |-               |        |       -| D6
+        |----------------|--------|--------|
+        |-               |        |       -| D7
+        |----------------|--------|--------|
+
+    Address Registers
+        |- Long --------------------------|
+                         |- Word----------|
+         31            16 15             0
+        |----------------|----------------|
+        |-               |               -| A0
+        |----------------|----------------|
+        |-               |               -| A1
+        |----------------|----------------|
+        |-               |               -| A2
+        |----------------|----------------|
+        |-               |               -| A3
+        |----------------|----------------|
+        |-               |               -| A4
+        |----------------|----------------|
+        |-               |               -| A5
+        |----------------|----------------|
+        |-               |               -| A6
+        |----------------|----------------|
+        |-       User Stack Pointer      -|
+        |----------------|----------------| A7 / SP
+        |-    Supervisor Stack Pointer   -|
+        |----------------|----------------|
+
+         31                             0
+        |--------------------------------|
+        |-       Program Counter         |
+        |--------------------------------|
+
+                       |--------|--------|
+        Status Register| System |  User  |
+                       |--------|--------|
+
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+COLDFIRE ADDRESSING MODES 
+
+ Mode   Register   Syntax           Addressing Mode     
+ -----  --------  --------    ----------------------------
+  000    Reg #       Dn       Data Reg Dir
+  001    Reg #       An       Addr Reg Dir
+  010    Reg #      (An)      Addr Reg Ind
+  011    Reg #      (An)+     Addr Reg Ind w/Postinc
+  100    Reg #     -(An)      Addr Reg Ind w/Predec
+  101    Reg #      d16(An)   Addr Reg Ind w/Disp
+             or    (d16,An)
+  110    Reg #    d8(An,Rn)   Addr Reg Ind w/Disp w/Index
+             or  (d8,An,Rn)
+  111     000        xxx      Absolute Short
+             or     (xxx).W
+  111     001       xxxxx     Absolute Long
+             or    (xxxxx).L
+  111     010       d16(PC)   Prog Ctr Ind w/Disp
+             or    (d16,PC)
+  111     011     d8(PC,Rn)   Prog Ctr Ind w/Disp w/Index
+             or  (d8,PC,Rn)
+  111     100       #xxx      Immediate
+             or    #(xxx).W   Short Immediate
+             or    #(xxx).L   Long Immediate
+
+        Where Rn is An or Dn
+        Note that Rn supports Rn.W and Rn.L forms and
+        an optional scale factor of *1, *2, or *4 when
+        the addressing mode is d8(An,Rn) or d8(PC,Rn)
+
+        The following short forms are also supported:
+
+                @An     <==>    (An)
+                @An+    <==>    (An)+
+               -@An     <==>   -(An)
+
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+COLDFIRE BASE INSTRUCTION SET 
+
+   The  following tables list all the instructions found in this
+implementation of the ColdFire assembler.  The (.B,.W,.L)  indi-
+cates  an  instruction  has  byte,  word,  and  long forms.  The
+brackets '[]' indicate one of the  described  addressing  modes.
+Note that most instructions do not support all addressing modes,
+see the appropriate data sheets for allowed modes.  
+
+   For  Instructions having multiple sizes the assembler automa-
+tically selects an appropriate size or a  default  size  if  the
+size  suffix  is  blank.   This most often defaults to using the
+word form.  For those instructions with only a single  size  the
+sizing suffix is optional.  
+
+   The  ColdFire  instructions  have  a  maximum length of three
+words (48 bits).  This limits instructions to specific  address-
+ing  modes.   Double  operand  instructions  will report certain
+pairs of addressing modes as illegal if  the  total  instruction
+size exceeds the three word limit.  
+        Ry      Source Register (Dy or Ay)
+        Rx      Destination Register (Dx or Ax)
+        CRy     Source Control Register
+        CRx     Destination Control Register
+        Dw      Second Destination Register
+        Dc      First Compare Register
+        Du      Second Compare Register
+        []y     Source Addressing Mode
+        []x     Destination Addressing Mode
+        #       A Source Number
+
+
+MOVE Instructions 
+
+        MOVE (.B,.W,.L) []y,[]x Source To Destination
+        MOVE (.W)       CCR,Dx  From Condition Code Register
+        MOVE (.B)       Dy,CCR  To Condition Code Register
+        MOVE (.B)       #,CCR   To Condition Code Register
+        MOVE (.W)       SR,[]x  From Status Register
+        MOVE (.W)       []y,SR  To Status Register
+        MOVE (.L)       USP,Ax  From User Stack Pointer
+        MOVE (.L)       Ay,USP  To User Stack Pointer
+        MOVEA (.W,.L)   []y,Ax  To Address Register
+        MOVEC (.L)      Ry,CRx  To Control register
+        MOVEM (.W,.L) Rlist,[]x From Registers In List
+        MOVEM (.W,.L) []y,Rlist To Registers In List
+        MOVEQ (.L)       #,[]x  Signed 8-Bit # To Destination
+        MOV3Q (.L)       #,[]x  -1,1-7 3-Bit # To Destination
+        MVS   (.B,.W)   []y,Dx  Move With Sign Extend To Long
+        MVZ   (.B,.W)   []y,Dx  Move With Zero Fill To Long
+
+
+Double Operand 
+
+        ADD  (.L)       []y,Dx  ADD Source To Destination
+        ADD  (.L)       Dy,[]x  ADD Source To Destination
+        ADDA (.L)       []y,Ax  ADD Source To An
+        ADDX (.L)       Dy,Dx   ADD Source and X (Carry)
+                                To Destination
+        AND  (.L)       []y,Dx  AND Source With Dn
+        AND  (.L)       Dy,[]x  AND Dn With Destination
+                                or Rn > [] Upper Bound, TRAP
+        CMP  (.B,.W,.L) []y,[]x Destination - Source, Set CCs
+        CMPA (.W,.L)    []y,Ax  Compare Source With An
+        DIVS (.W,.L)    []y,Dx  Signed Destination/Source
+        DIVU (.W,.L)    []y,Dx  UnSigned Destination/Source
+        EOR  (.L)       Dy,[]x  XOR Source With Destination
+        MULS (.W,.L)    []y,Dx  Signed Source*Destination
+        MULU (.W,.L)    []y,Dx  UnSigned Source*Destination
+        OR   (.L)       []y,[]x Source ORed With Destination
+        SUB  (.L)       []y,Dx  Subtract Source From Dn
+        SUB  (.L)       Dy,[]x  Subtract Source From Destination
+        SUBA (.L)       []y,Ax  Subtract Source From An
+        SUBX (.L)       Dy,Dx   Subtract Source and X (Carry)
+                                From Destination
+
+
+Immediate Instructions 
+
+        ADDI (.L)        #,[]x  ADD Immediate To Destination
+        ADDQ (.L)        #,[]x  ADD 1-8 To Destination
+        ANDI (.L)        #,[]x  AND Immediate To Destination
+        CMPI (.B,.W,.L)  #,[]x  CMP Immediate With Destination
+        EORI (.L)        #,[]x  XOR Immediate With Destination
+        ORI  (.L)        #,[]x  OR  Immediate With Destination
+        SUBI (.L)        #,[]x  SUB Immediate From Destination
+        SUBQ (.L)        #,[]x  SUB 1-8 From Destination
+
+
+Single Operand 
+
+        CLR  (.B,.W,.L)   []x   Clear Destination
+        EXT  (.W,.L)      Dx    Extend Byte To Word
+                                or Word To Long
+        EXTB (.L)         Dx    Extend Byte To Long
+        NEG  (.L)         Dx    Negate Destination
+        NEGX (.L)         Dx    Negate Dest. With X (Carry)
+        NOT  (.L)         Dx    Complement Destination
+        TST  (.B,.W,.L)   []x   Test Destination
+
+
+Shift And Rotate 
+
+        ASR  (.L)       Dy,Dx   Arithmetic Shift Right
+        ASR  (.L)       #,Dx    Arithmetic Shift Right
+        ASL  (.L)       Dy,Dx   Arithmetic Shift Left
+        ASL  (.L)       #,Dx    Arithmetic Shift Left
+        LSR  (.L)       Dy,Dx   Logical Shift Right
+        LSR  (.L)       #,Dx    Logical Shift Right
+        LSL  (.L)       Dy,Dx   Logical Shift Left
+        LSL  (.L)       #,Dx    Logical Shift Left
+
+
+Bit Manipulation 
+
+        BCHG (.B,.L)    Dy,[]x  Test Bit And Change
+        BCHG (.B,.L)     #,[]x
+        BCLR (.B,.L)    Dy,[]x  Test A Bit And Clear
+        BCLR (.B,.L)     #,[]x
+        BSET (.B,.L)    Dy,[]x  Test A Bit And Set
+        BSET (.B,.L)     #,[]x
+        BTST (.B,.L)    Dy,[]x  Test A Bit
+        BTST (.B,.L)     #,[]x
+
+        BITREV  (.L)    Dy      Bit Reverse Register
+        BYTEREV (.L)    Dy      Byte Reverse Register
+
+        SWAP (.W)       Dx      Swap Words
+        TAS  (.B)       []x     Test And Set An Operand
+
+
+Branch On Condition Instructions 
+
+   The  short  (.S)  branch instructions have a range of -126 to
++129 bytes relative to the address of  the  branch  instruction.
+The  word  (.W)  branch  instructions have a range of -32,766 to
++32,769 bytes relative to the address of the branch instruction.
+The instruction argument is normally an address.  
+
+   BCC  label  Carry Clear        BLS  label  Lower Or Same
+   BCS  label  Carry Set          BLT  label  Less Than
+   BEQ  label  Equal              BMI  label  Minus
+   BGE  label  Greater Or Equal   BNE  label  Not Equal
+   BGT  label  Greater Than       BPL  label  Plus
+   BHI  label  Higher             BVC  label  Overflow Clear
+   BLE  label  Less Or Equal      BVS  label  Overflow Set
+   BHS  label  Higher Or Same     BLO  label  Lower Than
+
+   BRA  label  Branch Always
+   BSR  label  Branch To Subroutine
+
+   Branch  instructions  without .S, .W, or .L are automatically
+sized according to the branch range.  External branches  without
+.S or .W are always .L sized.  
+
+
+Set According To Condition 
+
+   The Condition is tested and if True the addressed byte is set
+to all 1s else the addressed byte is set to all 0s.  
+
+        SCC (.B)    []x Carry Clear
+        SHS (.B)    []x Higher Or Same (SCC)
+        SLS (.B)    []x Lower Or Same
+        SCS (.B)    []x Carry Set
+        SLO (.B)    []x Lower (SCS)
+        SLT (.B)    []x Less Than
+        SEQ (.B)    []x Equal
+        SMI (.B)    []x Minus
+        SF  (.B)    []x False
+        SNE (.B)    []x Not Equal
+        SGE (.B)    []x Greater Or Equal
+        SPL (.B)    []x Plus
+        SGT (.B)    []x Greater Than
+        ST  (.B)    []x True
+        SHI (.B)    []x Higher
+        SVC (.B)    []x Overflow Clear
+        SLE (.B)    []x Less Or Equal
+        SVS (.B)    []x Overflow Set
+
+
+Trap False 
+
+        TPF             PC + 2 -> PC, Opcode Only
+        TPF.W           PC + 4 -> PC, Opcode Only
+        TPF.L           PC + 6 -> PC, Opcode Only
+
+        TPF (.W,.L)  #  Autoselect TPF.W or TPF.L
+        TPF.W   #       PC + 4 -> PC, Opcode + Word
+        TPF.L   #       PC + 6 -> PC, Opcode + Long
+
+
+Other Instructions 
+
+        JMP             []y     Jump To Location
+        JSR             []y     Jump To Subroutine
+        LEA  (.L)       []y,Ax  Load Effective Address
+        PEA  (.L)       []y     Push Effective Address
+
+        Push And Possibly Invalidate Cache
+        CPUSHL          dc,(Ax) Data Cache
+        CPUSHL          ic,(Ax) Instruction Cache
+        CPUSHL          bc,(Ax) Both Caches
+
+        FF1  (.L)       Dx      Find First 1 In Register
+        HALT                    Halt The CPU
+        ILLEGAL                 Illegal Instruction Exception
+        INTOUCH         (Ay)    Instruction Fetch Touch
+        LINK            Ay,#    Link And Allocate
+        NOP                     No Operation
+        PULSE                   Generate Unique
+                                Processor Status
+        REMS (.L)    []y,Dw:Dx  Signed Divide Remainder
+        REMU (.L)    []y,Dw:Dx  Unsigned Divide Remainder
+
+        RTE                     Return From Exception
+        RTS                     Return From Subroutine
+        SATS (.L)       []x     Signed Saturate
+        STRLDSR (.W)    #       Store/Load Status Register
+        STOP            #       Load Status Register And Stop
+
+        TRAP            #       Trap To Vector (0-15)
+        UNLK            Ax      Load Stack Pointer, Pop Stack
+        WDDATA (.B,.W,.L)  []y  Write To Debug Data
+        WDEBUG (.L)     []y     Write Debug Control Register
+
+
+Undocumented Instructions 
+
+   The following instructions may have been restored in more re-
+cent versions of the Coldfire core.  
+
+        CAS     Dc,Du,[]y       Compare And Swap With Operand
+        CAS2    Dc1:Dc2,Du1:Du2,(Ry1):(Ry2)
+
+        CHK  (.W,.L)    []y,Dx  Dn < 0 or Dn > [], TRAP
+        CHK2 (.B.,W,.L) []y,Rx  Rn < [] Lower Bound
+
+        CMP2 (.B,.W,.L) []y,Rx  Upper/Lower Bounds Check
+
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+MULTIPLY-ACCUMULATE INSTRUCTION SET 
+
+
+   The syntax:  Arguments within { } are options.  
+
+        Ry      Source Register (Dy or Ay)
+        Rx      Destination Register (Dx or Ax)
+        Rw      Load Destination Register (Dw or Aw)
+        {U,L}   U For Upper Word, L For Lower Word
+        {<<,>>} << For Product<<1
+                >> For Product>>1
+        {&}     ANDed With MASK Register
+
+
+Multiply-Accumulate Operations 
+
+        Multiply Accumulate
+        MAC (.W)    Ry.{U,L},Rx.{U,L}{<<,>>}
+        MAC (.L)    Ry,Rx{<<,>>}
+
+        Multiply Accumulate With Load
+        MAC (.W)    Ry.{U,L},Rx.{U,L}{<<,>>},[]y{&},Rw
+        MAC (.L)    Ry,Rx{<<,>>},[]y{&},Rw
+
+        Multiply Subtract
+        MSAC (.W)   Ry.{U,L},Rx.{U,L}{<<,>>}
+        MSAC (.L)   Ry,Rx{<<,>>}
+
+        Multiply Subtract With Load
+        MSAC (.W)   Ry.{U,L},Rx.{U,L}{<<,>>},[]y{&},Rw
+        MSAC (.L)   Ry,Rx{<<,>>},[]y{&},Rw
+
+
+Move Operations 
+
+        MOVE (.L)   ACC,Rx      Move From Accumulator
+        MOVE (.L)   Ry,ACC      Move To Accumulator
+        MOVE (.L)   #,ACC
+
+        MOVE (.L)   MACSR,Rx    Move From MAC CSR
+        MOVE (.L)   Ry,MACSR    Move To MAC CSR
+        MOVE (.L)   #,MACSR
+
+        MOVE (.L)   MASK,Rx     Move From MASK
+        MOVE (.L)   Ry,MASK     Move To MASK
+        MOVE (.L)   #,MASK
+
+        MOVE (.L)   MACSR,CCR   Move From MACSR To CCR
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+EXTENDED MULTIPLY-ACCUMULATE INSTRUCTION SET 
+
+
+   The syntax:  Arguments within { } are options.  
+
+        ACCy    Source FP Accumulator
+        ACCx    Destination FP Accumulator
+        ACCw    Second Destination FP Accumulator
+        Ry      Source Register (Dy or Ay)
+        Rx      Destination Register (Dx or Ax)
+        Rw      Load Destination Register (Dw or Aw)
+        {U,L}   U For Upper Word, L For Lower Word
+        {<<,>>} << For Product<<1
+                >> For Product>>1
+        {&}     ANDed With MASK Register
+
+
+Multiply-Accumulate Operations 
+
+        Multiply Accumulate
+        MAC (.W)    Ry.{U,L},Rx.{U,L}{<<,>>}
+        MAC (.L)    Ry,Rx{<<,>>}
+
+        Multiply Accumulate With Load
+        MAC (.W)    Ry.{U,L},Rx.{U,L}{<<,>>},[]y{&},Rw
+        MAC (.L)    Ry,Rx{<<,>>},[]y{&},Rw
+
+        Multiply Subtract
+        MSAC (.W)   Ry.{U,L},Rx.{U,L}{<<,>>},ACCx
+        MSAC (.L)   Ry,Rx{<<,>>},ACCx
+
+        Multiply Subtract With Load
+        MSAC (.W)   Ry.{U,L},Rx.{U,L}{<<,>>},[]y{&},Rw,ACCx
+        MSAC (.L)   Ry,Rx{<<,>>},[]y{&},Rw,ACCx
+
+        Multiply And Add To First Accumulator
+        Add To Second Accumulator
+        MAAAC (.W)  Ry.{U,L},Rx.{U,L}{<<,>>},ACCx,ACCw
+        MAAAC (.L)  Ry,Rx{<<,>>},ACCx,ACCw
+
+        Multiply And Add To First Accumulator
+        Subtract From Second Accumulator
+        MASAC (.W)  Ry.{U,L},Rx.{U,L}{<<,>>},ACCx,ACCw
+        MASAC (.L)  Ry,Rx{<<,>>},ACCx,ACCw
+
+        Multiply And Subtract From First Accumulator
+        Add To Second Accumulator
+        MSAAC (.W)  Ry.{U,L},Rx.{U,L}{<<,>>},ACCx,ACCw
+        MSAAC (.L)  Ry,Rx{<<,>>},ACCx,ACCw
+
+        Multiply And Subtract From First Accumulator
+        Subtract From Second Accumulator
+        MSSAC (.W)  Ry.{U,L},Rx.{U,L}{<<,>>},ACCx,ACCw
+        MSSAC (.L)  Ry,Rx{<<,>>},ACCx,ACCw
+
+
+Move Operations 
+
+        MOVCLR (.L)   ACCy,Rx   Move From Accumulator
+                                And Clear Accumulator
+
+        MOVE (.L)    ACCy,Rx    Move From Accumulator
+        MOVE (.L)    Ry,ACCx    Move To Accumulator
+        MOVE (.L)    #,ACCx
+
+        MOVE (.L)  ACCext01,Rx  Move From Accumulator
+                                0 And 1 Extensions
+        MOVE (.L)  Ry,ACCext01  Move To Accumulator
+                                0 And 1 Extensions
+        MOVE (.L)  #,ACCext01   Move To Accumulator
+                                0 And 1 Extensions
+
+        MOVE (.L)  ACCext23,Rx  Move From Accumulator
+                                2 And 3 Extensions
+        MOVE (.L)  Ry,ACCext23  Move To Accumulator
+                                2 And 3 Extensions
+        MOVE (.L)  #,ACCext23   Move To Accumulator
+                                2 And 3 Extensions
+
+        MOVE (.L)    MACSR,Rx   Move From The MACSR
+        MOVE (.L)    Ry,MACSR   Move To The MACSR
+        MOVE (.L)    #,MACSR
+
+        MOVE (.L)    MASK,Rx    Move From The MASK
+        MOVE (.L)    Ry,MASK    Move To The MASK
+        MOVE (.L)    #,MASK
+
+        MOVE (.L)    ACCy,ACCx  Copy An Accumulator
+        MOVE (.L)    MACSR,CCR  Move From The MACSR
+                                To The CCR
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+COLDFIRE FLOATING POINT INSTRUCTION SET 
+
+   The  floating  point instruction set for the ColdFire is sum-
+marized in this section.  
+
+   The floating point selection options:  
+
+    .enabl (flt)   Enable Floating Point
+    .enabl (fpt)   Enable Floating Point Truncation
+
+
+   The  following  sections describe the floating point instruc-
+tions separated into these instruction groups:  
+
+        Data Movement
+        Dyadic Operations
+        Monadic Operations
+        Program Control
+        System Control
+
+
+   The  tables contain the operand syntax and the operand format
+which is summarized here:  
+
+        FPy     A floating point SRC register (FP0-FP7)
+        FPx     A floating point DST register (FP0-FP7)
+        FPcr    A Floating point Control Register
+        []y     SRC addressing mode
+        []x     DST addressing mode
+        <label> Branching label
+        <list>  Data or Control register list
+
+        B       Byte
+        W       Word
+        L       Long
+        S       Single
+        D       Double
+
+
+Data Movement Instructions 
+
+     Instruction    OP Syntax           OP Format
+     -----------    ---------           ---------
+        FMOVE       FPy,FPx             D
+                    []y,FPx             B,W,L,S,D
+                    FPy,[]x             B,W,L,S,D
+                    []y,FPcr            L
+                    FPcr,[]x            L
+                    []y,FPIAR           L
+                    FPIAR,[]x           L
+                    []y,FPSR            L
+                    FPSR,[]x            L
+
+        Single Precision Rounding
+        FSMOVE      []y,FPx             B,W,L,S,D
+        FSMOVE      FPy,FPx             D
+
+        Double Precision Rounding
+        FDMOVE      []y,FPx             B,W,L,S,D
+        FDMOVE      FPy,FPx             D
+
+        FMOVEM      []y,<list>          D
+                    <list>,[]x          D
+
+
+Dyadic Instructions 
+
+     Instruction    OP Syntax           OP Format
+     -----------    ---------           ---------
+        F(dop)      []y,FPx             B,W,L,S,D
+                    FPy,FPx             D
+        If Noted:   FPy -> (Fpy,Fpy)    D
+
+        FS(dop)     Round To Single Precision
+        FD(dop)     Round To Double Precision   
+        -----------------------------------------
+
+        FADD            Add
+        FSADD           Add
+        FDADD           Add
+
+        FCMP            Compare
+
+        FDIV            Divide
+        FSDIV           Divide
+        FDDIV           Divide
+
+        FMUL            Multiply
+        FSMUL           Multiply
+        FDMUL           Multiply
+
+        FSUB            Subtract
+        FSSUB           Subtract
+        FDSUB           Subtract
+
+
+Monadic Instructions 
+
+     Instruction    OP Syntax           OP Format
+     -----------    ---------           ---------
+        F(mop)      []y,FPx             B,W,L,S,D
+                    FPy,FPx             D
+        If Noted:   FPy -> (Fpy,Fpy)    D
+
+        FS(dop)     Round To Single Precision
+        FD(dop)     Round To Double Precision   
+        -----------------------------------------
+
+        FABS            Absolute Value
+        FABS    FPy     Same As FABS FPy,FPy
+        FSABS           Absolute Value
+        FSABS   FPy     Same As FSABS FPy,FPy
+        FDABS           Absolute Value
+        FDABS   FPy     Same As FDABS FPy,FPy
+
+        FINT            Integer Part
+        FINT  FPy       Same As FINT FPy,FPy
+
+        FINTRZ          Integer Part
+        FINTRZ  FPy     Same As FINTRZ FPy,FPy
+
+        FNEG            Negate
+        FNEG   FPy      Same As FNEG FPy,Fpy
+        FSNEG           Negate
+        FSNEG  FPy      Same As FSNEG Fpy,Fpy
+        FDNEG           Negate
+        FDNEG  Fpy      Same As FDNEG FPy,FPy
+
+        FSQRT           Square Root
+        FSQRT   FPy     Same As FSQRT FPy,FPy
+        FSSQRT          Square Root
+        FSSQRT  FPy     Same As FSSQRT FPy,FPy
+        FDSQRT          Square Root
+        FDSQRT  FPy     Same As FDSQRT FPy,FPy
+
+
+Program Control Instructions 
+
+     Instruction    OP Syntax           OP Format
+     -----------    ---------           ---------
+      * FBcc        <label>             W,L
+
+        FNOP            -               -
+
+        FTST    []y     Test Operand    B,W,L,S,D
+        FTST    FPy     Test Operand    D
+
+   * -- See the Conditional Test Mnemonics
+
+
+System Control Instructions 
+
+     Instruction    OP Syntax           OP Format
+     -----------    ---------           ---------
+        FRESTORE    []y                 -
+        FSAVE       []x                 -
+
+
+Condition Test Mnemonics 
+
+        MNE       IEEE-NonAware Tests
+        ---     -----------------------
+        EQ      Equal
+        NE      Not Equal
+        GT      Greater Than
+        NGT     Not (Greater Than)
+        GE      Greater Than or Equal
+        NGE     Not (Greater Than or Equal)
+        LT      Less Than
+        NLT     Not (Less Than)
+        LE      Less Than or Equal
+        NLE     Not (Less Than or Equal)
+        GL      Greater or Less Than
+        NGL     Not (Greater Than or Less)
+        GLE     Greater, Less, or Equal
+        NGLE    Not (Greater,Less, or Equal)
+
+
+        MNE         IEEE-Aware Tests
+        ---     -------------------------
+        EQ      Equal
+        NE      Not Equal
+        OGT     Ordered Greater Than
+        ULE     Unordered or Less Than or Equal
+        OGE     Ordered Greater Than or Equal
+        ULT     Unordered or Less Than
+        OLT     Ordered Less Than
+        UGE     Unordered or Greater Than or Equal
+        OLE     Ordered Less Than or Equal
+        UGT     Unordered or Greater Than
+        OGL     Ordered Greater Than or Less Than
+        UEQ     Unordered or Equal
+        OR      Ordered
+        UN      Unordered
+
+
+        MNE        Miscellaneous Tests
+        ---     -------------------------
+        F       Always False
+        T       Always True
+        SF      Signaling Always False
+        ST      Signaling Always True
+        SEQ     Signaling Equal
+        SNE     Signaling Not Equal
+
+</PRE></B></H4>
+<H5><A HREF="asxdoc.htm#TOP"> Go to the Documentation Index</A></H5>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4>
+<P><A HREF="asxxxx.htm#JUMP">
+<IMG width=32 height=32 border=0 SRC="spcshp.gif" ALIGN=bottom></A>
+<B>...  Exit the ASxxxx Documentation</B></A></P>
+
+<P><A href="../home.htm">
+<IMG width=32 height=32 border=0 SRC="home.gif" ALIGN=bottom></A>
+<B>...  Home Page</B></P>
+</H4>
+
+<H6><P><B>Last Updated: September 2023</B></P></H6>
+</BODY> 
+</HTML>

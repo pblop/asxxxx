@@ -1,7 +1,7 @@
 /* lkout.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2017  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -175,7 +175,7 @@ lkflush()
  *
  *      Load Address Field   -  This  field  consists  of the four ascii
  *                              characters which result from  converting
- *                              the  the  binary value of the address in
+ *                              the binary value of the address in
  *                              which to begin loading this record.  The
  *                              order is as follows:
  *
@@ -192,9 +192,8 @@ lkflush()
  *
  *      Record Type Field    -  This  field  identifies the record type,
  *                              which is either 0 for data records,  1
- *                              for an End of File record, 3 for a
- *				start address, or 4 for a
- *				segment record.  It consists
+ *                              for an End of File record, 5 for an
+ *				extended start address. It consists
  *                              of two ascii characters, with  the  high
  *                              digit of the record type first, followed
  *                              by the low digit of the record type.
@@ -310,44 +309,52 @@ int i;
 		}
 		for (k=a_bytes; k<rtcnt; k++) {
 			if (rtflg[k]) {
-				rtbuf[(int) (rtadr1++ - rtadr0)] = rtval[k];
 				if (rtadr1 - rtadr0 == IXXMAXBYTES) {
 					iflush();
 				}
+				rtbuf[(int) (rtadr1 - rtadr0)] = rtval[k];
+				++rtadr1;
+				++rtadr2;
 			}
 		}
 	} else {
 		sp = lkpsym(".__.END.", 0);
 		if (sp && (sp->s_axp->a_bap->a_ofp == ofp)) {
 			symadr = symval(sp);
-			lo_addr = symadr & 0xffff;
-			if (a_bytes > 2) {
-				hi_addr = (symadr >> 16) & 0xffff;
-				chksum =  0x00;
-				chksum += hi_addr;
-				chksum += hi_addr >> 8;
-				chksum += 0x04;
-#ifdef	LONGINT
-				fprintf(ofp, ":00%04lX04%02lX\n", hi_addr, (~chksum + 1) & 0x00ff);
-#else
-				fprintf(ofp, ":00%04X04%02X\n", hi_addr, (~chksum + 1) & 0x00ff);
-#endif
-			}
+			lo_addr = symadr & 0xFFFF;
 			chksum =  0x00;
 			chksum += lo_addr;
 			chksum += lo_addr >> 8;
-			chksum += 0x03;
+			if (a_bytes == 2) {
+				/* Basic 16-Bit HEX Format File Termination */
+				/* With Start Address */
+				chksum += 0x01;
 #ifdef	LONGINT
-			fprintf(ofp, ":00%04lX03%02lX\n", lo_addr, (~chksum + 1) & 0x00ff);
+				fprintf(ofp, ":00%04lX01%02lX\n", lo_addr, (~chksum + 1) & 0x00FF);
 #else
-			fprintf(ofp, ":00%04X03%02X\n", lo_addr, (~chksum + 1) & 0x00ff);
+				fprintf(ofp, ":00%04X01%02X\n", lo_addr, (~chksum + 1) & 0x00FF);
 #endif
+			} else {
+				/* Extended HEX Format File Termination */
+				/* With Start Address */
+ 				hi_addr = (symadr >> 16) & 0xFFFF;
+				chksum += 0x04;
+ 				chksum += hi_addr;
+ 				chksum += hi_addr >> 8;
+				chksum += 0x05;
+ #ifdef	LONGINT
+				fprintf(ofp, ":04000005%04lX%04lX%02lX\n", hi_addr, lo_addr, (~chksum + 1) & 0x00FF);
+ #else
+				fprintf(ofp, ":04000005%04X%04X%02X\n", hi_addr, lo_addr, (~chksum + 1) & 0x00FF);
+ #endif
+				fprintf(ofp, ":00000001FF\n");
+			}
+		} else {
+			/* File Termination */
+			fprintf(ofp, ":00000001FF\n");
 		}
-
-		fprintf(ofp, ":00000001FF\n");
 	}
 }
-
 
 /*)Function	iflush()
  *
@@ -425,25 +432,24 @@ iflush()
 #else
 		fprintf(ofp, "%02X\n", (~chksum + 1) & 0x00ff);
 #endif
-		rtadr0 = rtadr1;
 	}
-
-	if (a_bytes > 2) {
-		hi_addr = (rtadr2 >> 16) & 0xffff;
-		if ((hi_addr != (rtadr1 >> 16)) || rtaflg) {
-			chksum =  0x00;
+ 	if (a_bytes > 2) {
+ 		hi_addr = (rtadr2 >> 16) & 0xFFFF;
+ 		if ((hi_addr != (rtadr0 >> 16)) || rtaflg) {
+			/* extended linear address in data field */
+			chksum =  0x02;
 			chksum += hi_addr;
 			chksum += hi_addr >> 8;
 			chksum += 0x04;
 #ifdef	LONGINT
-			fprintf(ofp, ":00%04lX04%02lX\n", hi_addr, (~chksum + 1) & 0x00ff);
+			fprintf(ofp, ":02000004%04lX%02lX\n", hi_addr, (~chksum + 1) & 0x00FF);
 #else
-			fprintf(ofp, ":00%04X04%02X\n", hi_addr, (~chksum + 1) & 0x00ff);
+			fprintf(ofp, ":02000004%04X%02X\n", hi_addr, (~chksum + 1) & 0x00FF);
 #endif
 		}
 	}
+	rtadr0 = rtadr1;
 }
-
 
 /*)S19/S28/S37 Formats
  *      Record Type Field    -  This  field  signifies  the  start  of a
@@ -592,10 +598,12 @@ int i;
 		}
 		for (k=a_bytes; k<rtcnt; k++) {
 			if (rtflg[k]) {
-				rtbuf[(int) (rtadr1++ - rtadr0)] = rtval[k];
 				if (rtadr1 - rtadr0 == SXXMAXBYTES) {
 					sflush();
 				}
+				rtbuf[(int) (rtadr1 - rtadr0)] = rtval[k];
+				++rtadr1;
+				++rtadr2;
 			}
 		}
 	} else {
@@ -620,16 +628,16 @@ int i;
 #ifdef	LONGINT
 		switch(a_bytes) {
 		default:
-		case 2: frmt = "S9%02X%04lX"; addr = symadr & 0x0000ffffl; break;
-		case 3: frmt = "S8%02X%06lX"; addr = symadr & 0x00ffffffl; break;
-		case 4: frmt = "S7%02X%08lX"; addr = symadr & 0xffffffffl; break;
+		case 2: frmt = "S9%02X%04lX"; addr = symadr & 0x0000FFFFl; break;
+		case 3: frmt = "S8%02X%06lX"; addr = symadr & 0x00FFFFFFl; break;
+		case 4: frmt = "S7%02X%08lX"; addr = symadr & 0xFFFFFFFFl; break;
 		}
 #else
 		switch(a_bytes) {
 		default:
-		case 2: frmt = "S9%02X%04X"; addr = symadr & 0x0000ffff; break;
-		case 3: frmt = "S8%02X%06X"; addr = symadr & 0x00ffffff; break;
-		case 4: frmt = "S7%02X%08X"; addr = symadr & 0xffffffff; break;
+		case 2: frmt = "S9%02X%04X"; addr = symadr & 0x0000FFFF; break;
+		case 3: frmt = "S8%02X%06X"; addr = symadr & 0x00FFFFFF; break;
+		case 4: frmt = "S7%02X%08X"; addr = symadr & 0xFFFFFFFF; break;
 		}
 #endif
 		fprintf(ofp, frmt, reclen, addr);
@@ -710,30 +718,30 @@ sflush()
 #ifdef	LONGINT
 	switch(a_bytes) {
 	default:
-	case 2: frmt = "S1%02X%04lX"; addr = rtadr0 & 0x0000ffffl; break;
-	case 3: frmt = "S2%02X%06lX"; addr = rtadr0 & 0x00ffffffl; break;
-	case 4: frmt = "S3%02X%08lX"; addr = rtadr0 & 0xffffffffl; break;
+	case 2: frmt = "S1%02X%04lX"; addr = rtadr0 & 0x0000FFFFl; break;
+	case 3: frmt = "S2%02X%06lX"; addr = rtadr0 & 0x00FFFFFFl; break;
+	case 4: frmt = "S3%02X%08lX"; addr = rtadr0 & 0xFFFFFFFFl; break;
 	}
 #else
 	switch(a_bytes) {
 	default:
-	case 2: frmt = "S1%02X%04X"; addr = rtadr0 & 0x0000ffff; break;
-	case 3: frmt = "S2%02X%06X"; addr = rtadr0 & 0x00ffffff; break;
-	case 4: frmt = "S3%02X%08X"; addr = rtadr0 & 0xffffffff; break;
+	case 2: frmt = "S1%02X%04X"; addr = rtadr0 & 0x0000FFFF; break;
+	case 3: frmt = "S2%02X%06X"; addr = rtadr0 & 0x00FFFFFF; break;
+	case 4: frmt = "S3%02X%08X"; addr = rtadr0 & 0xFFFFFFFF; break;
 	}
 #endif
 	fprintf(ofp, frmt, reclen, addr);
 	for (i=0; i<max; i++) {
 		chksum += rtbuf[i];
-		fprintf(ofp, "%02X", rtbuf[i] & 0x00ff);
+		fprintf(ofp, "%02X", rtbuf[i] & 0x00FF);
 	}
 	/*
 	 * 1's complement
 	 */
 #ifdef	LONGINT
-	fprintf(ofp, "%02lX\n", (~chksum) & 0x00ff);
+	fprintf(ofp, "%02lX\n", (~chksum) & 0x00FF);
 #else
-	fprintf(ofp, "%02X\n", (~chksum) & 0x00ff);
+	fprintf(ofp, "%02X\n", (~chksum) & 0x00FF);
 #endif
 	rtadr0 = rtadr1;
 }
@@ -845,10 +853,12 @@ int i;
 		}
 		for (k=a_bytes; k<rtcnt; k++) {
 			if (rtflg[k]) {
-				rtbuf[(int) (rtadr1++ - rtadr0)] = rtval[k];
 				if (rtadr1 - rtadr0 == (unsigned) (DBXMAXBYTES - (2 * a_bytes) - 1)) {
 					dflush();
 				}
+				rtbuf[(int) (rtadr1 - rtadr0)] = rtval[k];
+				++rtadr1;
+				++rtadr2;
 			}
 		}
 	} else {

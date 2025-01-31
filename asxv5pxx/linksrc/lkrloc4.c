@@ -1,7 +1,7 @@
 /* lkrloc4.c */
 
 /*
- *  Copyright (C) 2003-2014  Alan R. Baldwin
+ *  Copyright (C) 2003-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -31,6 +31,8 @@
  */
 
 #include "aslink.h"
+
+#define	DEBUG	0
 
 /*)Module	lkrloc4.c
  *
@@ -112,7 +114,7 @@ int c;
 		break;
 
 	default:
-		fprintf(stderr, "Undefined Relocation Operation\n");
+		fprintf(stderr, "?ASlink-Error-Undefined Relocation Operation\n");
 		lkerr++;
 		break;
 
@@ -140,6 +142,8 @@ int c;
  *			+----+----+----+----+----+
  *		  rtflag|  1 |  1 |  1 |  1 |  1 |
  *			+----+----+----+----+----+
+ *		  rterr |  0 |  0 |  x |  x |  x |
+ *			+----+----+----+----+----+
  *
  * 	The  T  line contains the assembled code output by the assem-
  *	bler with xx xx being the offset address from the  current  area
@@ -151,6 +155,7 @@ int c;
  *
  *	global variables:
  *		int	rtcnt		number of values evaluated
+ *		int	rterr[]		array of evaluation errors
  *		int	rtflg[]		array of evaluation flags
  *		int	rtval[]		array of evaluation values
  *
@@ -241,8 +246,9 @@ relt4()
  *		a_uint	relv		relocation final value
  *		int	rindex		symbol / area index
  *		a_uint	rtbase		base code address
+ *		a_uint	rtbofst		rtbase code offset
  *		a_uint	rtofst		rtval[] index offset
- *		a_uint	rtpofst		rtval[] index offset (initial)
+ *		a_uint	rtpofst		rtp code offset
  *		int	rtp		index into T data
  *		int	rxm	        merge mode index
  *		sym	**s		pointer to array of symbol pointers
@@ -290,8 +296,8 @@ relr4()
 {
 	a_uint reli, relv;
 	int mode;
-	a_uint rtbase, rtofst, rtpofst;
-	a_uint paga, pags, pagx, pcrv;
+	a_uint rtbase, rtofst, rtpofst, rtbofst;
+	a_uint pagx, pcrv;
 	a_uint m, n, v;
 	int aindex, argb, argm, rindex, rtp, rxm, error, i;
 	struct areax **a;
@@ -307,7 +313,7 @@ relr4()
 	 * Verify Area Mode
 	 */
 	if (eval() != R4_AREA || eval()) {
-		fprintf(stderr, "R input error\n");
+		fprintf(stderr, "?ASlink-Error-R input error\n");
 		lkerr++;
 		return;
 	}
@@ -317,7 +323,7 @@ relr4()
 	 */
 	aindex = (int) evword();
 	if (aindex >= hp->h_narea) {
-		fprintf(stderr, "R area error\n");
+		fprintf(stderr, "?ASlink-Error-R area error\n");
 		lkerr++;
 		return;
 	}
@@ -364,9 +370,9 @@ relr4()
 	while (more()) {
 		error = 0;
 		relv = 0;
-		rtpofst = rtofst;
 		mode = (int) eval();
 		rtp = (int) eval();
+		rtpofst = 0;
 		rindex = (int) evword();
 
 		/*
@@ -392,18 +398,24 @@ relr4()
 		 */
 		if (mode & R4_SYM) {
 			if (rindex >= hp->h_nsym) {
-				fprintf(stderr, "R symbol error\n");
+				fprintf(stderr, "?ASlink-Error-R symbol error\n");
 				lkerr++;
 				return;
 			}
 			reli = symval(s[rindex]);
+#if DEBUG
+fprintf(stdout, "RELR4-SYM:  reli = %X, rindex = %d\n", reli, rindex);
+#endif
 		} else {
 			if (rindex >= hp->h_narea) {
-				fprintf(stderr, "R area error\n");
+				fprintf(stderr, "?ASlink-Error-R area error\n");
 				lkerr++;
 				return;
 			}
 			reli = a[rindex]->a_addr;
+#if DEBUG
+fprintf(stdout, "RELR4-AREA: reli = %X, rindex = %d\n", reli, rindex);
+#endif
 		}
 
 		/*
@@ -411,12 +423,8 @@ relr4()
 		 */
 		if (rxm == 0) {
 			/*
-			 * PAGE addressing and
 			 * PCR  addressing
 			 */
-			paga = 0;
-			pags = 0;
-
 			pcrv  = rtp - rtofst;
 
 			switch(mode & (R4_PCR | R4_PBITS)) {
@@ -429,6 +437,9 @@ relr4()
 			case R4_PCRN:
 				pcrv  = (pcrv + argb) / pcb;
 				reli -= (pc + pcrv);
+#if DEBUG
+fprintf(stdout, "R4_PCRN: pcrv = %X, reli = %X\n", pcrv, reli);
+#endif
 				break;
 			/*
 			 * Specific PCR mode offsets for the
@@ -446,12 +457,12 @@ relr4()
 			case R4_PCR0N:
 				pcrv /=  pcb;
 				reli -= (pc + pcrv);
+#if DEBUG
+fprintf(stdout, "R4_PCRX: pcrv = %X, reli = %X\n", pcrv, reli);
+#endif
 				break;
 			case R4_PAG0:
 			case R4_PAGN:
-				paga  = sdp.s_area->a_addr;
-				pags  = sdp.s_addr;
-				reli -= paga + pags;
 				break;
 			case R4_PAGX0:
 			case R4_PAGX1:
@@ -471,6 +482,7 @@ relr4()
 				 * from a_bytes of data in the T line.
 				 */
 				rtofst += (a_bytes - 1);
+				rtpofst += a_bytes;
 			} else {
 				relv = adw_xb(argb, reli, rtp);
 				/*
@@ -478,7 +490,11 @@ relr4()
 				 * from a_bytes of data in the T line.
 				 */
 				rtofst += (a_bytes - argb);
+				rtpofst += a_bytes;
 			}
+#if DEBUG
+fprintf(stdout, "R4_RELV: relv = %X\n", relv);
+#endif
 
 			/*
 			 * Mask Value Selection
@@ -517,20 +533,32 @@ relr4()
 			}
 #endif
 
+#if DEBUG
+fprintf(stdout, "relr4: relv = %X\n", relv);
+fprintf(stdout, "     :    m = %X\n", m);
+fprintf(stdout, "     :    n = %X\n", n);
+fprintf(stdout, "     : mode = %X\n", mode);
+#endif
 			/*
 			 * Signed Value Checking
 			 */
 			if (((mode & (R4_SGND | R4_USGN | R4_PAGX | R4_PCR)) == R4_SGND) &&
-			   ((relv & m) != m) && ((relv & m) != 0))
+			   ((relv & m) != m) && ((relv & m) != 0)) {
 				error = 1;
-
+#if DEBUG
+fprintf(stdout, "R4_SGND: relv = %X, m = %X, n = %d, error = %d\n", relv, m, n, error);
+#endif
+			}
 			/*
 			 * Unsigned Value Checking
 			 */
 			if (((mode & (R4_SGND | R4_USGN | R4_PAGX | R4_PCR)) == R4_USGN) &&
-			   ((relv & n) != 0))
+			   ((relv & n) != 0)) {
 				error = 2;
-
+#if DEBUG
+fprintf(stdout, "R4_USGN: relv = %X, m = %X, n = %d, error = %d\n", relv, m, n, error);
+#endif
+			}
 			/*
 			 * PCR  Relocation Error Checking
 			 */
@@ -544,14 +572,25 @@ relr4()
 				if (((relv & m) != m) && ((relv & m) != 0)) {
 					error = 3 + argm;
 				}
+#if DEBUG
+fprintf(stdout, "R4_PCR: relv = %X, m = %X, n = %X, error = %d\n", relv, m, n, error);
+#endif
 				break;
 			case R4_PAG0:
-				if (relv & ~((a_uint) 0x000000FF) || paga || pags)
+				if ((relv & ~((a_uint) p_mask)) != 0x0000) {
 					error = 7;
+				}
+#if DEBUG
+fprintf(stdout, "R4_PAG0: relv = %X, p_mask = %X, error = %d\n", relv, p_mask, error);
+#endif
 				break;
 			case R4_PAGN:
-				if (relv & ~((a_uint) 0x000000FF))
+				if ((relv & ~((a_uint) p_mask)) != sdp.s_addr) {
 					error = 8;
+				}
+#if DEBUG
+fprintf(stdout, "R4_PAGN: relv = %X, p_mask = %X, error = %d\n", relv, p_mask, error);
+#endif
 				break;
 			case R4_PAGX0:	/* Paged from pc + 0 */
 			case R4_PAGX1:	/* Paged from pc + 1 */
@@ -566,13 +605,17 @@ relr4()
 				default:
 					break;
 				}
-				pagx = pcrv & ~((a_uint) 0x000000FF);
+				pagx = pcrv & n;
 				/*
 				 * Paging Error if:
 				 *     Destination Page != Current Page
 				 */
-				if ((relv & ~((a_uint) 0x000000FF)) != pagx)
+				if ((relv & n) != pagx) {
 					error = 9;
+				}
+#if DEBUG
+fprintf(stdout, "R4_PAGX: relv = %X, pmask = %X, pagx = %X, error = %d\n", relv, p_mask, pagx, error);
+#endif
 				break;
 			default:
 				break;
@@ -582,12 +625,8 @@ relr4()
 		 */
 		} else {
 			/*
-			 * PAGE addressing and
 			 * PCR  addressing
 			 */
-			paga = 0;
-			pags = 0;
-
 			pcrv  = rtp - rtofst;
 
 			switch(mode & (R4_PCR | R4_PBITS)) {
@@ -597,9 +636,14 @@ relr4()
 			 * and offset argument.
 			 */
 			case R4_PCR:
+			case R4_PCR | R4_MBRS:		/* Allowed Only In Merge Mode */
+			case R4_PCR | R4_MBRU:		/* Allowed Only In Merge Mode */
 			case R4_PCRN:
 				pcrv  = (pcrv + argb) / pcb;
 				reli -= (pc + pcrv);
+#if DEBUG
+fprintf(stdout, "R4_PCRN_MERGE: reli = %X\n", reli);
+#endif
 				break;
 			/*
 			 * Specific PCR mode offsets for the
@@ -617,12 +661,12 @@ relr4()
 			case R4_PCR0N:
 				pcrv /=  pcb;
 				reli -= (pc + pcrv);
+#if DEBUG
+fprintf(stdout, "R4_PCRX_MERGE: reli = %X\n", reli);
+#endif
 				break;
 			case R4_PAG0:
 			case R4_PAGN:
-				paga  = sdp.s_area->a_addr;
-				pags  = sdp.s_addr;
-				reli -= paga + pags;
 				break;
 			case R4_PAGX0:
 			case R4_PAGX1:
@@ -640,6 +684,9 @@ relr4()
 			} else {
 				relv = adw_xb(argb, reli, rtp);
 			}
+#if DEBUG
+fprintf(stdout, "RELR4-MERGE: relv = %X\n", relv);
+#endif
 
 			/*
 			 * The Merge Mode inserts a_bytes into
@@ -659,6 +706,9 @@ relr4()
 			v = lkmerge(relv, rxm, v);
 			ptb_xb(0 , rtp);
 			adw_xb(argb, v, rtp);
+#if DEBUG
+fprintf(stdout, "RELR4-MERGE: v = %X\n", v);
+#endif
 
 			/*
 			 * Source Bit Masks
@@ -666,21 +716,41 @@ relr4()
 			n = hp->m_list[rxm]->m_sbits;
 			m = ~(n >> 1);
 			n = ~(n >> 0);
+#if DEBUG
+fprintf(stdout, "RELR4-MERGE: relv = %X\n", relv);
+fprintf(stdout, "           :    m = %X\n", m);
+fprintf(stdout, "           :    n = %X\n", n);
+fprintf(stdout, "           : mode = %X\n", mode);
+#endif
 
 			/*
-			 * Signed Merge Bit Range Checking
+			 * Signed and Unsigned Checking Allowed
+			 * For Non Paged Modes And Basic PCR Mode
 			 */
-			if (((mode & (R4_SGND | R4_USGN | R4_PAGX | R4_PCR)) == R4_SGND) &&
-			   ((relv & m) != m) && ((relv & m) != 0))
-				error = 10;
-
-			/*
-			 * Unsigned Merge Bit Range Checking
-			 * Overflow Merge Bit Range Checking
-			 */
-			if (((mode & (R4_SGND | R4_USGN | R4_PAGX | R4_PCR)) == R4_USGN) &&
-			   (relv & n))
-				error = 11;
+			if (((mode & (R4_PCR | R4_PAGE)) == R4_NOPAG) ||
+			    ((mode & (R4_PCR | R4_PAGE)) == R4_PCR)) {
+				/*
+				 * Signed Merge Bit Range Checking
+				 */
+				if (((mode & (R4_SGND | R4_USGN)) == R4_SGND) &&
+				   ((relv & m) != m) && ((relv & m) != 0)) {
+					error = 10;
+#if DEBUG
+fprintf(stdout, "R4_SGND-MERGE: relv = %X, m = %X, n = %d, error = %d\n", relv, m, n, error);
+#endif
+				}
+				/*
+				 * Unsigned Merge Bit Range Checking
+				 * Overflow Merge Bit Range Checking
+				 */
+				if (((mode & (R4_SGND | R4_USGN)) == R4_USGN) &&
+				   (relv & n)) {
+					error = 11;
+#if DEBUG
+fprintf(stdout, "R4_USGN-MERGE: relv = %X, m = %X, n = %d, error = %d\n", relv, m, n, error);
+#endif
+				}
+			}
 
 			/*
 			 * PCR  Relocation Error Checking
@@ -695,14 +765,25 @@ relr4()
 				if (((relv & m) != m) && ((relv & m) != 0)) {
 					error = 3 + argm;
 				}
+#if DEBUG
+fprintf(stdout, "R4_PCR-MERGE: relv = %X, m = %X, n = %X, error = %d\n", relv, m, n, error);
+#endif
 				break;
 			case R4_PAG0:
-				if (relv & n || paga || pags)
+				if (relv & n) {
 					error = 7;
+				}
+#if DEBUG
+fprintf(stdout, "R4_PAG0_MERGE: relv = %X, n = %X, error = %d\n", relv, n, error);
+#endif
 				break;
 			case R4_PAGN:
-				if (relv & n)
+				if ((relv & ~((a_uint) p_mask)) != sdp.s_addr) {
 					error = 8;
+				}
+#if DEBUG
+fprintf(stdout, "R4_PAGN_MERGE: relv = %X, p_mask = %X, sdp.s_addr = %X, error = %d\n", relv, p_mask, sdp.s_addr, error);
+#endif
 				break;
 			case R4_PAGX3:	/* Paged from pc + 3 */
 			case R4_PAGX2:	/* Paged from pc + 2 */
@@ -722,8 +803,12 @@ relr4()
 				 * Paging Error if:
 				 *     Destination Page != Current Page
 				 */
-				if ((relv & n) != pagx)
+				if ((relv & n) != pagx) {
 					error = 9;
+				}
+#if DEBUG
+fprintf(stdout, "R4_PAGX-MERGE: relv = %X, pcrv = %X, pagx = %X, n = %X, error = %d\n", relv, pcrv, pagx, n, error);
+#endif
 				break;
 			default:
 				break;
@@ -734,19 +819,29 @@ relr4()
 		 * Error Processing
 		 */
 		if (error) {
+			for (i=a_bytes,rtbofst=0; i<(int)(rtp); i++) {
+				if (rtflg[i]) {
+					rtbofst += 1;
+				}
+			}
+
 			rerr.aindex = aindex;
 			rerr.mode = mode;
-			rerr.rtbase = rtbase + ((rtp - rtpofst) / pcb);
+			rerr.rtbase = rtbase + (rtbofst / pcb);
 			rerr.rindex = rindex;
 			rerr.rval = relv - reli;
 			relerr4(errmsg4[error]);
 
-			for (i=rtp; i<rtp+a_bytes; i++) {
+			for (i=(int)rtp; i<(int)(rtp+rtpofst); i++) {
 				if (rtflg[i]) {
 					rterr[i] = error;
 					break;
 				}
 			}
+
+#if DEBUG
+			fprintf(stdout, "relr4-error(%d): rtp = %d, rtpofst = %d, rtbofst = %d\n", error, rtp, rtpofst, rtbofst);
+#endif
 		}
 		/*
 		 * Bank Has Output
@@ -853,7 +948,7 @@ relp4()
 	 * Verify Area Mode
 	 */
 	if ((eval() != R4_AREA) || eval()) {
-		fprintf(stderr, "P input error\n");
+		fprintf(stderr, "?ASlink-Error-P input error\n");
 		lkerr++;
 	}
 
@@ -862,10 +957,13 @@ relp4()
 	 */
 	aindex = (int) evword();
 	if (aindex >= hp->h_narea) {
-		fprintf(stderr, "P area error\n");
+		fprintf(stderr, "?ASlink-Error-P area error\n");
 		lkerr++;
 		return;
 	}
+#if DEBUG
+fprintf(stdout, "relp4-relocation-area: aindex = %4X\n", aindex);
+#endif
 
 	/*
 	 * Do remaining relocations
@@ -880,14 +978,14 @@ relp4()
 		 */
 		if (mode & R4_SYM) {
 			if (rindex >= hp->h_nsym) {
-				fprintf(stderr, "P symbol error\n");
+				fprintf(stderr, "?ASlink-Error-P symbol error\n");
 				lkerr++;
 				return;
 			}
 			relv = symval(s[rindex]);
 		} else {
 			if (rindex >= hp->h_narea) {
-				fprintf(stderr, "P area error\n");
+				fprintf(stderr, "?ASlink-Error-P area error\n");
 				lkerr++;
 				return;
 			}
@@ -901,16 +999,26 @@ relp4()
 	 */
 	aindex = (int) adb_xb(0,a_bytes);
 	if (aindex >= hp->h_narea) {
-		fprintf(stderr, "P area error\n");
+		fprintf(stderr, "?ASlink-Error-P area error\n");
 		lkerr++;
 		return;
 	}
+#if DEBUG
+fprintf(stdout, "relp4-paged: aindex = %4X\n", aindex);
+#endif
+
 	sdp.s_areax = a[aindex];
 	sdp.s_area = sdp.s_areax->a_bap;
 	sdp.s_addr = adb_xb(0,a_bytes*2);
 	if (rtcnt > a_bytes*3) {
 		p_mask = adb_xb(0,a_bytes*3);
+	} else {
+		p_mask = DEFAULT_PMASK;
 	}
+#if DEBUG
+fprintf(stdout, "relp4-sdp: area = %s, addr = %X, p_mask = %X\n", sdp.s_areax->a_bap->a_id, sdp.s_addr, p_mask);
+#endif
+
 	if (sdp.s_area->a_addr & p_mask || sdp.s_addr & p_mask)
 		relerp4("Page Definition Boundary Error");
 }
@@ -1203,7 +1311,7 @@ a_uint base;
 	a_uint m;
 
 	if ((mp = hp->m_list[r]) == NULL) {
-		fprintf(stderr, "undefined G mode\n");
+		fprintf(stderr, "?ASlink-Error-undefined G mode\n");
 		lkexit(ER_FATAL);
 	}
 

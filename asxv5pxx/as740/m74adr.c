@@ -1,7 +1,7 @@
 /* m74adr.c */
 
 /*
- *  Copyright (C) 2005-2014  Alan R. Baldwin
+ *  Copyright (C) 2005-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,6 +38,17 @@ struct expr *esp;
 	int c, d;
 	char *p;
 
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
+
 	/*
 	 * Immediate Mode
 	 */
@@ -71,7 +82,7 @@ struct expr *esp;
 				esp->e_mode = S_ZPY;
 				break;
 			default:
-				aerr();
+				xerr('a', "Register A Is Invalid.");
 			}
 		}
 
@@ -83,13 +94,34 @@ struct expr *esp;
 			unget(d);
 		}
 		expr(esp, 0);
+		if (d != '*') {
+			if ((!esp->e_flag)
+			    && (esp->e_base.e_ap == NULL)
+			    && !(esp->e_addr & ~0xFF)) {
+				esp->e_mode = S_ZP;
+			} else {
+				if (zpg != NULL) {
+					if (esp->e_flag) {
+						if (esp->e_base.e_sp->s_area == zpg) {
+							esp->e_mode = S_ZP;	/* ___  (*)arg */
+						}
+					} else {
+						if (esp->e_base.e_ap == zpg) {
+							esp->e_mode = S_ZP;	/* ___  (*)arg */
+						}
+					}
+				}
+			}
+		} else {
+			esp->e_mode = S_ZP;
+		}
 		if ((c = getnb()) == ']') {
 			if (more()) {
 				comma(1);
 				if (admode(axy) != S_Y)
-					qerr();
+					xerr('a', "Only Register Y Is Valid.");
 				esp->e_mode = S_INDY;
-			} else if (d == '*' || zpage(esp)) {
+			} else if (esp->e_mode == S_ZP) {
 				esp->e_mode = S_ZIND;
 			} else {
 				esp->e_mode = S_IND;
@@ -98,10 +130,10 @@ struct expr *esp;
 			unget(c);
 			comma(1);
 			if (admode(axy) != S_X)
-				qerr();
+				xerr('a', "Only Register X Is Valid.");
 			esp->e_mode = S_INDX;
 			if (getnb() != ']')
-				qerr();
+				xerr('q', "Missing ']'.");
 		}
 
 	/*
@@ -115,15 +147,31 @@ struct expr *esp;
 			break;
 		case S_X:
 		case S_Y:
-			aerr();
+			xerr('a', "Only Register A Is Valid.");
 			break;
 		default:
 			if (more()) {
 				expr(esp, 0);
+				if ((!esp->e_flag)
+				    && (esp->e_base.e_ap == NULL)
+				    && !(esp->e_addr & ~0xFF)) {
+					esp->e_mode = S_ZP;
+				} else {
+					if (zpg != NULL) {
+						if (esp->e_flag) {
+							if (esp->e_base.e_sp->s_area == zpg) {
+								esp->e_mode = S_ZP;	/* ___  (*)arg */
+							}
+						} else {
+							if (esp->e_base.e_ap == zpg) {
+								esp->e_mode = S_ZP;	/* ___  (*)arg */
+							}
+						}
+					}
+				}
 				if (more()) {
 					p = ip;
 					comma(1);
-					esp->e_mode = 0;
 					switch(admode(axy)) {
 					/*
 					 * nn,X
@@ -132,7 +180,7 @@ struct expr *esp;
 						/*
 						 * Assume * was forgotten
 						 */
-						if (zpage(esp)) {
+						if (esp->e_mode == S_ZP) {
 							esp->e_mode = S_ZPX;
 						} else {
 							esp->e_mode = S_ABSX;
@@ -145,7 +193,7 @@ struct expr *esp;
 						/*
 						 * Assume * was forgotten
 						 */
-						if (zpage(esp)) {
+						if (esp->e_mode == S_ZP) {
 							esp->e_mode = S_ZPY;
 						} else {
 							esp->e_mode = S_ABSY;
@@ -167,19 +215,34 @@ struct expr *esp;
 					/*
 					 * nn
 					 */
-					if (zpage(esp)) {
-						esp->e_mode = S_ZP;
-					} else {
+					if (esp->e_mode != S_ZP) {
 						esp->e_mode = S_ABS;
 					}
 				}
 			} else {
-				qerr();
+				xerr('a', "Invalid Addressing Mode.");
 			}
 		}
 	}
 	return (esp->e_mode);
 }
+
+/*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
 
 /*
  * Enter admode() to search a specific addressing mode table
@@ -230,24 +293,10 @@ char *str;
 	}
 
 	if (!*str)
-		if (any(*ptr," \t\n,];")) {
+		if (!(ctype[*ptr & 0x007F] & LTR16)) {
 			ip = ptr;
 			return(1);
 		}
-	return(0);
-}
-
-/*
- *	any --- does str contain c?
- */
-int
-any(c,str)
-int c;
-char *str;
-{
-	while (*str)
-		if(*str++ == c)
-			return(1);
 	return(0);
 }
 

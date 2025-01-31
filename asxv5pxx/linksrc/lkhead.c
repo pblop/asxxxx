@@ -216,7 +216,7 @@ newmode()
 	struct mode *mp;
 
 	if (headp == NULL) {
-		fprintf(stderr, "No header defined\n");
+		fprintf(stderr, "?ASlink-Error-No header defined\n");
 		lkexit(ER_FATAL);
 	}
 	/*
@@ -224,7 +224,7 @@ newmode()
 	 */
 	n = (int) eval();
 	if (n >= hp->h_nmode) {
-		fprintf(stderr, "Header mode list overflow\n");
+		fprintf(stderr, "?ASlink-Error-Header mode list overflow\n");
 		lkexit(ER_FATAL);
 	}
 	/*
@@ -306,7 +306,7 @@ module()
 		getid(id, -1);
 		hp->m_id = strsto(id);
 	} else {
-		fprintf(stderr, "No header defined\n");
+		fprintf(stderr, "?ASlink-Error-No header defined\n");
 		lkerr++;
 	}
 }

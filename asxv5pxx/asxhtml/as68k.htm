@@ -1,0 +1,1018 @@
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+</HEAD>
+<BODY BGCOLOR="#C0C0C0">
+
+<A href="../home.htm">
+<IMG width=343 height=58 border=0 SRC="welcom.gif" ALT="Welcome"></A>
+
+<H2>AS68k  Assembler</H2>
+
+<A NAME = "TOP"> </A> 
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+   The assembler supports the full instruction set of the 68000,
+68008, 68010 and 68020 processors.  
+
+   The assembler options to select the desired processor are:  
+
+    .68000 - 68000 16/24-bit data/address
+    .68008 - 68008  8/22-bit data/address
+    .68010 - 68010 16/24-bit data/address
+    .68020 - 68020 32/32-bit data/address
+
+   The  assembler  makes  no distinction concerning the data and
+address bus widths of the underlying processor  type.   Instruc-
+tions  not  supported  by  the  specific processor will report a
+warning.  
+
+   In  addition, the floating point instruction set of the 68881
+and 68882 floating point coprocessors are supported:  
+
+    .68881 - 68881 Floating Point Processor
+    .68882 - 68882 Floating Point Processor
+
+   The  cycle counts for each instruction is processor dependent
+and is determined by the selected options.  Because  the  number
+of instruction cycles for some instructions exceed the normal 99
+cycle ASxxxx limit, the maximum has been increased  to  999  for
+the  680xx  processors.   When  the floating point processor in-
+structions are enabled the maximum is increased to 9999 as  some
+of  the  packed  floating point instructions exceed 2000 cycles.
+The cycle counts were extracted from the tables contained in the
+book  "The  Motorola  MC68000  Microprocessor  Family:  Assembly
+Language, Interface Design, and  System  Design"  by  Thomas  L.
+Harmon  and  Barbara  Lawson (Prentice Hall, 1985), the "MC68020
+32-Bit  Microprocessor  User's  Manual"  (Motorola  Inc.   1984,
+1985),  and  the  "MC68881/MC68882  Floating  Point  Coprocessor
+User's Manual" Second Edition, (Motorola Inc.  1989).  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+AS68K ASSEMBLER SPECIFIC DIRECTIVES 
+
+.setdp Directive 
+
+Format:  
+
+        .setdp [base [,area]] 
+
+            The .setdp directive is used to inform the
+            assembler of the current direct page region
+            and the offset address within the selected
+            area.  The normal invocation methods are:
+
+                .area   DIRECT  (PAG)
+                .setdp
+
+                or
+
+                .setdp  #,DIRECT
+
+
+   AS68K  has  two  paging  regions, the first 32K bytes and the
+last 32K bytes of the 32-bit addressing space.   The  paged  ad-
+dressing      ranges      are      0x00000000-0x00007FFF     and
+0xFFFF8000-0xFFFFFFFF.  Define a different area for each of  the
+regions:  
+
+        .area   LOPAGE  (PAG)
+        .setdp  0x00000000,LOPAGE
+
+        .area   HIPAGE  (PAG)
+        .setdp  0xFFFF8000,HIPAGE
+
+
+   These  two regions must both be linked with a base address of
+0x00000000 to position them so that  instructions  can  use  the
+16-bit  short  forms  to  access these regions.  Explicit direct
+page addressing is invoked by using the '*' prefix to a label or
+symbol.  Automatic direct page addressing can be invoked by ena-
+bling the autodpcnst (Automatic Direct  Page  Constants)  and/or
+the autodpsmbl (Automatic Direct Page Symbols) options.  
+
+   The  assembler  verifies  that  any  local variable used in a
+direct variable reference is located in this area.  Local  vari-
+able  and  constant value direct access addresses are checked to
+be within the paging address ranges.  The linker will check  all
+external  direct page relocations to verify that they are within
+the correct area.  
+
+   External  global  references are normally specified using the
+.globl directive.  However the two paging areas of AS68K require
+additional  information  for  the  external references.  This is
+done by the directives .lodpgbl and .hidpgbl.  
+
+
+.lodpgbl Directive 
+
+
+   Format:  
+
+        .lodpgbl arg1, arg2, ...  
+
+            Where the arguments are labels or
+            symbols with values that are in the
+            0x00000000-0x00007FFF direct page.
+            If the low page area has not been
+            specified then the arguments are
+            defined as being in the current area.
+
+
+.hidpgbl Directive 
+
+Format:  
+
+        .hidpgbl arg1, arg2, ...  
+
+            Were the arguments are labels or
+            symbols with values that are in the
+            0xFFFF8000-0xFFFFFFFF direct page.
+            If the high page area has not been
+            specified then the arguments are
+            defined as being in the current area.
+
+
+.qword 
+
+   Format:  
+
+        .qword arg1, arg2, ...  
+
+            .qword creates a 64-Bit integer which
+            causes four words of storage to be
+            generated for each argument.
+
+
+.flt16, .flt32, .flt64, .flt96, and .fltpk 
+
+   There  are five supported floating point formats available in
+the AS68K assembler where arg1, arg2, ...  represent one or more
+floating-point numbers.
+  
+Format:  
+
+        .flt16 arg1, arg2, ...  
+
+            .flt16 causes one word of storage
+            to be generated for each argument.
+
+        Word: 16-Bit Floating Point Format:
+
+        15      14     7        6     0
+         S      EEEEEEEE        MMMMMMM
+
+                Mantissa  (7 bits)
+                Exponent  (8 bits) Biased
+                Sign      (1 bit)
+
+Format:  
+
+        .flt32 arg1, arg2, ...  
+
+            .flt32 causes two words of storage
+            to be generated for each argument.
+
+        Single: 32-Bit Floating Point:
+
+        31      30    23        22        0
+         S      EEEEEEEE        MMM.....MMM
+
+                Mantissa  (23 bits)
+                Exponent  (8 bits) Biased
+                Sign      (1 bit)
+
+Format:  
+
+        .flt64 arg1, arg2, ...  
+
+            .flt64 generates 4 words of storage
+            for each argument.
+
+        Double: 64-Bit Floating Point
+
+        63      62       52     51        0
+         S      EEEEEEEEEEE     MMM.....MMM
+
+                Mantissa  (52 bits)
+                Exponent  (11 bits) Biased
+                Sign      (1 bit)
+Format:  
+
+        .flt96 arg1, arg2, ...  
+
+            .flt96 generates 6 words of storage
+            for each argument.
+
+        Extended: 64-Bit Floating
+
+        95      94       80  79   64 63 62        0
+         S      EEEEEEEEEEE  0000000  1 MMM.....MMM
+
+                Sign      (1 bit)
+                Exponent  (15 bits)  Biased
+                Padding   (16 bits)  Always 0
+                Integer   (1 bit)    Always 1
+                Mantissa  (63 bits)
+
+Format:  
+
+        .fltpk arg1, arg2, ...  
+
+            .fltpk generates 6 words of storage
+            for each argument as packed BCD
+            (binary coded decimal) with a 17-digit
+            mantissa and a 3-digit exponent.
+
+        Packed: 17-Digit BCD Packed
+
+        95  94  93 92  91 80  79 68  67        0
+        SM  SE  YYYYY  EEEEE  xxxxx  MMM.....MMM
+
+                Sign Mantissa  (1 bit)
+                Sign Exponent  (1 bit)
+                Special Cases  (2 bits)
+                Exponent       (3 digits)  000-999
+                Don't Care     (12 bits)
+                Mantissa       (17 digits)
+
+   The arguments are evaluated and the results are stored in the
+object module.  Unlike the .word directive only the sign  opera-
+tors   (+)   and  (-)  may  be  used  in  the  evaluation  of  a
+floating-point argument.  No arithmetic operations  are  allowed
+in the floating-point argument.  
+
+   A floating-point number is represented by a string of decimal
+digits.  The string (which can be a single digit in length)  may
+contain  an optional decimal point and may be followed by an op-
+tional exponent indicator in the form of 'E' or 'e' followed  by
+a  signed  decimal integer exponent.  The number may not contain
+embedded blanks, tabs, or angle brackets and may not be  an  ex-
+pression.  
+
+   The  AS68K  assembler returns a value of the appropriate size
+and precision via one of  the  floating-point  directives.   The
+values  returned  may be truncated or rounded as selected by the
+'.enabl (fpt)' or '.dsabl (fpt)' respectively.  
+
+   Floating-point numbers are normally rounded.  That is, when a
+floating-point number exceeds the limits of the field  in  which
+it is to be stored, the high-order bit of the unretained portion
+is added to the low-order bit of the retained portion.  
+
+
+^F - The Temporary Floating-Point Operator 
+
+   Format:  
+
+        ^F 
+
+   ^F  is  a unary operator for numeric control which allows you
+to specify an  argument  that  is  either  a  1-word  or  2-word
+floating-point number.  For example, the following statement:  
+
+        A:      MOVE.W  #^F3.7,D0
+
+creates an immediate 1-word floating-point number containing the
+value 3.7 formatted as shown in the .flt16 description in a pre-
+vious section.  
+
+The following statement:  
+
+        B:      MOVE.L  #^F3.7,D0
+
+creates an immediate 2-word floating-point number containing the
+value 3.7 formatted as shown in the .flt32 description in a pre-
+vious section.  
+
+   The ^F operator is only allowed in an instruction.  
+
+
+.enabl and .dsabl 
+
+   Format:  
+
+        .enabl (arg1, arg2, ...) 
+        .dsabl (arg1, arg2, ...) 
+
+where:  arg1, arg2, ...    represent one or more
+                           of the following options
+
+        alt          Allow Alternate Instructions
+        fpt          Floating-Point Truncation
+        autodpcnst   Automatic Direct Paging For Constants
+        autodpsmbl   Automatic Direct Paging For Symbols
+
+alt:  controls whether the automatic translation of instructions
+to alternate instruction  forms  is  enabled.   The  default  is
+enabled.  The following translations may be performed:  
+
+        MOVE [],An  ->  MOVEA [],An
+        MOVE #,Dn   ->  MOVEQ #,Dn  (#: -128 to +127)
+
+        ADD Dn,An   ->  ADDA Dn,An
+        ADD #,Dn    ->  ADDI #,Dn
+        ADD #,Dn    ->  ADDQ #,Dn   (#: 1 to 8)
+
+        AND #,Dn    ->  ANDI #,Dn
+
+        CMP [],An   ->  CMPA [],An
+        CMP #,Dn    ->  CMPI #,Dn
+
+        EOR #,[]    ->  EORI #,[]
+
+        OR #,Dn     ->  ORI #,Dn
+
+        SUB An,Dn   ->  SUBA An,Dn
+        SUB #,Dn    ->  SUBI #,Dn
+        SUB #,Dn    ->  SUBQ #,Dn   (#: 1 to 8)
+
+
+   fpt:   controls  whether floating-point truncation is active.
+Normal mode is fpt disabled and rounding is enabled.  
+
+   autodpcnst:   controls  whether  instructions  without length
+qualifies, .B, .W, .L, can automatically use  short  forms  when
+the  constants  are  within  the ranges of 0x00000000-0x00007FFF
+(low  paging  region)  or  0xFFFF8000-0xFFFFFFFF  (high   paging
+region)  or  are external globals.  The paging regions must have
+been specified for this option to take effect.  The  default  is
+enabled.  
+
+   autodpsmbl:   controls  whether  instructions  without length
+qualifies, .B, .W, .L, can automatically use  short  forms  when
+the  symbols are within the ranges of 0x00000000-0x00007FFF (low
+paging region) or 0xFFFF8000-0xFFFFFFFF (high paging region)  or
+are  external globals.  The paging regions must have been speci-
+fied for this option to take effect.  The default is enabled.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+680XX REGISTER SET 
+
+
+   The following is a list of the 680xx registers used by AS68K.
+Eight 32-bit data registers provide data as  bytes,  words,  and
+longs.   Eight  address  registers provide addresses as words or
+longs.  Other registers include the 32-bit program  counter  and
+the  8-bit  status  register.   The  control  registers  are not
+described in this document.  
+
+    Data Registers
+        |- Long ---------------------------|
+                         |- Word-----------|
+                                  |- Byte -|
+         31            16 15     8 7      0
+        |----------------|--------|--------|
+        |-               |        |       -| D0
+        |----------------|--------|--------|
+        |-               |        |       -| D1
+        |----------------|--------|--------|
+        |-               |        |       -| D2
+        |----------------|--------|--------|
+        |-               |        |       -| D3
+        |----------------|--------|--------|
+        |-               |        |       -| D4
+        |----------------|--------|--------|
+        |-               |        |       -| D5
+        |----------------|--------|--------|
+        |-               |        |       -| D6
+        |----------------|--------|--------|
+        |-               |        |       -| D7
+        |----------------|--------|--------|
+
+
+    Address Registers
+        |- Long --------------------------|
+                         |- Word----------|
+         31            16 15             0
+        |----------------|----------------|
+        |-               |               -| A0
+        |----------------|----------------|
+        |-               |               -| A1
+        |----------------|----------------|
+        |-               |               -| A2
+        |----------------|----------------|
+        |-               |               -| A3
+        |----------------|----------------|
+        |-               |               -| A4
+        |----------------|----------------|
+        |-               |               -| A5
+        |----------------|----------------|
+        |-               |               -| A6
+        |----------------|----------------|
+        |-       User Stack Pointer      -|
+        |----------------|----------------| A7 / SP
+        |-    Supervisor Stack Pointer   -|
+        |----------------|----------------|
+
+         31                             0
+        |--------------------------------|
+        |-       Program Counter         |
+        |--------------------------------|
+
+                       |--------|--------|
+        Status Register| System |  User  |
+                       |--------|--------|
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+COMMON 680XX ADDRESSING MODES 
+
+The addressing modes supported by all 680xx processors:
+
+ Mode   Register   Syntax           Addressing Mode     
+ -----  --------  --------    ----------------------------
+  000    Reg #       Dn       Data Reg Dir
+  001    Reg #       An       Addr Reg Dir
+  010    Reg #      (An)      Addr Reg Ind
+  011    Reg #      (An)+     Addr Reg Ind w/Postinc
+  100    Reg #      -(An)     Addr Reg Ind w/Predec
+  101    Reg #      d16(An)   Addr Reg Ind w/Disp
+             or    (d16,An)
+  110    Reg #    d8(An,Rn)   Addr Reg Ind w/Disp w/Index
+             or  (d8,An,Rn)
+  111     000        xxx      Absolute Short
+             or     (xxx).W
+  111     001       xxxxx     Absolute Long
+             or    (xxxxx).L
+  111     010       d16(PC)   Prog Ctr Ind w/Disp
+             or    (d16,PC)
+  111     011     d8(PC,Rn)   Prog Ctr Ind w/Disp w/Index
+             or  (d8,PC,Rn)
+  111     100       #xxx      Immediate
+             or    #(xxx).W   Short Immediate
+             or    #(xxx).L   Long Immediate
+
+        Where Rn is An or Dn
+        Note that Rn supports Rn.W and Rn.L forms.
+
+        The following short forms are also supported:
+                @An     <==>    (An)
+                @An+    <==>    (An)+
+               -@An     <==>   -(An)
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+ADDITIONAL 68020 ADDRESSING MODES 
+
+These additional addressing modes are supported
+only on the 68020 processor:
+
+ Mode   Register   Syntax           Addressing Mode     
+ -----  --------  --------    ----------------------------
+  110    Reg #    d16(An,Rn)  Addr Reg Ind w/Disp w/Index
+             or  (d16,An,Rn)
+  110    Reg #    d32(An,Rn)  Addr Reg Ind w/Disp w/Index
+             or  (d32,An,Rn)
+
+  111     011     d16(PC,Rn)  Prog Ctr Ind w/Disp w/Index
+             or  (d16,PC,Rn)
+  111     011     d32(PC,Rn)  Prog Ctr Ind w/Disp w/Index
+             or  (d32,PC,Rn)
+
+  110    Reg #  ([bd,An,Xn],od)
+  110    Reg #  ([bd,An],Xn,od)
+
+  111     011   ([bd,PC,Xn],od)
+  111     011   ([bd,PC],Xn,od)
+
+  Where:  bd is an offset - optional: (bd).W or (bd).L
+          An is an address register
+          PC is the program counter
+          Xn is An or Dn  - optional: An.W/An.L/Dn.W/Dn.L
+              a scaling factor may be applied to Xn with
+              an optional suffix of *1, *2, *4, or *8
+          od is an offset - optional: (od).W or (od).L
+
+          Rn is An or Dn
+          Note that Rn supports Rn.W and Rn.L forms.
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+680XX INSTRUCTION SET 
+
+   The  following  tables list all the instructions found in the
+68000, 68008, 68010, and 68020 microprocessors.  The  (.B,.W,.L)
+indicates  an  instruction  has byte, word, and long forms.  The
+brackets '[]' indicate one of the  described  addressing  modes.
+Note that most instructions do not support all addressing modes,
+see the appropriate data sheets for allowed modes.  
+
+   For  those  instructions having multiple forms and there is a
+word form the assembler default is to use the word form.  
+
+MOVE Instructions 
+
+        MOVE (.B,.W,.L) [],[]   Source To Destination
+      * MOVE (.W)       CCR,[]  From Condition Code Register
+        MOVE (.W)       [],CCR  To Condition Code Register
+      * MOVE (.W)       SR,[]   From Status Register
+        MOVE (.W)       [],SR   To Status Register
+        MOVE (.L)       USP,An  From User Stack Pointer
+        MOVE (.L)       An,USP  To User Stack Pointer
+        MOVEA (.W,.L)   [],An   To Address Register
+      * MOVEC (.L)      Rc,Rn   From Control Register
+      * MOVEC (.L)      Rn,Rc   To Control register
+        MOVEM (.W,.L)   Rlist,[]  From Registers In List
+        MOVEM (.W,.L)   [],Rlist  To Registers In List
+        MOVEP (.W,.L)   Dn,d(An)  Data To Alternate Bytes
+        MOVEP (.W,.L)   d(An),Dn  Data From Alternate Bytes
+        MOVEQ (.L)       #,[]   Signed 8-Bit # To Destination
+      * MOVES (.B,.W,.L) Rn,[]  To Address Space
+      * MOVES (.B,.W,.L) [],Rn  From Address Space
+
+   * -- 68010/68020 Instructions
+
+
+Double Operand 
+
+        ADD  (.B,.W,.L) [],[]   ADD Source To Destination
+        ADDA (.W,.L)    [],An
+        ADDX (.B,.W,.L) Dn,Dn or -(An),-(An)
+        AND  (.B,.W,.L) [],[]   AND Source With Destination
+        CMP  (.B,.W,.L) [],[]   Destination - Source, Set CCs
+        CMPA (.W,.L)    [],An
+        CMPM (.B,.W,.L) (An)+,(An)+
+      # DIVS (.W)       [],Dn   Signed Destination/Source
+      # DIVU (.W)       [],Dn   UnSigned Destination/Source
+        EOR  (.B,.W,.L) Dn,[]   XOR Source With Destination
+      # MULS (.W)       [],Dn   Signed Source*Destination
+      # MULU (.W)       [],Dn   UnSigned Source*Destination
+        OR   (.B,.W,.L) [],[]   Source ORed With Destination
+        SUB  (.B,.W,.L) [],[]   Subtract Source From Destination
+        SUBA (.W,.L)    [],An
+        SUBX (.B,.W,.L) Dn,Dn or -(An),-(An)
+
+   # -- 68020 Added .L Functionality
+
+
+Decimal Instructions 
+
+        ABCD (.B)       Dn,Dn   Add Decimal With X (Carry)
+        ABCD (.B)       -(An),-(An)
+        NBCD (.B)       []      Negate Decimal With X (Carry)
+        SBCD (.B)       Dn,Dn   Subtract Decimal With X (Carry)
+        SBCD (.B)       -(An),-(An)
+
+
+Immediate Instructions 
+
+        ADDI (.B,.W,.L)  #,[]   ADD Immediate To Destination
+        ADDQ (.B,.W,.L)  #,[]   ADD 1-8 To Destination
+        ANDI (.B,.W,.L)  #,[]   AND Immediate To Destination
+        ANDI (.B)        #,CCR  AND Immediate To Condition Codes
+        ANDI (.B)        #,SR   AND Immediate To Status Register
+      # CMPI (.B,.W,.L)  #,[]   CMP Immediate With Destination
+        EORI (.B,.W,.L)  #,[]   XOR Immediate With Destination
+        EORI (.B)        #,CCR  XOR Immediate To Condition Codes
+        EORI (.B)        #,SR   XOR Immediate To Status Register
+        ORI  (.B,.W,.L)  #,[]   OR Immediate With Destination
+        ORI  (.B)        #,CCR  OR Immediate To Condition Codes
+        ORI  (.B)        #,SR   OR Immediate To Status Register
+        SUBI (.B,.W,.L)  #,[]   SUB Immediate From Destination
+        SUBQ (.B,.W,.L)  #,[]   SUB 1-8 From Destination
+
+   # -- 68020 Added PC Relative Addressing
+
+
+Single Operand 
+
+        CLR  (.B,.W,.L)   []    Clear Destination
+        NEG  (.B,.W,.L)   []    Negate Destination
+        NEGX (.B,.W,.L)   []    Negate Dest. With X (Carry)
+        NOT  (.B,.W,.L)   []    Complement Destination
+      # TST  (.B,.W,.L)   []    Test Destination
+
+   # -- 68020 Added PC Relative Addressing
+
+
+Shift And Rotate 
+
+        ASR  (.B,.W,.L)   []    Arithmetic Shift Right
+        ASL  (.B,.W,.L)   []    Arithmetic Shift Left
+        LSR  (.B,.W,.L)   []    Logical Shift Right
+        LSL  (.B,.W,.L)   []    Logical Shift Left
+        ROR  (.B,.W,.L)   []    Rotate Right
+        ROL  (.B,.W,.L)   []    Rotate Left
+        ROXR (.B,.W,.L)   []    Rotate Right With X (Carry)
+        ROXL (.B,.W,.L)   []    Rotate Left  With X (Carry)
+
+        SWAB (.W)         []    Swap Words
+
+
+AS.5.7  Bit Manipulation 
+
+        BCHG (.B,.L)    Dn,[]   Test Bit And Change
+        BCHG (.B,.L)     #,[]
+        BCLR (.B,.L)    Dn,[]   Test A Bit And Clear
+        BCLR (.B,.L)     #,[]
+        BSET (.B,.L)    Dn,[]   Test A Bit And Set
+        BSET (.B,.L)     #,[]
+        BTST (.B,.L)    Dn,[]   Test A Bit
+        BTST (.B,.L)     #,[]
+
+        Scc  (.B)         []    Set According To Condition
+        TAS  (.B)         []    Test And Set An Operand
+
+
+Branch On Condition Instructions 
+
+   The  short  (.S)  branch instructions have a range of -126 to
++129 bytes relative to the address of  the  branch  instruction.
+The  word  (.W)  branch  instructions have a range of -32,766 to
++32,769 bytes relative to the address of the branch instruction.
+The instruction argument is normally an address.  
+
+   BCC  label  Carry Clear        BLS  label  Lower Or Same
+   BCS  label  Carry Set          BLT  label  Less Than
+   BEQ  label  Equal              BMI  label  Minus
+   BGE  label  Greater Or Equal   BNE  label  Not Equal
+   BGT  label  Greater Than       BPL  label  Plus
+   BHI  label  Higher             BVC  label  Overflow Clear
+   BLE  label  Less Or Equal      BVS  label  Overflow Set
+
+   BRA  label  Branch Always
+   BSR  label  Branch To Subroutine
+
+The  68020 processor supports long (.L) branches to any location
+in the 32-bit addressing range.  
+
+
+Test, Decrement, And Branch Instructions 
+
+   The  Test, Decrement, and Branch instructions support a range
+of -32,766 to +32,769 bytes  relative  to  the  address  of  the
+branch instruction.  The instruction branch location is normally
+an address.  
+
+        DBCC    Dn,label        Carry Clear
+        DBLS    Dn,label        Lower Or Same
+        DBCS    Dn,label        Carry Set
+        DBLT    Dn,label        Less Than
+        DBEQ    Dn,label        Equal
+        DBMI    Dn,label        Minus
+        DBF     Dn,label        False
+        DBNE    Dn,label        Not Equal
+        DBGE    Dn,label        Greater Or Equal
+        DBPL    Dn,label        Plus
+        DBGT    Dn,label        Greater Than
+        DBT     Dn,label        True
+        DBHI    Dn,label        Higher
+        DBVC    Dn,label        Overflow Clear
+        DBLE    Dn,label        Less Or Equal
+        DBVS    Dn,label        Overflow Set
+
+
+Set According To Condition 
+
+   The Condition is tested and if True the addressed byte is set
+to all 1s else the addressed byte is set to all 0s.  
+
+        SCC (.B)  []    Carry Clear
+        SLS (.B)  []    Lower Or Same
+        SCS (.B)  []    Carry Set
+        SLT (.B)  []    Less Than
+        SEQ (.B)  []    Equal
+        SMI (.B)  []    Minus
+        SF  (.B)  []    False
+        SNE (.B)  []    Not Equal
+        SGE (.B)  []    Greater Or Equal
+        SPL (.B)  []    Plus
+        SGT (.B)  []    Greater Than
+        ST  (.B)  []    True
+        SHI (.B)  []    Higher
+        SVC (.B)  []    Overflow Clear
+        SLE (.B)  []    Less Or Equal
+        SVS (.B)  []    Overflow Set
+
+
+AS.5.11  Bit Field Instructions 
+
+        {} designates {offset:width}
+
+     ** BFCHG   [] {}           Test Bit Field And Change
+     ** BFCLR   [] {}           Test Bit Field And Clear
+     ** BFEXTS  [] {},Dn        Extract Bit Field Signed
+     ** BFEXTU  [] {},Dn        Extract Bit Field Unsigned
+     ** BFFFO   [] {},Dn        Find First One In Bit Field
+     ** BFINS   Dn,[] {}        Insert Bit Field
+     ** BFSET   [] {}           Set Bit Field
+     ** BFTST   [] {}           Test Bit Field
+
+  ** -- 68020 Instruction
+
+
+Trap On Condition 
+
+   The  Condition  is tested and if True the processor initiates
+exception processing.  
+
+     ** TRAPCC  (.W,.L) (#)     Carry Clear
+     ** TRAPLS  (.W,.L) (#)     Lower Or Same
+     ** TRAPCS  (.W,.L) (#)     Carry Set
+     ** TRAPLT  (.W,.L) (#)     Less Than
+     ** TRAPEQ  (.W,.L) (#)     Equal
+     ** TRAPMI  (.W,.L) (#)     Minus
+     ** TRAPF   (.W,.L) (#)     False
+     ** TRAPNE  (.W,.L) (#)     Not Equal
+     ** TRAPGE  (.W,.L) (#)     Greater Or Equal
+     ** TRAPPL  (.W,.L) (#)     Plus
+     ** TRAPGT  (.W,.L) (#)     Greater Than
+     ** TRAPT   (.W,.L) (#)     True
+     ** TRAPHI  (.W,.L) (#)     Higher
+     ** TRAPVC  (.W,.L) (#)     Overflow Clear
+     ** TRAPLE  (.W,.L) (#)     Less Or Equal
+     ** TRAPVS  (.W,.L) (#)     Overflow Set
+
+  ** -- 68020 Instruction, .W and .L require #
+
+
+Other Instructions 
+
+        JMP             []      Jump To Location
+        JSR             []      Jump To Subroutine
+        LEA  (.L)       [],An   Load Effective Address
+        PEA  (.L)       []      Push Effective Address
+
+     ** BKPT            #       Program Break Point
+     ** CALLM           #,[]    Call Module
+     ** CAS     Du,Dc,[]        Compare And Swap With Operand
+     ** CAS2    Dc1:Dc2,Du1:Du2,(Rn1):(Rn2)
+      # CHK  (.W)       [],Dn   Check Register Against Bounds
+     ** CHK2 (.B,.W,.L) [],Rn   Check Register Against Bounds
+     ** CMP2 (.B,.W,.L) [],Rn   Compare Register Against Bounds
+      # DIVS.L       [],Dr:Dq   Sgnd Division 64/32 -> 32r:32q
+      # DIVSL.L      [],Dr:Dq   Sgnd Division 32/32 -> 32r:32q
+      # DIVU.L       [],Dr:Dq   UnSngd Division 64/32 -> 32r:32q
+      # DIVUL.L      [],Dr:Dq   UnSngd Division 32/32 -> 32r:32q
+        EXG  (.L)       Rn,Rn   Exchange Registers
+        EXT  (.W,.L)    Dn      Sign Extend Byte Or Word
+     ** EXTB (.L)       Dn      Sign Extend Byte To Long
+        ILLEGAL                 Illegal Instruction Exception
+      # LINK            An,#    Link And Allocate
+      # MULS.L       [],Dl      Signed Multiply 32*32 -> 32
+      # MULS.L       [],Dh:Dl   Signed Multiply 32*32 -> 64
+      # MULU.L       [],Dl      Unsigned Multiply 32*32 -> 32
+      # MULU.L       [],Dh:Dl   Unsigned Multiply 32*32 -> 64
+        NOP                     No Operation
+     ** PACK    Dx,Dy,#         Pack To BCD
+                -(ax),-(ay),#
+        RESET                   Reset External Devices
+      * RTD             #       Return And Deallocate Parameters
+      * RTE                     Return From Exception
+     ** RTM             Rn      Return From Module
+        RTR                     Return / Restore Condition Codes
+        RTS                     Return From Subroutine
+        STOP            #       Load Status Register And Stop
+        TRAP            #       Trap To Vector (0-15)
+        TRAPV                   Trap On Overflow (If Enabled)
+        UNLK            An      Load Stack Pointer, Pop Stack
+
+   * -- 68010/68020 Instruction
+   # -- 68020 Added Functionality
+  ** -- 68020 Instruction
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+68881/68882 INSTRUCTION SET 
+
+   The  floating  point  instruction set for the 68881 and 68882
+coprocessors is summarized in this section.  The 68882  provides
+an  increased  level  of performance over the 68881 and is fully
+compatible and interchangeable.  
+
+   The coprocessor selection options:  
+
+    .68881 - 68881 Floating Point Processor
+    .68882 - 68882 Floating Point Processor
+
+enable  the  assembly  of  the  floating  point instructions and
+select the differing execution clock cycles.  The  cycle  counts
+are  the worst case values and assume absolutely no overlap with
+the main processor or the simultaneous execution of floating in-
+structions by the 68882.  
+
+   The  following  sections describe the floating point instruc-
+tions separated into these instruction groups:  
+
+        Data Movement
+        Dyadic Operations
+        Monadic Operations
+        Program Control
+        System Control
+
+
+   The  tables contain the operand syntax and the operand format
+which is summarized here:  
+
+        FPm     A floating point register (FP0-FP7)
+        FPn     A floating point register (FP0-FP7)
+        FPcr    A floating point control register
+        FPc     Register For Cosine Result
+        FPs     Register For Sine Result
+        []      Processor addressing mode
+        {Dn}    Dynamic packing factor
+        {#k}    Static packing factor
+        #ccc    ROM constant
+        <label> Branching label
+        <list>  Data or Control register list
+
+        B       Byte
+        W       Word
+        L       Long
+        S       Single
+        D       Double
+        X       Extended
+        P       Packed
+
+
+Data Movement Instructions 
+
+     Instruction    OP Syntax           OP Format
+     -----------    ---------           ---------
+        FMOVE       FPm,FPn             X
+                    [],FPn              B,W,L,S,D,X,P
+                    FPm,[]              B,W,L,S,D,X
+                    FPm,[] {#k}         P
+                    FPm,[] {Dn}         P
+                    [],FPcr             L
+                    FPcr,[]             L
+
+        FMOVECR     #ccc,FPn            X
+
+        FMOVEM      [],<list>           L,X
+                    [],Dn               X
+                    <list>,[]           L,X
+                    Dn,[]               X
+
+
+Dyadic Instructions 
+
+     Instruction    OP Syntax           OP Format
+     -----------    ---------           ---------
+        F(dop)      [],FPn              B,W,L,S,D,X,P
+                    FPm,FPn             X
+
+        -----------------------------------------
+
+        FADD            Add
+        FCMP            Compare
+        FDIV            Divide
+        FMOD            Modulo Remainder
+        FMUL            Multiply
+        FREM            IEEE Remainder
+        FSCALE          Scale Exponent
+        FSGLDIV         Single Precision Divide
+        FSGLMUL         Single Precision Multiply
+        FSUB            Subtract
+
+
+Monadic Instructions 
+
+     Instruction    OP Syntax           OP Format
+     -----------    ---------           ---------
+        FSINCOS     [],FPc:FPs          B,W,L,S,D,X,P
+                    FPm,FPc:FPs         X
+
+        F(mop)      [],FPn              B,W,L,S,D,X,P
+                    FPm,FPn             X
+                    FPn                 X
+
+        -----------------------------------------
+
+        FABS            Absolute Value
+        FACOS           Arc Cosine
+        FASIN           Arc Sine
+        FATAN           Arc Tangent
+        FATANH          Hyberbolic Arc Tangent
+        FCOS            Cosine
+        FCOSH           Hyperbolic Cosine
+        FETOX           e^x
+        FETOXM1         e^x - 1
+        FGETEXP         Extract Exponent
+        FGETMAN         Extract Mantissa
+        FINT            Extract Integer Part
+        FINTRZ          Extract Integer Part Rounded-to-Zero
+        FLOGN           ln(x)
+        FLOGNP1         ln(x+1)
+        FLOG10          ln10(x)
+        FLOG2           ln2(x)
+        FNEG            Negate
+        FSIN            Sine
+        FSINH           Hyperbolic Sine
+        FTENTOX         10^x
+        FTWOTOX         2^x
+
+
+Program Control Instructions 
+
+     Instruction    OP Syntax           OP Format
+     -----------    ---------           ---------
+      * FBcc        <label>             W,L
+      * FDBcc       Dn,<label>          W
+        FNOP            -               -
+      * FScc        []                  B
+        FTST        []                  B,W,L,S,D,X,P
+        FTST        FPn                 X
+
+   * -- See the Conditional Test Mnemonics
+
+
+System Control Instructions 
+
+     Instruction    OP Syntax           OP Format
+     -----------    ---------           ---------
+        FRESTORE    []                  -
+        FSAVE       []                  -
+      * FTRAPcc     -                   -
+      * FTRAPcc     #xxx                W,L
+
+   * -- See the Conditional Test Mnemonics
+
+
+Condition Test Mnemonics 
+
+        MNE       IEEE-NonAware Tests
+        ---     -----------------------
+        EQ      Equal
+        NE      Not Equal
+        GT      Greater Than
+        NGT     Not (Greater Than)
+        GE      Greater Than or Equal
+        NGE     Not (Greater Than or Equal)
+        LT      Less Than
+        NLT     Not (Less Than)
+        LE      Less Than or Equal
+        NLE     Not (Less Than or Equal)
+        GL      Greater or Less Than
+        NGL     Not (Greater Than or Less)
+        GLE     Greater, Less, or Equal
+        NGLE    Not (Greater,Less, or Equal)
+
+
+        MNE         IEEE-Aware Tests
+        ---     -------------------------
+        EQ      Equal
+        NE      Not Equal
+        OGT     Ordered Greater Than
+        ULE     Unordered or Less Than or Equal
+        OGE     Ordered Greater Than or Equal
+        ULT     Unordered or Less Than
+        OLT     Ordered Less Than
+        UGE     Unordered or Greater Than or Equal
+        OLE     Ordered Less Than or Equal
+        UGT     Unordered or Greater Than
+        OGL     Ordered Greater Than or Less Than
+        UEQ     Unordered or Equal
+        OR      Ordered
+        UN      Unordered
+
+
+        MNE        Miscellaneous Tests
+        ---     -------------------------
+        F       Always False
+        T       Always True
+        SF      Signaling Always False
+        ST      Signaling Always True
+        SEQ     Signaling Equal
+        SNE     Signaling Not Equal
+
+</PRE></B></H4>
+<H5><A HREF="asxdoc.htm#TOP"> Go to the Documentation Index</A></H5>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4>
+<P><A HREF="asxxxx.htm#JUMP">
+<IMG width=32 height=32 border=0 SRC="spcshp.gif" ALIGN=bottom></A>
+<B>...  Exit the ASxxxx Documentation</B></A></P>
+
+<P><A href="../home.htm">
+<IMG width=32 height=32 border=0 SRC="home.gif" ALIGN=bottom></A>
+<B>...  Home Page</B></P>
+</H4>
+
+<H6><P><B>Last Updated: September 2023</B></P></H6>
+</BODY> 
+</HTML>

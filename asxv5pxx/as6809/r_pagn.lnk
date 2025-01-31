@@ -1,7 +1,7 @@
 -xmsu
--g DATA=0x1000
--b DATA=0x1000
--g CODE=0x1200
--b CODE=0x1200
+-g DATA=0x0000
+-a DATA=0x0000
+-g CODE=0x0200
+-a CODE=0x0200
 r_pagn
 -e

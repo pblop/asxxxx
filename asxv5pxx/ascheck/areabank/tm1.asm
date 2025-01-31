@@ -46,35 +46,35 @@
 
 	.area area1 (ABS,OVR)
 tm1_1:  .word	tm1_1		; 00 00
-	.word	s_area3		; 00 00
+	.word	a_area3		; 00 00
 	.word	l_area3		; 00 0E
 
 	.area area2 (ABS,CON)
 tm1_2:	.word	tm1_2		; 00 00
-	.word	s_area4		; 00 0E
+	.word	a_area4		; 00 0E
 	.word	l_area4		; 00 14
-	.word	s_area1		; 00 00
+	.word	a_area1		; 00 00
 	.word	l_area1		; 00 06
 
 
 	.area area3 (REL,OVR)
 tm1_3:	.word	tm1_3		; 00 00
-	.word	s_area1		; 00 00
+	.word	a_area1		; 00 00
 	.word	l_area1		; 00 06
-	.word	s_area2		; 00 00
+	.word	a_area2		; 00 00
 	.word	l_area2		; 00 0C
-	.word	s_area4		; 00 0E
+	.word	a_area4		; 00 0E
 	.word	l_area4		; 00 14
 
 
 	.area area4 (REL,CON)
 tm1_4:	.word	tm1_4		; 00 0E
-	.word	s_area1		; 00 00
+	.word	a_area1		; 00 00
 	.word	l_area1		; 00 06
-	.word	s_area2		; 00 00
+	.word	a_area2		; 00 00
 	.word	l_area2		; 00 0C
-	.word	s_area3		; 00 00
+	.word	a_area3		; 00 00
 	.word	l_area3		; 00 0E
-	.word	s_area4		; 00 0E
+	.word	a_area4		; 00 0E
 	.word	l_area4		; 00 14
 

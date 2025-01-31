@@ -113,6 +113,7 @@ agrp5:
 	negw	x		; 50
 	exgw	x,y		; 51
 	sub	sp,#abyt	; 52 10
+	  subw	sp,#abyt	; 52 10
 	cplw	x		; 53
 	srlw	x		; 54
 	mov	awrd,awrd+0x1111; 55 65 43 54 32
@@ -122,6 +123,7 @@ agrp5:
 	rlcw	x		; 59
 	decw	x		; 5A
 	add	sp,#abyt	; 5B 10
+	  addw	sp,#abyt	; 5B 10
 	incw	x		; 5C
 	tnzw	x		; 5D
 	swapw	x		; 5E
@@ -170,7 +172,7 @@ agrp7:
 agrp8:
 	iret			; 80
 	ret			; 81
-				; 82
+	int	aexa		; 82 BA 98 76
 	trap			; 83
 	pop	a		; 84
 	popw	x		; 85
@@ -449,10 +451,20 @@ agrp72_A:
 	addw	y,#awrd		; 72 A9 54 32
 
 agrp72_B:
-	subw	x,abyt		; 72 B0 10
-	subw	y,abyt		; 72 B2 10
-	addw	y,abyt		; 72 B9 10
-	addw	x,abyt		; 72 BB 10
+	subw	x,abyt		; 72 B0 00 10
+	subw	y,abyt		; 72 B2 00 10
+	addw	y,abyt		; 72 B9 00 10
+	addw	x,abyt		; 72 BB 00 10
+	;
+	subw	x,*abyt		; 72 B0 00 10
+	subw	y,*abyt		; 72 B2 00 10
+	addw	y,*abyt		; 72 B9 00 10
+	addw	x,*abyt		; 72 BB 00 10
+	;
+	subw	x,awrd		; 72 B0 54 32
+	subw	y,awrd		; 72 B2 54 32
+	addw	y,awrd		; 72 B9 54 32
+	addw	x,awrd		; 72 BB 54 32
 
 	.page
 
@@ -983,6 +995,7 @@ rgrp5:
 	negw	x		; 50
 	exgw	x,y		; 51
 	sub	sp,#rbyt	; 52u10
+	  subw	sp,#rbyt	; 52u10
 	cplw	x		; 53
 	srlw	x		; 54
 	mov	rwrd,rwrd+0x1111; 55v65u43v54u32
@@ -992,6 +1005,7 @@ rgrp5:
 	rlcw	x		; 59
 	decw	x		; 5A
 	add	sp,#rbyt	; 5Bu10
+	  addw	sp,#rbyt	; 5Bu10
 	incw	x		; 5C
 	tnzw	x		; 5D
 	swapw	x		; 5E
@@ -1040,7 +1054,7 @@ rgrp7:
 rgrp8:
 	iret			; 80
 	ret			; 81
-				; 82
+	int	rexa		; 82RBAs98r76
 	trap			; 83
 	pop	a		; 84
 	popw	x		; 85
@@ -1319,10 +1333,20 @@ rgrp72_A:
 	addw	y,#rwrd		; 72 A9s54r32
 
 rgrp72_B:
-	subw	x,*rbyt		; 72 B0u10
-	subw	y,*rbyt		; 72 B2u10
-	addw	y,*rbyt		; 72 B9u10
-	addw	x,*rbyt		; 72 BBu10
+	subw	x,rbyt		; 72 B0v00u10
+	subw	y,rbyt		; 72 B2v00u10
+	addw	y,rbyt		; 72 B9v00u10
+	addw	x,rbyt		; 72 BBv00u10
+	;
+	subw	x,*rbyt		; 72 B0 00u10
+	subw	y,*rbyt		; 72 B2 00u10
+	addw	y,*rbyt		; 72 B9 00u10
+	addw	x,*rbyt		; 72 BB 00u10
+	;
+	subw	x,rwrd		; 72 B0v54u32
+	subw	y,rwrd		; 72 B2v54u32
+	addw	y,rwrd		; 72 B9v54u32
+	addw	x,rwrd		; 72 BBv54u32
 
 	.page
 
@@ -1855,6 +1879,7 @@ mgrp5:
 	negw	x		; 50
 	exgw	x,y		; 51
 	sub	sp,#rbyt	; 52u10
+	  subw	sp,#rbyt	; 52u10
 	cplw	x		; 53
 	srlw	x		; 54
 	mov	rwrd,rwrd+0x1111; 55v65u43v54u32
@@ -1864,6 +1889,7 @@ mgrp5:
 	rlcw	x		; 59
 	decw	x		; 5A
 	add	sp,#rbyt	; 5Bu10
+	  addw	sp,#rbyt	; 5Bu10
 	incw	x		; 5C
 	tnzw	x		; 5D
 	swapw	x		; 5E
@@ -1912,7 +1938,7 @@ mgrp7:
 mgrp8:
 	iret			; 80
 	ret			; 81
-				; 82
+	int	rexa		; 82RBAs98r76
 	trap			; 83
 	pop	a		; 84
 	popw	x		; 85
@@ -2191,10 +2217,20 @@ mgrp72_A:
 	addw	y,#rwrd		; 72 A9s54r32
 
 mgrp72_B:
-	subw	x,*rbyt		; 72 B0u10
-	subw	y,*rbyt		; 72 B2u10
-	addw	y,*rbyt		; 72 B9u10
-	addw	x,*rbyt		; 72 BBu10
+	subw	x,rbyt		; 72 B0v00u10
+	subw	y,rbyt		; 72 B2v00u10
+	addw	y,rbyt		; 72 B9v00u10
+	addw	x,rbyt		; 72 BBv00u10
+	;
+	subw	x,*rbyt		; 72 B0 00u10
+	subw	y,*rbyt		; 72 B2 00u10
+	addw	y,*rbyt		; 72 B9 00u10
+	addw	x,*rbyt		; 72 BB 00u10
+	;
+	subw	x,rwrd		; 72 B0v54u32
+	subw	y,rwrd		; 72 B2v54u32
+	addw	y,rwrd		; 72 B9v54u32
+	addw	x,rwrd		; 72 BBv54u32
 
 	.page
 
@@ -2729,6 +2765,7 @@ ngrp5:
 	negw	x		; 50
 	exgw	x,y		; 51
 	sub	sp,#rbyt	; 52u10
+	  subw	sp,#rbyt	; 52u10
 	cplw	x		; 53
 	srlw	x		; 54
 	mov	rwrd,rwrd+0x1111; 55v65u43v54u32
@@ -2738,6 +2775,7 @@ ngrp5:
 	rlcw	x		; 59
 	decw	x		; 5A
 	add	sp,#rbyt	; 5Bu10
+	  addw	sp,#rbyt	; 5Bu10
 	incw	x		; 5C
 	tnzw	x		; 5D
 	swapw	x		; 5E
@@ -2786,7 +2824,7 @@ ngrp7:
 ngrp8:
 	iret			; 80
 	ret			; 81
-				; 82
+	int	rexa		; 82RBAs98r76
 	trap			; 83
 	pop	a		; 84
 	popw	x		; 85
@@ -3065,10 +3103,20 @@ ngrp72_A:
 	addw	y,#rwrd		; 72 A9s54r32
 
 ngrp72_B:
-	subw	x,*rbyt		; 72 B0u10
-	subw	y,*rbyt		; 72 B2u10
-	addw	y,*rbyt		; 72 B9u10
-	addw	x,*rbyt		; 72 BBu10
+	subw	x,rbyt		; 72 B0v00u10
+	subw	y,rbyt		; 72 B2v00u10
+	addw	y,rbyt		; 72 B9v00u10
+	addw	x,rbyt		; 72 BBv00u10
+	;
+	subw	x,*rbyt		; 72 B0 00u10
+	subw	y,*rbyt		; 72 B2 00u10
+	addw	y,*rbyt		; 72 B9 00u10
+	addw	x,*rbyt		; 72 BB 00u10
+	;
+	subw	x,rwrd		; 72 B0v54u32
+	subw	y,rwrd		; 72 B2v54u32
+	addw	y,rwrd		; 72 B9v54u32
+	addw	x,rwrd		; 72 BBv54u32
 
 	.page
 
@@ -3616,6 +3664,7 @@ xgrp5:
 	negw	x		; 50
 	exgw	x,y		; 51
 	sub	sp,#rbyt	; 52u10
+	  subw	sp,#rbyt	; 52u10
 	cplw	x		; 53
 	srlw	x		; 54
 	mov	rwrd,rwrd+0x1111; 55v65u43v54u32
@@ -3625,6 +3674,7 @@ xgrp5:
 	rlcw	x		; 59
 	decw	x		; 5A
 	add	sp,#rbyt	; 5Bu10
+	  addw	sp,#rbyt	; 5Bu10
 	incw	x		; 5C
 	tnzw	x		; 5D
 	swapw	x		; 5E
@@ -3673,7 +3723,7 @@ xgrp7:
 xgrp8:
 	iret			; 80
 	ret			; 81
-				; 82
+	int	rexa		; 82RBAs98r76
 	trap			; 83
 	pop	a		; 84
 	popw	x		; 85
@@ -3952,10 +4002,20 @@ xgrp72_A:
 	addw	y,#rwrd		; 72 A9s54r32
 
 xgrp72_B:
-	subw	x,rbyt		; 72 B0u10
-	subw	y,rbyt		; 72 B2u10
-	addw	y,rbyt		; 72 B9u10
-	addw	x,rbyt		; 72 BBu10
+	subw	x,rbyt		; 72 B0v00u10
+	subw	y,rbyt		; 72 B2v00u10
+	addw	y,rbyt		; 72 B9v00u10
+	addw	x,rbyt		; 72 BBv00u10
+	;
+	subw	x,*rbyt		; 72 B0 00u10
+	subw	y,*rbyt		; 72 B2 00u10
+	addw	y,*rbyt		; 72 B9 00u10
+	addw	x,*rbyt		; 72 BB 00u10
+	;
+	subw	x,rwrd		; 72 B0v54u32
+	subw	y,rwrd		; 72 B2v54u32
+	addw	y,rwrd		; 72 B9v54u32
+	addw	x,rwrd		; 72 BBv54u32
 
 	.page
 

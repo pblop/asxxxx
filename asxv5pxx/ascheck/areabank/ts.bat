@@ -1,3 +1,3 @@
 ascheck -gloaxff ts
-aslink  -smu ts
+aslink  -nmu ts
 asxscn  ts.rst

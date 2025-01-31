@@ -1,7 +1,7 @@
 /* m430adr.c */
 
 /*
- *  Copyright (C) 2003-2014  Alan R. Baldwin
+ *  Copyright (C) 2003-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -33,6 +33,18 @@ struct expr *esp;
 {
 	int c, d;
 	char *ips, *ipd, *ptr;
+	char *p;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	aindx = 0;
 	ips = ip;
@@ -61,7 +73,7 @@ struct expr *esp;
 				unget(d);
 			}
 		} else {
-			aerr();
+			xerr('a', "@Rn or @Rn+ required.");
 		}
 	} else
 	/*	(Rn) / (Rn)+	*/
@@ -152,6 +164,23 @@ struct expr *esp;
 }
 
 /*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
+
+/*
  * Enter admode() to search a specific addressing mode table
  * for a match. Return (1) for a match, (0) for no match.
  * 'aindx' contains the value of the addressing mode.
@@ -201,7 +230,7 @@ char *str;
 	}
 
 	if (!*str)
-		if (any(*ptr," \t\n,+);")) {
+		if (!(ctype[*ptr & 0x007F] & LTR16)) {
 			ip = ptr;
 			return(1);
 		}

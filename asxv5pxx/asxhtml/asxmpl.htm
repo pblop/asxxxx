@@ -75,7 +75,7 @@ by creating a command file containing the assembly command lines:
         as6809 -gloaxsff phsmon
         as6809 -gloaxsff phsopt
 
-the assembly process produced an object (.rel) file (-s), a listing
+the assembly process produced an object (.rel) file (-o), a listing
 (.lst) file (-l), and a symbol (.sym) file (-s) for each individual
 .asm file.  the assembly process made all undefined labels
 global (-g), all internal labels global (-a), the output in HEX
@@ -95,8 +95,7 @@ format (-x), and the listing files to have relocations flagged (-ff).
 following command lines:
 
         -mxsu                          ; linker options
-        phs                            ; output file name
-        phs                            ; input file
+        phs                            ; First input file
         acia                           ; .
         acq                            ; .
         hvctrl                         ; .
@@ -122,11 +121,10 @@ and a Motorola (.s19) loader file (-s).  The -b options specify the
 memory addresses for certain program sections as defined in the
 assembled modules.  The file input was terminated by the -e option.
 
-  The 'optional' loadable program was linked using a file (PHSOPT.LNK)
+  The 'optional' loadable program was linked using a file (OPT.LNK)
 containing the following command lines:
 
-        -mxsu                          ; linker options
-        phsopt                         ; output file name
+        -wmxus+ opt                    ; output file name
         -v                             ; suppress linker output
         phs                            ; input file
         acia                           ; .
@@ -149,7 +147,7 @@ containing the following command lines:
 
 and was invoked by the command line:
 
-        aslink -f phsopt
+        aslink -f opt
 
 The linking process creates an overlay output file from the
 PHSOPT code using all the global symbols defined in the PHS
@@ -171,6 +169,6 @@ to that in the main project .lnk file.
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

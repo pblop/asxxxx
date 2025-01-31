@@ -44,6 +44,53 @@ are written `bbr0 memory,label'.
 <IMG width=576 height=5 border=0 SRC="rnbow.gif">
 
 <H4><B><PRE>
+.enabl and .dsabl Directives 
+
+
+   Format:  
+
+        .enabl (arg1, arg2, ...) 
+        .dsabl (arg1, arg2, ...) 
+
+where:  arg1, arg2, ...    represent one or more
+                           of the following options
+
+        autodpcnst   Automatic Direct Paging For Constants
+        autodpsmbl   Automatic Direct Paging For Symbols
+
+
+   autodpcnst:   controls  whether constants within the range of
+0x0000-0x00FF (paging region) or external are automatically  as-
+sembled  as  paged  variables.   The  paging area must have been
+specified for this  option  to  take  effect.   The  default  is
+enabled.  
+
+   autodpsmbl:   controls  whether  symbols  within the range of
+0x0000-0x00FF (paging region) or external are automatically  as-
+sembled  as  paged  variables.   The  paging area must have been
+specified for this  option  to  take  effect.   The  default  is
+enabled.  
+
+
+.dpgbl Directive 
+
+
+   Format:  
+
+        .dpgbl arg1, arg2, ...  
+
+            Where the arguments are labels or
+            symbols with values that are in the
+            0x0000-0x00FF direct page.  If the
+            page area has not been specified
+            then the arguments are defined as
+            being in the current area.
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
 6500 REGISTER SET 
 
 The following is a list of the 6500 registers used by AS6500:  
@@ -284,6 +331,6 @@ cessors.
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

@@ -188,39 +188,39 @@ loc15:
 	bcs	.			; 7F
 
 
-	jsr	loc0			;s80r00
-	jsr	loc1			;s81r00
-	jsr	loc2			;s82r00
-	jsr	loc3			;s83r00
-	jsr	loc4			;s84r00
-	jsr	loc5			;s85r00
-	jsr	loc6			;s86r00
-	jsr	loc7			;s87r00
-	jsr	loc8			;s88r00
-	jsr	loc9			;s89r00
-	jsr	loc10			;s8Ar00
-	jsr	loc11			;s8Br00
-	jsr	loc12			;s8Cr00
-	jsr	loc13			;s8Dr00
-	jsr	loc14			;s8Er00
-	jsr	loc15			;s8Fr00
+	jsr	loc0			;v80u00
+	jsr	loc1			;v81u00
+	jsr	loc2			;v82u00
+	jsr	loc3			;v83u00
+	jsr	loc4			;v84u00
+	jsr	loc5			;v85u00
+	jsr	loc6			;v86u00
+	jsr	loc7			;v87u00
+	jsr	loc8			;v88u00
+	jsr	loc9			;v89u00
+	jsr	loc10			;v8Au00
+	jsr	loc11			;v8Bu00
+	jsr	loc12			;v8Cu00
+	jsr	loc13			;v8Du00
+	jsr	loc14			;v8Eu00
+	jsr	loc15			;v8Fu00
 
-	jmp	loc0			;s90r00
-	jmp	loc1			;s91r00
-	jmp	loc2			;s92r00
-	jmp	loc3			;s93r00
-	jmp	loc4			;s94r00
-	jmp	loc5			;s95r00
-	jmp	loc6			;s96r00
-	jmp	loc7			;s97r00
-	jmp	loc8			;s98r00
-	jmp	loc9			;s99r00
-	jmp	loc10			;s9Ar00
-	jmp	loc11			;s9Br00
-	jmp	loc12			;s9Cr00
-	jmp	loc13			;s9Dr00
-	jmp	loc14			;s9Er00
-	jmp	loc15			;s9Fr00
+	jmp	loc0			;v90u00
+	jmp	loc1			;v91u00
+	jmp	loc2			;v92u00
+	jmp	loc3			;v93u00
+	jmp	loc4			;v94u00
+	jmp	loc5			;v95u00
+	jmp	loc6			;v96u00
+	jmp	loc7			;v97u00
+	jmp	loc8			;v98u00
+	jmp	loc9			;v99u00
+	jmp	loc10			;v9Au00
+	jmp	loc11			;v9Bu00
+	jmp	loc12			;v9Cu00
+	jmp	loc13			;v9Du00
+	jmp	loc14			;v9Eu00
+	jmp	loc15			;v9Fu00
 
 
 					; A0
@@ -362,8 +362,8 @@ loc15:
 	.sbttl	Derived Instructions
 
 	asla				; FA FF
-17$:	bam	17$			; CF FF FD
-18$:	bap	18$			; C7 FF FD
+17$:	bami	17$			; CF FF FD
+18$:	bapl	18$			; C7 FF FD
 19$:	bxmi	19$			; CF 80 FD
 20$:	bxpl	20$			; C7 80 FD
 21$:	bymi	21$			; CF 81 FD

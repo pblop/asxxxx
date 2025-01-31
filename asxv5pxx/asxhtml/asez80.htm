@@ -14,6 +14,20 @@
 
 
 <H4><B><PRE>
+ACKNOWLEDGMENT 
+
+Thanks  to Patrick Head for his contribution of the ASEZ80 cross
+assembler.  
+
+   Patrick Head
+
+        patrick at phead dot net
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
 PROCESSOR SPECIFIC DIRECTIVES 
 
 
@@ -62,30 +76,33 @@ Format:
         .msb    n 
 
 
-   The  assembler operator '>' selects the upper byte (MSB) when
+   The  assembler operator '&gt' selects the upper byte (MSB) when
 included in an assembler instruction.  The normal assembler mode
-is  to select bits <15:8> as the MSB.  The .msb directive allows
+is  to select bits &lt15:8&gt as the MSB.  The .msb directive allows
 the programmer to specify a particular byte as  the  'MSB'  when
 the address space is larger than 16-bits.  
 
    For a 24-bit EZ80 address the assembler directive .msb n con-
 figures the assembler to select a particular byte as MSB.  Given
-a  24-bit  address  of  Mmn (M is <23:16>, m is <15:8>, and n is
-<7:0>) the following examples show how to  select  a  particular
+a  24-bit  address  of  Mmn (M is &lt23:16&gt, m is &lt15:8&gt, and n is
+&lt7:0&gt) the following examples show how to  select  a  particular
 address byte:  
 
         .msb 1          ;select byte 1 of address
-                        ;<M(2):m(1):n(0)>
-        LD A,>Mmn       ;byte m <15:8> ==>> A
+                        ;&ltM(2):m(1):n(0)&gt
+        LD A,&gtMmn       ;byte m &lt15:8&gt ==&gt&gt A
         ...
 
         .msb 2          ;select byte 2 of address
-                        ;<M(2):m(1):n(0)>
-        LD A,>Mmn       ;byte M <23:16> ==>> A
+                        ;&ltM(2):m(1):n(0)&gt
+        LD A,&gtMmn       ;byte M &lt23:16&gt ==&gt&gt A
         LD MB,A         ;place in MBASE register
 
+</PRE></B></H4>
 
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
 
+<H4><B><PRE>
 EZ80 ADDRESSING AND INSTRUCTIONS 
 
 Instruction Symbols 
@@ -269,7 +286,7 @@ ASEZ80  assembler.   The designation [] refers to a required ad-
 dressing mode argument shown in the table  above.   The  allowed
 mnemonic  suffixes  are  denoted within the enclosing delimiters
 ().  Mnemonics specified with illegal  or  unrecognized  suffixs
-will be flagged with q or a errors.  
+will be flagged with &ltq&gt or &lta&gt errors.  
 
 
 Arithmetic Instructions 
@@ -395,6 +412,6 @@ Shift and Rotate Instructions
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

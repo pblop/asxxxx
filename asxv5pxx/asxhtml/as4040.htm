@@ -1,0 +1,248 @@
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+</HEAD>
+<BODY BGCOLOR="#C0C0C0">
+
+<A href="../home.htm">
+<IMG width=343 height=58 border=0 SRC="welcom.gif" ALT="Welcome"></A>
+
+<H2>AS4040  Assembler</H2>
+
+<A NAME = "TOP"> </A> 
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+   The  AS4040  assembler  supports  the 4040 microprocessor in-
+struction set and can be configured to support only  the  subset
+of instructions used by the 4004 microprocessor.  
+
+
+AS4040 PROCESSOR SPECIFIC DIRECTIVES 
+
+.4040 Directive 
+
+   Format:  
+
+        .4040 
+
+The  .4040  directive specifies that the assembler recognize the
+complete 4040 instruction set.  This is the default  instruction
+set recognized by the as4040 assembler.  
+
+
+.4004 Directive
+
+   Format:  
+
+        .4004 
+
+The  .4004 directive specifies that the assembler recognize only
+the subset of  the  4040  instructions  available  on  the  4004
+microprocessor.   The  unsupported  instructions will be flagged
+with an 'o' error during assembly.  
+
+
+The .__.CPU.  Variable 
+
+   The  assembler  variable  .__.CPU.   is  set  to indicate the
+specific processor selected:  
+
+                .__.CPU.     Processor
+                --------     ---------
+                   0            4040
+                   1            4004
+
+   The  variable  '.__.CPU.'  is by default defined as local and
+will not be output to the created .rel file.  The assembler com-
+mand  line  options -g or -a will not cause the local symbols to
+be output to the created .rel file.  
+
+   The  assembler  .globl  directive  may  be used to change the
+variable type to global causing its definition to be  output  to
+the  rel  file.  The inclusion of the definition of the variable
+'.__.CPU.' might be a useful means of validating that seperately
+assembled  files have been compiled for the same processor type.
+The linker will report an error for variables with multiple  non
+equal definitions.  
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+4040/4004 REGISTER SET 
+
+The  following  is  a  list  of  the 4040/4004 registers used by
+AS4040:  
+
+        r0,  r1,  r2,  r3,         -  4-bit registers
+        r4,  r5,  r6,  r7,
+        r8,  r9,  r10, r11,
+        r12, r13, r14, r15
+
+        rp0&lt;r0:r1&gt;,   rp1&lt;r2,r3&gt;   -  8-bit register pairs
+        rp2&lt;r4:r5&gt;,   rp3&lt;r6:r7&gt;
+        rp4&lt;r8:r9&gt;,   rp5&lt;r10:r11&gt;
+        rp6&lt;r12:r13&gt;, rp7&lt;r14:r15&gt;
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+4004/4040 INSTRUCTION SET 
+
+    Instruction Argument Syntax:
+
+        Rn      registers R0 - R15
+                or a value in the range 0 to 15
+
+        RPn     register pairs RP0 - RP7
+                or a value in the range 0 to 7
+
+        #data   immediate 4-bit or 8-bit data
+
+        addr    call, jump address, or label
+
+        cc      condition code forms
+            Mnemonic    Binary    Jump Condition
+            --------    ------    --------------                
+            nc           0000     no condition
+            tz, t0       0001     test equals zero
+            tn, t1       1001     test equals one
+            cn, c1       0010     carry equals one
+            cz, c0       1010     carry equals zero
+            az, a0       0100     accumulator equals zero
+            an, nza      1100     accumulator not zero
+
+                any single mnemonic 
+        or      any ored combination of
+                        tz, cn, az, t0, c1, and a0
+        or      any ored combination of
+                        tn, cz, an, t1, c0, and nza
+        or      any value in the range 0 to 15
+                are valid condition code arguments.
+
+                The mnemonics listed above are predefined
+                such that a mixed argument like cz|az will
+                report an 'a' error during assembly.
+
+The terms data and addr may be expressions.  
+
+   Note  that  not  all addressing modes may be valid with every
+instruction.  Refer to the 4040/4004 technical  data  for  valid
+modes.  
+
+   The  following tables list the mnemonics and arguments recog-
+nized by the AS4040 assembler.  The  extended  instructions  are
+available only in the 4040 microprocessor.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+4040/4004 Instructions 
+
+    Machine Instructions
+        nop             (No Operation)
+        jcn   cc,addr   (Jump On Condition, Current Page)
+        fim   RPn,#data (Fetch Immediate To RPn)
+        src   RPn       (Send Address From RPn)
+        fin   RPn       (Fetch Indirect From ROM Into RPn)
+        jin   RPn       (Jump Indirect RPn)
+        jun   addr      (Jump Unconditional To ROM Address)
+        jms   addr      (Jump To Subroutine ROM Address)
+        inc   Rn        (Increment Rn)
+        isz   Rn, addr  (Increment Rn, Jump If Rn != 0)
+        add   Rn        (Add Rn To A With Carry)
+        sub   Rn        (Subtract Rn From A With Borrow)
+        ld    Rn        (Load A With Rn)
+        xch   Rn        (A &lt;--&gt; Rn)
+        bbl   #data     (Branch Back 1 Level, Load A With data)
+        ldm   #data     (Load A With data)
+
+    Input/Output And RAM Instructions
+        wrm             (A -&gt; Selected RAM Character)
+        wmp             (A -&gt; Selected RAM Output Port)
+        wrr             (A -&gt; Selected ROM Output Port)
+        wpm             (A -&gt; Selected RAM Half Byte)
+        wr0             (A -&gt; Selected RAM Character 0)
+        wr1             (A -&gt; Selected RAM Character 1)
+        wr2             (A -&gt; Selected RAM Character 2)
+        wr3             (A -&gt; Selected RAM Character 3)
+        sbm             (A &lt;- (A - Slctd RAM Char With Borrow))
+        rdm             (A &lt;- Selected RAM Character)
+        rdr             (A &lt;- Selected ROM Input Port)
+        adm             (A &lt;- (A + Slctd RAM Char With Carry))
+        rd0             (A &lt;- Selected RAM Character 0)
+        rd1             (A &lt;- Selected RAM Character 1)
+        rd2             (A &lt;- Selected RAM Character 2)
+        rd3             (A &lt;- Selected RAM Character 3)
+
+    Accumulator Group Instructions
+        clb             (A &lt;- 0, C &lt;- 0)
+        clc             (C &lt;- 0)
+        iac             (A &lt;- (A + 1))
+        cmc             (Complement Carry)
+        cma             (Complement Accumulator)
+        ral             (Rotate A,C Left)
+        rar             (Rotate A,C Right)
+        tcc             (Tranfer C To Accumulator, Clear C)
+        dac             (A &lt;- (A - 1))
+        tcs             (Transfer Carry Subtract, Clear C)
+        stc             (Set Carry)
+        daa             (Decimal Adjust Accumulator)
+        kbp             (Keyboard Process)
+        dcl             (Designate Command Line)
+
+
+    4040 Specific Instructions 
+
+        hlt             (Halt)
+        bbs             (Branch Back From Interrupt)
+        lcr             (A &lt;- Command Register)
+        or4             (A &lt;- (R4 or A))
+        or5             (A &lt;- (R5 or A))
+        an6             (A &lt;- (R6 and A))
+        an7             (A &lt;- (R7 and A))
+        db0             (Designate ROM Bank 0)
+        db1             (Designate ROM Bank 1)
+        sb0             (Select Index Register Bank 0, 0 - 7)
+        sb1             (Select Index Register Bank 1, 0* - 7*)
+        ein             (Enable Interrupt)
+        din             (Disable Interrupt)
+        rpm             (Read Program Memory)
+
+
+    Extended Conditional Jump Instructions 
+
+        jtz  addr  -  jump if test zero
+        jtn  addr  -  jump if test not zero
+        jto  addr  -  jump if test one
+        jcz  addr  -  jump if carry/link zero
+        jnc  addr  -  jump if no carry
+        jco  addr  -  jump if carry/link one
+        joc  addr  -  jump on carry
+        jaz  addr  -  jump if accumulator equal to zero
+        jnz  addr  -  jump if accumulator non zero
+        jan  addr  -  jump if accumulator non zero
+
+</PRE></B></H4>
+<H5><A HREF="asxdoc.htm#TOP"> Go to the Documentation Index</A></H5>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4>
+<P><A HREF="asxxxx.htm#JUMP">
+<IMG width=32 height=32 border=0 SRC="spcshp.gif" ALIGN=bottom></A>
+<B>...  Exit the ASxxxx Documentation</B></A></P>
+
+<P><A href="../home.htm">
+<IMG width=32 height=32 border=0 SRC="home.gif" ALIGN=bottom></A>
+<B>...  Home Page</B></P>
+</H4>
+
+<H6><P><B>Last Updated: September 2021</B></P></H6>
+</BODY> 
+</HTML>

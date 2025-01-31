@@ -1,7 +1,7 @@
 /* scmp.h */
 
 /*
- *  Copyright (C) 2009-2014  Alan R. Baldwin
+ *  Copyright (C) 2009-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -70,11 +70,6 @@ struct adsym
 #define	S_XP	65
 #define	S_INH	66
 
-/*
- * Set Direct Pointer
- */
-#define	S_SDP	80
-
 
 	/* machine dependent functions */
 
@@ -85,12 +80,11 @@ extern 	int		aindx;
 extern	struct	adsym	ptr[];
 extern	int		addr(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
 	/* scmpmch.c */
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 
 #else
@@ -100,7 +94,6 @@ extern 	int		aindx;
 extern	struct	adsym	ptr[];
 extern	int		addr();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
 	/* scmpmch.c */

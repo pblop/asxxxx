@@ -1,7 +1,7 @@
 /* ez80.h */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -213,7 +213,7 @@ extern	int		genopm(int pop, int op, struct expr *esm, struct expr *esp, int f);
 extern	int		gixiy(int v);
 extern	VOID		glilsis(int mode, int sfx, struct expr *esp);
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 
 #else

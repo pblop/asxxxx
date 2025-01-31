@@ -19,9 +19,8 @@ zip -T asxs5pxx.zip
 rem
 rem  Remove Non-Distribution Directories
 rem
-zip -d asxs5pxx.zip asxv5pxx\update\*
 zip -d asxs5pxx.zip asxv5pxx\asxdoc\asxrno\* asxv5pxx\asxhtmw\*
-zip -d asxs5pxx.zip asxv5pxx\updater\* asxv5pxx\test\*
+zip -d asxs5pxx.zip asxv5pxx\updater\* asxv5pxx\misc\*
 rem
 zip -d asxs5pxx.zip asxv5pxx\asxmak\cygwin\exe\*.exe
 zip -d asxs5pxx.zip asxv5pxx\asxmak\djgpp\exe\*.exe
@@ -32,14 +31,11 @@ zip -d asxs5pxx.zip asxv5pxx\asxmak\vc6\exe\*.exe
 zip -d asxs5pxx.zip asxv5pxx\asxmak\vs05\exe\*.exe
 zip -d asxs5pxx.zip asxv5pxx\asxmak\vs10\exe\*.exe
 zip -d asxs5pxx.zip asxv5pxx\asxmak\vs13\exe\*.exe
+zip -d asxs5pxx.zip asxv5pxx\asxmak\vs15\exe\*.exe
+zip -d asxs5pxx.zip asxv5pxx\asxmak\vs19\exe\*.exe
+zip -d asxs5pxx.zip asxv5pxx\asxmak\vs22\exe\*.exe
 zip -d asxs5pxx.zip asxv5pxx\asxmak\watcom\exe\*.exe
 zip -d asxs5pxx.zip asxv5pxx\asxmak\symantec\exe\*.EXE
-zip -T asxs5pxx.zip
-rem
-rem  Remove Pad File
-rem
-zip -d asxs5pxx.zip asxv5pxx\asxv*.xml
-zip -d asxv5pxx.zip asxv5pxx\asxdoc\asxv*.xml
 zip -T asxs5pxx.zip
 rem
 rem  Copy Current readme.txt File To asxv5pxx.txt

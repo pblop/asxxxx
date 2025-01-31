@@ -1,7 +1,7 @@
 /* ez80adr.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -52,6 +52,18 @@ addr(esp)
 struct expr *esp;
 {
 	int c, mode, indx;
+	char *p;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	if ((c = getnb()) == '#') {
 		expr(esp, 0);
@@ -69,12 +81,12 @@ struct expr *esp;
 		/*  (i), (r), (ixh), (ixl), (iyh), (iyl), (mb)  */
 		if ((indx = admode(R8X)) != 0) {
 			mode = S_R8X;
-			aerr();
+			xerr('a', "Indexed mode is invalid.");
 		} else
 		/*  (af), (af')  */
 		if ((indx = admode(RXX)) != 0) {
 			mode = S_RXX;
-			aerr();
+			xerr('a', "Indexed mode is invalid.");
 		} else
 		/*  (mn)  */
 		{
@@ -94,7 +106,7 @@ struct expr *esp;
 				esp->e_mode = S_INDR + (indx&0xFF);
 			}
 			if ((c = getnb()) != RTIND)
-				qerr();
+				xerr('q', "Missing ')'.");
 		}
 	} else {
 		unget(c);
@@ -131,16 +143,33 @@ struct expr *esp;
 			   ((indx&0xFF)==IX || (indx&0xFF)==IY)) {
 				esp->e_mode = S_INDR + (indx&0xFF);
 			} else {
-				aerr();
+				xerr('a', "Expected form is D(IX) or D(IY).");
 			}
 			if ((c = getnb()) != RTIND)
-				qerr();
+				xerr('q', "Missing ')'.");
 		} else {
 			unget(c);
 		}
 	}
 	return (esp->e_mode);
 }
+
+/*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
 
 /*
  * Enter admode() to search a specific addressing mode table

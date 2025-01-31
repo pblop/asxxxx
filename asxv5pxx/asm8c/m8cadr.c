@@ -33,6 +33,18 @@ struct expr *esp;
 {
 	int c;
 	int rmode, amode;
+	char *p;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	/* Registers A, X, F, SP */
 	if ((rmode = admode(regs)) != 0) {
@@ -50,13 +62,15 @@ struct expr *esp;
 	if (c == '[') {
 		amode = addr1(esp);
 		if (getnb() != ']') {
-			aerr();
+			xerr('a', "Missing ']'");
 		}
 		if (rmode == S_REG) {
 			switch (amode) {
 			case S_EXT:	esp->e_mode = S_REXT;	break;
 			case S_INDX:	esp->e_mode = S_RINDX;	break;
-			default:	aerr();			break;
+			default:
+				xerr('a', "'REG' as first argument is not valid with second argument.");
+				break;
 			}
 		}
 	} else
@@ -83,7 +97,7 @@ struct expr *esp;
 		if (((c = getnb()) != ']') ||
 		    ((c = getnb()) != '+') ||
 		    ((c = getnb()) != '+')) {
-			aerr();
+			xerr('a', "Missing a character of ']++'.");
 		}
 		return(esp->e_mode = mode);
 	} else
@@ -98,6 +112,23 @@ struct expr *esp;
 	expr(esp, 0);
 	return(esp->e_mode = mode);
 }
+
+/*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
 
 /*
  * Enter admode() to search a specific addressing mode table
@@ -148,24 +179,10 @@ char *str;
 	}
 
 	if (!*str)
-		if (any(*ptr," \t\n,[];")) {
+		if (!(ctype[*ptr & 0x007F] & LTR16)) {
 			ip = ptr;
 			return(1);
 		}
-	return(0);
-}
-
-/*
- *      any --- does str contain c?
- */
-int
-any(c,str)
-int c;
-char *str;
-{
-	while (*str)
-		if(*str++ == c)
-			return(1);
 	return(0);
 }
 

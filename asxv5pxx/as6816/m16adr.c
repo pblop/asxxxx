@@ -1,7 +1,7 @@
 /* m16adr.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -30,50 +30,74 @@ addr(esp)
 struct expr *esp;
 {
 	int c;
+	char *p;
 	char *tcp;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	if ((c = getnb()) == '#') {
 		expr(esp, 0);
 		esp->e_mode = T_IMM;
 	} else
 	if (c == ',') {
-		c = admode(xyz);
-		if (c & T_INDX) {
+		if ((c = admode(xyz)) != 0) {
 			esp->e_mode = c;
 		} else {
-			aerr();
+			xerr('a', "A Register X, Y, Or Z Type Is Required.");
 		}
 	} else {
 		unget(c);
 		if(admode(e) != 0) {
 			comma(1);
-			c = admode(xyz);
-			if (c & T_INDX) {
+			if ((c = admode(xyz)) != 0) {
 				esp->e_mode = T_E_I | (c & 0x30);
 			} else {
-				aerr();
+				xerr('a', "A Register X, Y, Or Z Type Is Required.");
 			}
 		} else {
 			expr(esp, 0);
 			esp->e_mode = T_EXT;
-			if (more()) {
-				comma(1);
+			if ((c = getnb()) == ',') {
 				tcp = ip;
 				if ((c = admode(xyz)) != 0) {
-					if (c & T_INDX) {
-						esp->e_mode = c;
-					} else {
-						aerr();
-					}
+					esp->e_mode = c;
 				} else {
 					ip = --tcp;
 				}
+			} else {
+				unget(c);
 			}
 		}
 	}
 	return (esp->e_mode);
 }
 	
+/*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
+
 /*
  * Enter admode() to search a specific addressing mode table
  * for a match. Return the addressing value on a match or
@@ -123,37 +147,23 @@ char *str;
 	}
 
 	if (!*str)
-		if (any(*ptr," \t\n,];")) {
+		if (!(ctype[*ptr & 0x007F] & LTR16)) {
 			ip = ptr;
 			return(1);
 		}
 	return(0);
 }
 
-/*
- *      any --- does str contain c?
- */
-int
-any(c,str)
-int c;
-char *str;
-{
-	while (*str)
-		if(*str++ == c)
-			return(1);
-	return(0);
-}
-
 struct adsym	xyz[] = {	/* all indexed modes */
-    {	"x",	0x00 | T_INDX	},
-    {	"y",	0x10 | T_INDX	},
-    {	"z",	0x20 | T_INDX	},
-    {	"x8",	0x00 | T_INDX | T_IND8	},
-    {	"y8",	0x10 | T_INDX | T_IND8	},
-    {	"z8",	0x20 | T_INDX | T_IND8	},
-    {	"x16",	0x00 | T_INDX | T_IND16	},
-    {	"y16",	0x10 | T_INDX | T_IND16	},
-    {	"z16",	0x20 | T_INDX | T_IND16	},
+    {	"x16",	T_X | T_INDX | T_IND16	},
+    {	"y16",	T_Y | T_INDX | T_IND16	},
+    {	"z16",	T_Z | T_INDX | T_IND16	},
+    {	"x8",	T_X | T_INDX | T_IND8	},
+    {	"y8",	T_Y | T_INDX | T_IND8	},
+    {	"z8",	T_Z | T_INDX | T_IND8	},
+    {	"x",	T_X | T_INDX	},
+    {	"y",	T_Y | T_INDX	},
+    {	"z",	T_Z | T_INDX	},
     {	"",	0x00	}
 };
 
@@ -173,7 +183,7 @@ struct adsym	pshm[] = {	/* push on system stack */
     {	"",	0x00	}
 };
 
-struct adsym	pulm[] = {	/* pull from on system stack */
+struct adsym	pulm[] = {	/* pull from system stack */
     {	"ccr",	0x01	},
     {	"k",	0x02	},
     {	"z",	0x04	},

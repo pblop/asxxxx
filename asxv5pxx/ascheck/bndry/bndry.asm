@@ -1,6 +1,6 @@
 	.title	Boundary Tests
 
-	.area	BOUNDARY	(ABS,OVR)
+	.area	BNDRY_1	(ABS,OVR)
 
 	.sbttl	Power of 2 Boundary Modes
 
@@ -16,6 +16,8 @@
 	.even			; Address == 4
 
 
+	.area	BNDRY_2	(ABS,OVR)
+
 	.org	0
 
 	.even			; Address == 0
@@ -30,6 +32,8 @@
 	.bndry	512		; Address == 0
 	.bndry	1024		; Address == 0
 
+
+	.area	BNDRY_3	(ABS,OVR)
 
 	.org	1
 
@@ -49,6 +53,8 @@
 	.page
 	.sbttl	Non Power of 2 Boundary Modes
 
+	.area	BNDRY_4	(ABS,OVR)
+
 	.org	0
 
 	.bndry	1		; Address == 0
@@ -62,6 +68,8 @@
 	.bndry	511		; Address == 0
 	.bndry	1023		; Address == 0
 
+
+	.area	BNDRY_5	(ABS,OVR)
 
 	.org	1
 
@@ -77,7 +85,9 @@
 	.bndry	1025		; Address == 1025
 
 
-	.org	47
+	.area	BNDRY_6	(ABS,OVR)
+
+	.org	0
 
 	.bndry	3		; Address == 48
 	.bndry	6		; Address == 48
@@ -89,5 +99,32 @@
 	.bndry	384		; Address == 384
 	.bndry	768		; Address == 768
 	.bndry	1536		; Address == 1536
+
+
+	.page
+	.sbttl	Mixed Boundaries
+
+	.area	BNDRY_7	(ABS,OVR)
+
+	.org	0
+
+	.odd
+	.even
+	.odd
+
+	.bndry	2
+	.bndry	3
+	.bndry	4
+	.bndry	6
+	.bndry	8
+	.bndry	9
+
+
+	.area	BNDRY_8	(ABS,OVR)
+
+	.org	0
+
+
+	.end
 
 

@@ -1,7 +1,7 @@
 /* asexpr.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -65,20 +65,10 @@
  *	stores its value and relocation information into
  *	the expr structure supplied by the user.
  *
- *	Notes about the arithmetic:
- *		The coding emulates N-Bit unsigned
- *		arithmetic operations.  This allows
- *		program compilation without regard to the
- *		intrinsic integer length of the host
- *		machine.
- *
  *	local variables:
- *		a_uint	ae		value from expr esp
- *		a_uint	ar		value from expr re
  *		int	c		current assembler-source
  *					text character
  *		int	p		current operator priority
- *		area *	ap		pointer to an area structure
  *		exp	re		internal expr structure
  *
  *	global variables:
@@ -86,14 +76,11 @@
  *					ASCII character
  *
  *	functions called:
- *		VOID	abscheck()	asexpr.c
+ *		VOID	binop()		asexpr.c
  *		VOID	clrexpr()	asexpr.c
- *		VOID	expr()		asexpr.c
- *		int	get()		aslex.c
  *		int	getnb()		aslex.c
  *		int	oprio()		asexpr.c
- *		VOID	qerr()		assubr.c
- *		VOID	rerr()		assubr.c
+ *		VOID	xerr()		assubr.c
  *		VOID	term()		asexpr.c
  *		VOID	unget()		aslex.c
  *
@@ -110,9 +97,7 @@ expr(esp, n)
 struct expr *esp;
 int n;
 {
-	a_uint ae, ar;	
 	int c, p;
-	struct area *ap;
 	struct expr re;
 
 	term(esp);
@@ -123,118 +108,157 @@ int n;
 		if ((p = oprio(c)) <= n)
 			break;
 		if ((c == '>' || c == '<') && c != get())
-			qerr();
+			xerr('q', "Binary operator >> or << expected.");
 		clrexpr(&re);
 		expr(&re, p);
 		esp->e_rlcf |= re.e_rlcf;
-		
-		/*
-		 * N-Bit Unsigned Arithmetic
-		 */
-		ae = esp->e_addr & a_mask;
-		ar = re.e_addr & a_mask;
 
-		if (c == '+') {
-			/*
-			 * esp + re, at least one must be absolute
-			 */
-			if (esp->e_base.e_ap == NULL) {
-				/*
-				 * esp is absolute (constant),
-				 * use area from re
-				 */
-				esp->e_base.e_ap = re.e_base.e_ap;
-			} else
-			if (re.e_base.e_ap) {
-				/*
-				 * re should be absolute (constant)
-				 */
-				rerr();
-			}
-			if (esp->e_flag && re.e_flag)
-				rerr();
-			if (re.e_flag)
-				esp->e_flag = 1;
-			ae += ar;
-		} else
-		if (c == '-') {
-			/*
-			 * esp - re
-			 */
-			if ((ap = re.e_base.e_ap) != NULL) {
-				if (esp->e_base.e_ap == ap) {
-					esp->e_base.e_ap = NULL;
-				} else {
-					rerr();
-				}
-			}
-			if (re.e_flag)
-				rerr();
-			ae -= ar;
-		} else {
-			/*
-			 * Both operands (esp and re) must be constants
-			 */
-			abscheck(esp);
-			abscheck(&re);
-			switch (c) {
-			/*
-			 * The (int) /, %, and >> operations
-			 * are truncated to a_bytes.
-			 */
-			case '*':
-				ae *= ar;
-				break;
-
-			case '/':
-				if (ar == 0) {
-					ae = 0;
-					err('z');
-				} else {
-					ae /= ar;
-				}
-				break;
-
-			case '&':
-				ae &= ar;
-				break;
-
-			case '|':
-				ae |= ar;
-				break;
-
-			case '%':
-				if (ar == 0) {
-					ae = 0;
-					err('z');
-				} else {
-					ae %= ar;
-				}
-				break;
-
-			case '^':
-				ae ^= ar;
-				break;
-
-			case '<':
-				ae <<= ar;
-				break;
-
-			case '>':
-				ae >>= ar;
-				break;
-
-			default:
-				qerr();
-				break;
-			}
-		}
-		esp->e_addr = rngchk(ae);
+		binop(c, esp, &re);
 	}
 	unget(c);
 }
 
-/*)Function	a_uint	absexpr()
+/*)Function	VOID	binop(c, esp, re)
+ * 
+ *		int	c		operation to perform
+ *		expr *	esp		pointer to LHS argument, result
+ *		expr *	re		pointer to RHS argument
+ *
+ *	The function binop() evaluates a binary operator and
+ *	stores its value and relocation information into the
+ *	esp structure supplied by the user.
+ *
+ *	Notes about the arithmetic:
+ *		The coding emulates N-Bit unsigned
+ *		arithmetic operations.  This allows
+ *		program compilation without regard to the
+ *		intrinsic integer length of the host
+ *		machine.
+ *
+ *	local variables:
+ *		a_uint	ae		value from expr esp
+ *		a_uint	ar		value from expr re
+ *		area *	ap		pointer to an area structure
+ *
+ *	functions called:
+ *		VOID	abscheck()	asexpr.c
+ *		VOID	err()		assubr.c
+ *		VOID	xerr()		assubr.c
+ */
+
+VOID
+binop(c, esp, re)
+int c;
+struct expr *esp, *re;
+{
+	a_uint ae, ar;
+	struct area *ap;
+
+	/*
+	 * N-Bit Unsigned Arithmetic
+	 */
+	ae = esp->e_addr & a_mask;
+	ar = re->e_addr & a_mask;
+
+	if (c == '+') {
+ 		/*
+		 * esp + re, at least one must be absolute
+ 		 */
+		if (esp->e_base.e_ap == NULL) {
+ 			/*
+			 * esp is absolute (constant),
+			 * use area from re
+ 			 */
+			esp->e_base.e_ap = re->e_base.e_ap;
+ 		} else
+		if (re->e_base.e_ap) {
+ 			/*
+			 * re should be absolute (constant)
+ 			 */
+			xerr('r', "Arg1 + Arg2, Arg2 must be a constant.");
+		}
+		if (esp->e_flag && re->e_flag)
+			xerr('r', "Arg1 + Arg2, Both arguments cannot be external.");
+		if (re->e_flag)
+			esp->e_flag = 1;
+		ae += ar;
+	} else
+	if (c == '-') {
+		/*
+		 * esp - re
+		 */
+		if ((ap = re->e_base.e_ap) != NULL) {
+			if (esp->e_base.e_ap == ap) {
+				esp->e_base.e_ap = NULL;
+			} else {
+				xerr('r', "Arg1 - Arg2, Arg2 must be in same area.");
+ 			}
+		}
+		if (re->e_flag)
+			xerr('r', "Arg1 - Arg2, Arg2 cannot be external.");
+		ae -= ar;
+	} else {
+		/*
+		 * Both operands (esp and re) must be constants
+		 */
+		abscheck(esp);
+		abscheck(re);
+		switch (c) {
+		/*
+		 * The (int) /, %, and >> operations
+		 * are truncated to a_bytes.
+		 */
+		case '*':
+			ae *= ar;
+			break;
+ 
+		case '/':
+			if (ar == 0) {
+				ae = 0;
+				err('z');
+			} else {
+				ae /= ar;
+			}
+			break;
+ 
+		case '&':
+			ae &= ar;
+			break;
+ 
+		case '|':
+			ae |= ar;
+			break;
+ 
+		case '%':
+			if (ar == 0) {
+				ae = 0;
+				err('z');
+			} else {
+				ae %= ar;
+ 			}
+			break;
+
+		case '^':
+			ae ^= ar;
+			break;
+
+		case '<':
+			ae <<= ar;
+			break;
+
+		case '>':
+			ae >>= ar;
+			break;
+
+		default:
+			qerr();
+			break;
+ 		}
+ 	}
+	esp->e_addr = rngchk(ae);
+ }
+
+ /*)Function	a_uint	absexpr()
  *
  *	The function absexpr() evaluates an expression, verifies it
  *	is absolute (i.e. not position dependent or relocatable), and
@@ -290,6 +314,7 @@ absexpr()
  *		char *	jp		pointer to assembler-source text
  *		a_uint	n		constant evaluation running sum
  *		int	r		current evaluation radix
+ *		mne	mp		pointer to a mne structure
  *		sym *	sp		pointer to a sym structure
  *		tsym *	tp		pointer to a tsym structure
  *		int	v		current digit evaluation
@@ -326,12 +351,13 @@ struct expr *esp;
 	int c;
 	char *jp;
 	char id[NCPS];
+	struct mne  *mp;
 	struct sym  *sp;
 	struct tsym *tp;
-	int r, v;
+	int r, s, t, v;
 	a_uint n;
 
-	r = radix;
+ 	r = radix;
 	c = getnb();
 	/*
  	 * Discard the unary '+' at this point and
@@ -339,6 +365,7 @@ struct expr *esp;
 	 * associated with the '#' prefix.
 	 */
 	while (c == '+' || c == '#') { c = getnb(); }
+
 	/*
  	 * Evaluate all binary operators
 	 * by recursively calling expr().
@@ -349,6 +376,23 @@ struct expr *esp;
 			qerr();
 		return;
 	}
+	unget(c);
+
+	/*
+	 * If mchterm_ptr != NULL then a call to
+	 * the machine specific 'mchterm()' function
+	 * is made.  If the argument is processed
+	 * the return value is non zero and the
+	 * argument's value is returned in esp.
+  	 * If the argument is not used then a zero
+	 * is returned and the normal 'term()'
+	 * processing continues.
+	 */
+	if (*mchterm_ptr && ((*mchterm_ptr)(esp))) {
+		return;
+	}
+
+	c = getnb();
 	if (c == '-') {
 		expr(esp, 100);
 		abscheck(esp);
@@ -402,11 +446,10 @@ struct expr *esp;
 		}
 	}
 	/*
-	 * Evaluate digit sequences as reusable symbols
-	 * if followed by a '$' or as constants.
+	 * Evaluate digit sequences as reusable
+	 * symbols if followed by a '$'.
 	 */
 	if (ctype[c] & DIGIT) {
-		esp->e_mode = S_USER;
 		jp = ip;
 		while (ctype[*jp & 0x007F] & RAD10) {
 			jp++;
@@ -421,6 +464,7 @@ struct expr *esp;
 			tp = symp->s_tsym;
 			while (tp) {
 				if (n == tp->t_num) {
+					esp->e_mode = S_USER;
 					esp->e_base.e_ap = tp->t_area;
 					esp->e_addr = tp->t_addr;
 					return;
@@ -430,73 +474,112 @@ struct expr *esp;
 			err('u');
 			return;
 		}
-		if (c == '0') {
-			c = get();
-			switch (c) {
-				case 'b':
-				case 'B':
-					r = 2;
-					c = get();
-					break;
-				case 'o':
-				case 'O':
-				case 'q':
-				case 'Q':
-					r = 8;
-					c = get();
-					break;
-				case 'd':
-				case 'D':
-					r = 10;
-					c = get();
-					break;
-				case 'h':
-				case 'H':
-				case 'x':
-				case 'X':
-					r = 16;
-					c = get();
-					break;
-				default:
-					break;
+		jp = ip;
+	}
+	/*
+	 * Temporary Radix Type 0[BOQHX]
+	 * 'C' Style Option When (csn != 0)
+	 *     0nnn (Octal), 0xnnn (Hex), Else Decimal
+	 */
+	s = 0;
+	if ((c == '0') && !esp->e_inhbt) {
+		jp = ip;
+		switch (ccase[get()]) {
+		case 'b':  if (!csn) s = 2;	break;	/* 0B */
+		case 'o':				/* 0O */
+		case 'q':  if (!csn) s = 8;	break;	/* 0Q */
+		case 'd':  if (!csn) s = 10;	break;	/* 0D */
+		case 'h':  if ( csn)		break;	/* 0H */
+		case 'x':	     s = 16;	break;	/* 0X */
+		default:   if ( csn) s = 8;		/* 0O */
+			c = '0';
+			ip = jp;
+			break;
+		}
+	} else
+	/*
+	 * Evaluate '$' sequences as a temporary radix
+	 * if followed by a '%', '&', '#', or '@'.
+	 */
+	if (c == '$') {
+		jp = ip;
+		switch (get()) {
+		case '%':	s = 2;	break;
+		case '&':	s = 8;	break;
+		case '#':	s = 10;	break;
+		case '@':	s = 16;	break;
+		default:
+			c = '$';
+			ip = jp;
+			break;
+		}
+	}
+	/*
+	 * Process Type '0' and '$' Temporary Radixes
+	 */
+	if (s) {
+		/*
+		 * Check For Decimal Point Radix 10 Override
+		 */
+		c = get();
+		if (ctype[c] & DIGIT) {
+			jp = ip;
+			v = c;
+			while ((c >= '0') && (c <= '9')) {
+				c = get();
 			}
+			if (c == '.') {
+				s = 10;
+			}
+			c = v;
+			ip = jp;
 		}
+		/*
+		 * Process Number
+		 */
 		n = 0;
-		while ((v = digit(c, r)) >= 0) {
-			n = r*n + v;
+		while ((v = digit(c, s)) >= 0) {
+			n = s*n + v;
 			c = get();
 		}
-		unget(c);
+		if (c != '.') {
+			unget(c);
+		}
+		esp->e_mode = S_USER;
 		esp->e_addr = rngchk(n);
 		return;
 	}
 	/*
-	 * Evaluate '$' sequences as a temporary radix
-	 * if followed by a '%', '&', '#', or '$'.
+	 * Temporary Radix Type ^[BOQDHX]
 	 */
-	if (c == '$') {
-		c = get();
-		if (c == '%' || c == '&' || c == '#' || c == '$') {
-			switch (c) {
-				case '%':
-					r = 2;
-					break;
-				case '&':
-					r = 8;
-					break;
-				case '#':
-					r = 10;
-					break;
-				case '$':
-					r = 16;				
-					break;
-				default:
-					break;
-			}
-			c = get();
+	t = 0;
+	if (c == '^') {
+		jp = ip;
+		switch (ccase[get()]) {
+		case 'b':	t = 2;	break;	/* ^B */
+		case 'o':			/* ^O */
+		case 'q':	t = 8;	break;	/* ^Q */
+		case 'd':	t = 10;	break;	/* ^D */
+		case 'h':			/* ^H */
+		case 'x':	t = 16;	break;	/* ^X */
+		default:
+			c = '^';
+			ip = jp;
+			break;
+		}
+	}
+	/*
+	 * Process Type '^' Temporary Radixes
+	 */
+	if (t) {
+		/*
+		 * Process An Immediate Number
+		 */
+		jp = ip;
+		if (is_digit((c = getnb()), t)) {
 			n = 0;
-			while ((v = digit(c, r)) >= 0) {
-				n = r*n + v;
+			while ((v = digit(c, t)) >= 0) {
+				n = t*n + v;
 				c = get();
 			}
 			unget(c);
@@ -504,14 +587,96 @@ struct expr *esp;
 			esp->e_addr = rngchk(n);
 			return;
 		}
-		unget(c);
-		c = '$';
+		ip = jp;
+		c = radix;
+		radix = t;
+		esp->e_inhbt += 1;
+		expr(esp,100);
+		esp->e_inhbt -= 1;
+		radix = c;
+		return;
 	}
 	/*
-	 * Evaluate symbols and labels
+	 * Evaluate Numbers
+	 * 	1) Beginning With Decimal Digits (0 - 9)
+	 *	2) Beginning With Hex Digits (A - F)
+	 *		If (r = 16) And (esp->e_inhbt != 0) And
+	 *		Does Not Contain (G - Z), ($), (_) Or (.)
+	 *		And The String Is Not A Symbol/Label
+	 */
+	/* 1) */
+	if (ctype[c] & DIGIT) {
+		/*
+		 * Check For Decimal Point Radix 10 Override
+		 */
+		jp = ip;
+		v = c;
+		while ((c >= '0') && (c <= '9')) {
+			c = get();
+		}
+		if (c == '.') {
+			r = 10;
+		}
+		c = v;
+		ip = jp;
+		/*
+		 * Process Number
+		 */
+		n = 0;
+		while ((v = digit(c, r)) >= 0) {
+			n = r*n + v;
+			c = get();
+		}
+		if (c != '.') {
+			unget(c);
+		}
+		esp->e_mode = S_USER;
+		esp->e_addr = rngchk(n);
+		return;
+	}
+	/* 2) */
+	if ((ctype[c] & RAD16) && (r == 16) && !esp->e_inhbt) {
+		jp = ip;
+		v = c;
+		/*
+		 * Scan For Non RAD16 LETTERs
+		 * (G - Z), (.), ($), And (_)
+		 */
+		getid(id, c);
+		ip = id;
+		while (is_digit(c, 16)) { c = get(); }
+		if ((c == 0) && !slookup(id)) {
+			/*
+			 * Process Number
+			 */
+			n = 0;
+			while ((v = digit(c, r)) >= 0) {
+				n = r*n + v;
+				c = get();
+			}
+			esp->e_mode = S_USER;
+			esp->e_addr = rngchk(n);
+			return;
+		}
+		c = v;
+		ip = jp;
+	}
+	/*
+	 * Evaluate Symbols and Labels
 	 */
 	if (ctype[c] & LETTER) {
 		getid(id, c);
+		/*
+		 * Check for permanent symbols accessible as constants
+		 */
+		mp = mlookup(id);
+		if ((mp != NULL) && (mp->m_type == S_CONST)) {
+			esp->e_addr = mp->m_valu;
+			return;
+		}
+		/*
+		 * Check for user-defined symbols
+		 */
 		esp->e_mode = S_USER;
 		sp = lookup(id);
 		if (sp->s_type == S_NEW) {
@@ -582,7 +747,44 @@ int c, r;
 		if (ctype[c] & RAD2)
 			return (c - '0');
 	}
+	if (ctype[c] & RAD16) {
+		err('k');
+	}
 	return (-1);
+}
+
+/*)Function	int	is_digit(c, r)
+ *
+ *		int	c		digit character
+ *		int	r		current radix
+ *
+ *	The function is_digit() returns 1 if c is
+ *	in the current radix r.  If the c value is not
+ *	a number of the current radix then a 0 is returned.
+ *
+ *	local variables:
+ *		none
+ *
+ *	global variables:
+ *		char	ctype[]		array of character types, one per
+ *					ASCII character
+ *
+ *	functions called:
+ *		none
+ *
+ *	side effects:
+ *		none
+ */
+
+int
+is_digit(c, r)
+int c, r;
+{
+	if ((r == 16) && (ctype[c] & RAD16)) return(1);
+	if ((r == 10) && (ctype[c] & RAD10)) return(1);
+	if ((r ==  8) && (ctype[c] & RAD8 )) return(1);
+	if ((r ==  2) && (ctype[c] & RAD2 )) return(1);
+	return(0);
 }
 
 /*)Function	VOID	abscheck(esp)
@@ -725,6 +927,7 @@ struct expr *esp;
 	esp->e_addr = 0;
 	esp->e_base.e_ap = NULL;
 	esp->e_rlcf = 0;
+	esp->e_inhbt = 0;
 }
 
 /*)Function	a_uint	rngchk(n)

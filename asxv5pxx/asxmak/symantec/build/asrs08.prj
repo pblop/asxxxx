@@ -1,0 +1,28 @@
+82569
+R:\ASXV5PXX\ASXMAK\SYMANTEC\BUILD\asrs08.prj
+asrs08.OPN
+novcs
+asrs08.DEF
+6
+1637215831
+0 0 0 0 0 "..\..\..\ASXXSRC\asdata.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asdbg.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asexpr.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\aslex.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\aslist.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asmain.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asmcro.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asout.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\assubr.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\assym.c"
+0 0 0 0 0 "..\..\..\ASRS08\rs08adr.c"
+0 0 0 0 0 "..\..\..\ASRS08\rs08mch.c"
+0 0 0 0 0 "..\..\..\ASRS08\rs08pst.c"
+0 0 0 0 0 "asrs08.DEF"
+0 -1 0 0 0 "..\..\..\asxxsrc\asxxxx.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\stdlib.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\stdio.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\setjmp.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\string.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\time.h"
+0 -1 0 0 0 "..\..\..\ASRS08\rs08.h"

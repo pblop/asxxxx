@@ -11,12 +11,11 @@
 	;			linking r_pagn will give PAGN errors for
 	;	   		lines having labels of er____
 
-
 	.sbttl	DATA Space
 
 	.area	DATA (DSEG)
-	; Area 'DATA' will be placed at 0x1000 by the linker -b DATA=0x1000 option.
-	; Symbol 'DATA' will be set  to 0x1000 by the linker -g DATA=0x1000 option.
+	; Area 'DATA' will be placed at 0x0000 by the linker -b DATA=0x0000 option.
+	; Symbol 'DATA' will be set  to 0x0000 by the linker -g DATA=0x0000 option.
 
 pg0:					; First 256 byte Data Page
 pg0_00:	.blkb	1			; relocatable label
@@ -25,7 +24,7 @@ pg0_01 = .				; relocatable symbol
 
 ;	pg0_05 = DATA + 0x0005		; external symbol + a constant (illegal construct)
 .define	pg0_05, "DATA + 0x0005"		; define pg0_05
-	pg0_06 = 0x1006			; constant symbol within Page 0 of DATA
+	pg0_06 = 0x0006			; constant symbol within Page 0 of DATA
 
 pg1:					; Second 256 byte Data Page
 pg1_00:	.blkb	1			; relocatable label
@@ -34,7 +33,7 @@ pg1_01 = .				; relocatable symbol
 
 ;	pg1_05 = DATA + 0x0105		; external symbol + a constant (illegal construct)
 .define	pg1_05, "DATA + 0x0105"		; define pg1_05
-	pg1_06 = 0x1106			; constant symbol within Page 1 of DATA
+	pg1_06 = 0x0106			; constant symbol within Page 1 of DATA
 
 pgend:	.assume	(pgend - pg0) & 0x00FF	; Page Boundary Error
 
@@ -42,8 +41,8 @@ pgend:	.assume	(pgend - pg0) & 0x00FF	; Page Boundary Error
 	.sbttl	CODE Space
 
 	.area	CODE (CSEG)
-	; Area 'CODE' will be placed at 0x1200 by the linker -b CODE=0x1200 option.
-	; Symbol 'CODE' will be set  to 0x1200 by the linker -g CODE=0x1200 option.
+	; Area 'CODE' will be placed at 0x0200 by the linker -b CODE=0x0200 option.
+	; Symbol 'CODE' will be set  to 0x0200 by the linker -g CODE=0x0200 option.
 
 	code = .			; Base Address of CODE Segment
 
@@ -52,7 +51,7 @@ code01 = .				; relocatable symbol
 
 ;	code05 = CODE + 0x0005		; external symbol + a constant (illegal construct)
 .define	code05, "CODE + 0x0005"		; define code05
-	code06 = 0x1206			; constant symbol within Page 1 of CODE
+	code06 = 0x0206			; constant symbol within Page 1 of CODE
 
 	.setdp	0x0000,DATA	; Direct Page: area = DATA, offset address = 0x0000
 

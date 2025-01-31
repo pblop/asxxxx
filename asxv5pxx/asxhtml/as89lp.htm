@@ -1,0 +1,453 @@
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+</HEAD>
+<BODY BGCOLOR="#C0C0C0">
+
+<A href="../home.htm">
+<IMG width=343 height=58 border=0 SRC="welcom.gif" ALT="Welcome"></A>
+
+<H2>AS89LP  Assembler</H2>
+
+<A NAME = "TOP"> </A> 
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+
+   The  AT89LP series of 8051 compatible microcontrollers incor-
+porates a single cycle 8051 core.  The execution time  for  most
+instructions equals the number of bytes in the instruction.  In-
+structions that perform address calculations take  more  cycles.
+Several members of the AT89LP series have enhancements which may
+include the MAC AB, ASR M, LSL M, and CLR M  instructions  which
+manipulate  the 40 bit multiply-accumulate register, a secondary
+dptr register supporting an additional addressing  mode  to  the
+INC, MOV, MOVC, and MOVX instructions, a new CJNE addressing op-
+tion, a new jump indirect relative to PC addressing mode, and  a
+BREAK instruction.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+PROCESSOR SPECIFIC DIRECTIVES 
+
+.regbnk Directive 
+
+   Format:  
+
+        .regbnk 0, 1, 2, or 3 
+
+The .regbnk directive informs the assembler about which register
+bank (0-3) is currently being used.  This  effects  instructions
+like PUSH R0-R7 and POP R0-R7 where the register bank is encoded
+into the instruction.  
+
+
+   The  AS89LP  assembler  supports many of the AT89LP microcon-
+trollers natively.  The  following  table  lists  the  processor
+directive,      the     supported     processor,     and     the
+'Special Function Register', SFR, file that should  be  included
+in a project to define the SFR registers.  
+
+        .lp2052         AT89LP2052      lp2052.sfr
+        .lp213          AT89LP213       lp213.sfr
+        .lp214          AT89LP214       lp214.sfr
+        .lp216          AT89LP216       lp216.sfr
+        .lp3240         AT89LP3240      lp3240.sfr
+        .lp4052         AT89LP4052      lp4052.sfr
+        .lp428          AT89LP428       lp428.sfr
+        .lp51           AT89LP51        lp51.sfr
+        .lp51ed2        AT89LP51ED2     lp51ed2.sfr
+        .lp51ic2        AT89LP51IC2     lp51ic2.sfr
+        .lp51id2        AT89LP51ID2     lp51id2.sfr
+        .lp51rb2        AT89LP51RB2     lp51rb2.sfr
+        .lp51rc2        AT89LP51RC2     lp51rc2.sfr
+        .lp51rd2        AT89LP51RD2     lp51rd2.sfr
+        .lp52           AT89LP52        lp52.sfr
+        .lp6440         AT89LP6440      lp6440.sfr
+        .lp828          AT89LP828       lp828.sfr
+
+
+   Including  the  particular  processor  sfr  file  invokes the
+appropriate processor type directive and defines the SFR values. 
+
+
+The .__.CPU. and .__.$$$. Variables 
+
+   The  assembler  variable  .__.CPU.   is  set  to indicate the
+specific processor selected.  The variable  .__.$$$.   indicates
+the  specific  extended  instructions  supported by the selected
+processor.  The encoding for .__.$$$.  is:  
+
+        Bit 0   MAC AB / CLR M / ASR M / LSL M
+        Bit 1   /DPTR modes for INC, MOV, MOVC, and MOVX
+        Bit 2   JMP @A+PC
+        Bit 3   CJNE A,@R0,rel / CJNE A,@R1,rel
+        Bit 4   BREAK
+
+                                    .__.CPU.      .__.$$$.
+                                                43210
+        .lp2052         AT89LP2052       0      -----  0x00     
+        .lp213          AT89LP213        1      *-*--  0x14
+        .lp214          AT89LP214        2      *-*--  0x14
+        .lp216          AT89LP216        3      *-*--  0x14
+        .lp3240         AT89LP3240       4      *****  0x1F
+        .lp4052         AT89LP4052       5      -----  0x00
+        .lp428          AT89LP428        6      *----  0x1E
+        .lp51           AT89LP51         7      -***-  0x0E
+        .lp51ed2        AT89LP51ED2      8      -****  0x0F
+        .lp51ic2        AT89LP51IC2      9      -****  0x0F
+        .lp51id2        AT89LP51ID2     10      -****  0x0F
+        .lp51rb2        AT89LP51RB2     11      -****  0x0F
+        .lp51rc2        AT89LP51RC2     12      -****  0x0F
+        .lp51rd2        AT89LP51RD2     13      -****  0x0F
+        .lp52           AT89LP52        14      -***-  0x0E
+        .lp6440         AT89LP6440      15      *****  0x1F
+        .lp828          AT89LP828       16      ****-  0x1E
+
+
+   The  variables  '.__.CPU.'  and '.__.$$$.' are by default de-
+fined as local and will not be output to the created .rel  file.
+The  assembler  command line options -g or -a will not cause the
+local symbols to be output to the created .rel file.  
+
+   The  assembler  .globl  directive  may  be used to change the
+variable type to global causing its definition to be  output  to
+the .rel file.  The inclusion of the definition of the variables
+'.__.CPU.' and '.__.$$$.' might be a useful means of  validating
+that  separately assembled files have been compiled for the same
+processor type or have the  same  instruction  extensions.   The
+linker  will  report  an  error  for variables with multiple non
+equal definitions.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+AT89LP SERIES REGISTER SET 
+
+The  following  is a list of the standard 8051 registers used by
+AS89LP:  
+
+        a,b             -       8-bit accumulators
+        r0,r1,r2,r3     -       8-bit registers
+        r4,r5,r6,r7
+        dptr            -       data pointer
+        sp              -       stack pointer
+        pc              -       program counter
+        psw             -       status word
+        c               -       carry (bit in status word)
+
+The  following  is  a  list  of  the  extended registers used by
+AS89LP:  
+
+        ab      -       source register for MAC instruction
+        /dptr   -       alternate data pointer
+        m       -       40-bit multiply-accumulate register
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+AT89LP SERIES INSTRUCTION SET 
+
+   The  following  list specifies the format for each addressing
+mode supported by AS89LP:  
+
+        #data           immediate byte or word data
+
+        r,r1,r2         register r0,r1,r2,r3,r4,r5,r6, or r7
+
+        @r              indirect on register r0 or r1
+        @dptr           indirect on data pointer
+        @/dptr          indirect on alternate data pointer
+
+        @a+dptr         indirect on accumulator
+                        plus data pointer
+        @a+/dptr        indirect on accumulator
+                        plus alternate data pointer
+
+        @a+pc           indirect on accumulator
+                        plus program counter
+
+        addr            direct memory address
+
+        bitnum          selected bit
+        /bitnum         operation performed with
+                        with complement of selected bit
+
+        label           call or jump label
+
+The terms data, addr, bitnum, and label may all be expressions. 
+
+   The  following  tables  list all 8051 mnemonics recognized by
+the AS89LP assembler.  Note that not all  addressing  modes  are
+valid  with every instruction.  Refer to the AT89 series techni-
+cal data for valid modes.  
+
+
+Inherent Instructions 
+
+        nop
+
+
+Move Instructions 
+
+        mov     a,#data         mov     a,addr
+        mov     a,r             mov     a,@r
+
+        mov     r,#data         mov     r,addr
+        mov     r,a
+
+        mov     addr,a          mov     addr,#data
+        mov     addr,r          mov     addr,@r
+        mov     addr1,addr2     mov     bitnum,c
+
+        mov     @r,#data        mov     @r,addr
+        mov     @r,a
+
+        mov     c,bitnum
+        mov     dptr,#data
+
+        movc    a,@a+dptr       movc    a,@a+pc
+        movx    a,@dptr         movx    a,@r
+        movx    @dptr,a         movx    @r,a
+
+
+Single Operand Instructions 
+
+        clr     a               clr     c
+        clr     bitnum
+        cpl     a               cpl     c
+        cpl     bitnum
+        setb    c               setb    bitnum
+
+        da      a               
+        rr      a               rrc     a
+        rl      a               rlc     a
+        swap    a
+
+        dec     a               dec     r
+        dec     @r
+        inc     a               inc     r
+        inc     dptr            inc     @r
+
+        div     ab              mul     ab
+
+        pop     addr            push    addr
+
+
+Two Operand Instructions 
+
+        add     a,#data         add     a,addr
+        add     a,r             add     a,@r
+        addc    a,#data         addc    a,addr
+        addc    a,r             addc    a,@r
+        subb    a,#data         subb    a,addr
+        subb    a,r             subb    a,@r
+        orl     a,#data         orl     a,addr
+        orl     a,r             orl     a,@r
+        orl     addr,a          orl     addr,#data
+        orl     c,bitnum        orl     c,/bitnum
+        anl     a,#data         anl     a,addr
+        anl     a,r             anl     a,@r
+        anl     addr,a          anl     addr,#data
+        anl     c,bitnum        anl     c,/bitnum
+        xrl     a,#data         xrl     a,addr
+        xrl     a,r             xrl     a,@r
+        xrl     addr,a          xrl     addr,#data
+        xrl     c,bitnum        xrl     c,/bitnum
+        xch     a,addr          xch     a,r
+        xch     a,@r            xchd    a,@r
+
+
+Call and Return Instructions 
+
+        acall   label           lcall   label
+        ret                     reti
+        in      data
+        out     data
+        rst     data
+
+
+Jump Instructions 
+
+        ajmp    label
+        cjne    a,#data,label   cjne    a,addr,label
+        cjne    r,#data,label   cjne    @r,#data,label
+        djnz    r,label         djnz    addr,label
+        jbc     bitnum,label
+        jb      bitnum,label    jnb     bitnum,label
+        jc      label           jnc     label
+        jz      label           jnz     label
+        jmp     @a+dptr
+        ljmp    label           sjmp    label
+
+
+Extended Instructions 
+
+        mac     ab      m  <-  m + (ax,a) * (bx,b)
+        asr     m       shift m right 1 bit arithmetically
+        lsl     m       shift m left 1 bit logically
+        clr     m       clear 40-bit register m
+
+        cjne  a,@r,rel  conditional branch if a != @r
+        jmp     @a+pc   pc  <-  pc + a
+
+        inc     /dptr   increment the alternate dptr
+
+        mov     /dptr,#data     load alternate dptr with data
+        movc    a,@a+/dptr      get code byte relative to
+                                alternate dptr
+        movx    a,@/dptr        mov from external with
+                                alternate dptr
+        movx    @/dptr,a        mov to external with
+                                alternate dptr
+
+        break           software break point
+
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+THE MACRO LIBRARY 
+
+   The Macro Library is a collection of macros to perform opera-
+tions involving the multiple address spaces of 8051 type proces-
+sors.   A  summary of the macro library is included here.  Refer
+to the file macros.asm for a complete description of  the  macro
+functions.  
+
+
+Macro Summary
+-----------------------------------------------------------
+
+Load                   | B/W | | Source |   | Destination |
+                       ------- ----------   ---------------
+.lb_r     (R)             B      IDATA         DATA/SFR
+.lbi_r    Indirect (R)    B     [IDATA]        DATA/SFR
+
+.lb_rx    (R)             B      XDATA         DATA/SFR
+.lbi_rx   Indirect (R)    B     [XDATA]        DATA/SFR
+
+.lb_x     (X)             B      XDATA         DATA/SFR
+.lbi_x    Indirect (X)    B     [XDATA]        DATA/SFR
+
+.lb_c     (C)             B      CODE          DATA/SFR
+
+-----------------------------------------------------------
+
+Store                  | B/W | | Source |   | Destination |
+                       ------- ----------   ---------------
+.sb_r     (R)             B     DATA/SFR      DATA/IDATA
+.sbi_r    Indirect (R)    B     DATA/SFR      DATA/IDATA
+
+.sb_rx    (R)             B     DATA/SFR        XDATA
+.sbi_rx   Indirect (R)    B     DATA/SFR        XDATA
+
+.sb_x     (X)             B     DATA/SFR        XDATA
+.sbi_x    Indirect (X)    B     DATA/SFR        XDATA
+
+-----------------------------------------------------------
+
+Inc / Dec / Cmp        | B/W | | Source |   | Destination |
+                       ------- ----------   ---------------
+.incb_rx  Increment (R)   B                     XDATA
+.incb_x   Increment (R)   B                     XDATA
+
+.decb_rx  Decrement (R)   B                     XDATA
+.decb_x   Decrament (R)   B                     XDATA
+
+.cmpb_rx  Compare (R)     B      XDATA          XDATA
+.cmpw_rx  Compare (R)     W      XDATA          XDATA
+
+-----------------------------------------------------------
+
+Move                   | B/W | | Source |   | Destination |
+                       ------- ----------   ---------------
+.mvb_rr   1-Byte (R)      B    DATA/IDATA     DATA/IDATA
+.mvw_rr   1-Word (R)      W    DATA/IDATA     DATA/IDATA
+
+.mvb_xx   1-Byte (X)      B      XDATA          XDATA
+.mvw_xx   1-Word (X)      W      XDATA          XDATA
+
+.mvb_rx   1-Byte (R)      B      XDATA          XDATA
+.mvw_rx   1-Word (R)      W      XDATA          XDATA
+
+.mvb_ix   1-Byte (R)      B    DATA/IDATA       XDATA
+.mvw_ix   1-Word (R)      W    DATA/IDATA       XDATA
+
+.mvb_xi   1-Byte (R)      B      XDATA        DATA/IDATA
+.mvw_xi   1-Word (R)      W      XDATA        DATA/IDATA
+
+-----------------------------------------------------------
+
+Decrement & Jump != 0  | B/W | | Source |   | Destination |
+                       ------- ----------   ---------------
+.djnz_rx  DJNZ != 0       B                     XDATA
+.djnz_x   DJNZ != 0       W                     XDATA
+
+-----------------------------------------------------------
+
+Load / Store DPTR      | B/W | | Source |   | Destination |
+                       ------- ----------   ---------------
+.ldptr                    W     DATA/SFR        DPTR
+.ldptr_r   (R)            W    DATA/IDATA       DPTR
+.ldptr_rx  (R)            W      XDATA          DPTR
+.ldptr_x   (X)            W      XDATA          DPTR
+
+.sdptr                    W      DPTR          DATA/SFR
+.sdptr_r   (R)            W      DPTR         DATA/IDATA
+.sdptr_rx  (R)            W      DPTR           XDATA
+.sdptr_x   (X)            W      DPTR           XDATA
+
+-----------------------------------------------------------
+
+Save and Restore Registers
+
+.pshreg   Push Registers dpl, dph, a, b,
+          r0, r1, r2, r3, r4, r5, r6, and r7 Onto The Stack
+.popreg   Pop Registers r7, r6, r5, r4, r3, r2, r1, r0,
+          b, a, dph, and dpl From The Stack
+
+----*****-----*****-----*****-----*****-----*****-----*****
+
+General Macro Argument Nomenclature
+
+dst$        - is a destination argumment
+src$        - is a source argument
+reg$        - is an optional argument
+              specifying R0 or R1
+ppa$        - is a dumby argument which enables
+              pushing and popping the a register
+ppr$        - is a dumby argument which enables
+              pushing and popping the r register
+ppx$        - is a dumby argument which enables
+              pushing and popping the dptr/rn register(s)
+
+----*****-----*****-----*****-----*****-----*****-----*****
+
+</PRE></B></H4>
+<H5><A HREF="asxdoc.htm#TOP"> Go to the Documentation Index</A></H5>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4>
+<P><A HREF="asxxxx.htm#JUMP">
+<IMG width=32 height=32 border=0 SRC="spcshp.gif" ALIGN=bottom></A>
+<B>...  Exit the ASxxxx Documentation</B></A></P>
+
+<P><A href="../home.htm">
+<IMG width=32 height=32 border=0 SRC="home.gif" ALIGN=bottom></A>
+<B>...  Home Page</B></P>
+</H4>
+
+<H6><P><B>Last Updated: September 2023</B></P></H6>
+</BODY> 
+</HTML>

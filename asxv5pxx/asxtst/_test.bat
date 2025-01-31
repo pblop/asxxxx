@@ -32,13 +32,13 @@ REM
 :2BHI
 if %2.==. goto 2BHIASCHECK
 del out.lst
-%2.exe -glxff out asmt2bhi.asm
+%2.exe -glxff -o+ out asmt2bhi.asm
 asxscn.exe out.lst
 goto EXIT
 
 :2BHIASCHECK
 del out.lst
-ascheck.exe -glxuff out hilo.asm a16bit.asm asmt2bhi.asm
+ascheck.exe -glxuff -o+ out hilo.asm a16bit.asm asmt2bhi.asm
 asxscn.exe out.lst
 goto EXIT
 
@@ -48,13 +48,13 @@ REM
 :2BLO
 if %2.==. goto 2BLOASCHECK
 del out.lst
-%2.exe -glxff out asmt2blo.asm
+%2.exe -glxff -o+ out asmt2blo.asm
 asxscn.exe out.lst
 goto EXIT
 
 :2BLOASCHECK
 del out.lst
-ascheck.exe -glxuff out lohi.asm a16bit.asm asmt2blo.asm
+ascheck.exe -glxuff -o+ out lohi.asm a16bit.asm asmt2blo.asm
 asxscn.exe out.lst
 goto EXIT
 
@@ -64,13 +64,13 @@ REM
 :3BHI
 if %2.==. goto 3BHIASCHECK
 del out.lst
-%2.exe -glxff out asmt3bhi.asm
+%2.exe -glxff -o+ out asmt3bhi.asm
 asxscn.exe -3 out.lst
 goto EXIT
 
 :3BHIASCHECK
 del out.lst
-ascheck.exe -glxuff out hilo.asm a24bit.asm asmt3bhi.asm
+ascheck.exe -glxuff -o+ out hilo.asm a24bit.asm asmt3bhi.asm
 asxscn.exe -3 out.lst
 goto EXIT
 
@@ -80,13 +80,13 @@ REM
 :3BLO
 if %2.==. goto 3BLOASCHECK
 del out.lst
-%2.exe -glxff out asmt3blo.asm
+%2.exe -glxff -o+ out asmt3blo.asm
 asxscn.exe -3 out.lst
 goto EXIT
 
 :3BLOASCHECK
 del out.lst
-ascheck.exe -glxuff out lohi.asm a24bit.asm asmt3blo.asm
+ascheck.exe -glxuff -o+ out lohi.asm a24bit.asm asmt3blo.asm
 asxscn.exe -3 out.lst
 goto EXIT
 
@@ -96,13 +96,13 @@ REM
 :4BHI
 if %2.==. goto 4BHIASCHECK
 del out.lst
-%2.exe -glxff out asmt4bhi.asm
+%2.exe -glxff -o+ out asmt4bhi.asm
 asxscn.exe -4 out.lst
 goto EXIT
 
 :4BHIASCHECK
 del out.lst
-ascheck.exe -glxuff out hilo.asm a32bit.asm asmt4bhi.asm
+ascheck.exe -glxuff -o+ out hilo.asm a32bit.asm asmt4bhi.asm
 asxscn.exe -4 out.lst
 goto EXIT
 
@@ -112,13 +112,13 @@ REM
 :4BLO
 if %2.==. goto 4BLOASCHECK
 del out.lst
-%2.exe -glxff out asmt4blo.asm
+%2.exe -glxff -o+ out asmt4blo.asm
 asxscn.exe -4 out.lst
 goto EXIT
 
 :4BLOASCHECK
 del out.lst
-ascheck.exe -glxuff out lohi.asm a32bit.asm asmt4blo.asm
+ascheck.exe -glxuff -o+ out lohi.asm a32bit.asm asmt4blo.asm
 asxscn.exe -4 out.lst
 goto EXIT
 

@@ -164,7 +164,8 @@ char *argv[];
 		}
 	}
 	if (!inpfil) {
-		usage(0);
+		usage();
+		asexit(ER_WARNING);
 	}
 
 	/*
@@ -677,9 +678,7 @@ char *usetxt[] = {
 	NULL
 };
 
-/*)Function	VOID	usage(n)
- *
- *		int	n		exit code
+/*)Function	VOID	usage()
  *
  *	The function usage() outputs to the stderr device the
  *	program name and version and a list of valid options.
@@ -693,7 +692,6 @@ char *usetxt[] = {
  *		char *	usetxt[]	array of string pointers
  *
  *	functions called:
- *		VOID	asexit()	s19os9.c
  *		int	fprintf()	c_library
  *
  *	side effects:
@@ -701,13 +699,12 @@ char *usetxt[] = {
  */
 
 VOID
-usage(n)
-int n;
+usage()
 {
 	char   **dp;
 
 	fprintf(stderr, "\nASxxxx S19 to OS9 Binary Module Translator %s\n\n", VERSION);
-	for (dp = usetxt; *dp; dp++)
+	for (dp = usetxt; *dp; dp++) {
 		fprintf(stderr, "%s\n", *dp);
-	asexit(n);
+	}
 }

@@ -1,7 +1,7 @@
 /* lkbank.c */
 
 /*
- *  Copyright (C) 2001-2014  Alan R. Baldwin
+ *  Copyright (C) 2001-2022  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -66,6 +66,7 @@
  *		head	*hp		Pointer to the current
  *				 	head structure
  *		int	lkerr		error flag
+ *		a_uint	a_mask		masking value
  *
  *	functions called:
  *		a_uint	eval()		lkeval.c
@@ -107,7 +108,7 @@ newbank()
 	struct bank **hblp;
 
 	if (headp == NULL) {
-		fprintf(stderr, "No header defined\n");
+		fprintf(stderr, "?ASlink-Error-No header defined\n");
 		lkexit(ER_FATAL);
 	}
 	/*
@@ -124,12 +125,12 @@ newbank()
 		 * Evaluate base address
 		 */
 		if (symeq("base", id, 1)) {
-			v = eval();
+			v = eval() & a_mask;
 			if (bp->b_base == 0) {
 				bp->b_base = v;
 			} else {
 				if (v && (bp->b_base != v)) {
-					fprintf(stderr, "Conflicting address in bank %s\n", id);
+					fprintf(stderr, "?ASlink-Error-Conflicting address in bank %s\n", id);
 					lkerr++;
 				}
 			}
@@ -138,12 +139,12 @@ newbank()
 		 * Evaluate bank size
 		 */
 		if (symeq("size", id, 1)) {
-			v = eval();
+			v = eval() & a_mask;
 			if (bp->b_size == 0) {
 				bp->b_size = v;
 			} else {
 				if (v && (bp->b_size != v)) {
-					fprintf(stderr, "Conflicting size in bank %s\n", id);
+					fprintf(stderr, "?ASlink-Error-Conflicting size in bank %s\n", id);
 					lkerr++;
 				}
 			}
@@ -152,12 +153,12 @@ newbank()
 		 * Evaluate bank mapping
 		 */
 		if (symeq("map", id, 1)) {
-			v = eval();
+			v = eval() & a_mask;
 			if (bp->b_map == 0) {
 				bp->b_map = v;
 			} else {
 				if (v && (bp->b_map != v)) {
-					fprintf(stderr, "Conflicting mapping in bank %s\n", id);
+					fprintf(stderr, "?ASlink-Error-Conflicting mapping in bank %s\n", id);
 					lkerr++;
 				}
 			}
@@ -166,12 +167,12 @@ newbank()
 		 * Evaluate flags
 		 */
 		if (symeq("flags", id, 1)) {
-			i = (int) eval();
+			i = (int) (eval() & a_mask);
 			if (bp->b_flag == 0) {
 				bp->b_flag = i;
 			} else {
 				if (i && (bp->b_flag != i)) {
-					fprintf(stderr, "Conflicting flags in bank %s\n", id);
+					fprintf(stderr, "?ASlink-Error-Conflicting flags in bank %s\n", id);
 					lkerr++;
 				}
 			}
@@ -186,7 +187,7 @@ newbank()
 					bp->b_fsfx = strsto(id);
 				} else {
 					if (!symeq(bp->b_fsfx, id, 1)) {
-						fprintf(stderr, "Conflicting fsfx in bank %s\n", id);
+						fprintf(stderr, "?ASlink-Error-Conflicting fsfx in bank %s\n", id);
 						lkerr++;
 					}
 				}
@@ -204,7 +205,7 @@ newbank()
 			return;
 		}
 	}
-	fprintf(stderr, "Header bank list overflow\n");
+	fprintf(stderr, "?ASlink-Error-Header bank list overflow\n");
 	lkexit(ER_FATAL);
 }
 
@@ -218,16 +219,16 @@ newbank()
  *	i86 format output is set.
  *
  *	local variables:
- *		area *	tbp		pointer to a bank structure
+ *		bank *	tbp		pointer to a bank structure
  *
  *	global variables:
  *		bank	*bp		Pointer to the current
  *				 	bank structure
- *		bank	*bankp		The pointer to the first
+ *		bank	*bankp		Pointer to the first
  *				 	bank structure of a linked list
  *
  *	functions called:
- *		VOID *	new()		lksym()
+ *		VOID *	new()		lksym.c
  *		char *	strsto()	lksym.c
  *		int	symeq()		lksym.c
  *
@@ -262,36 +263,55 @@ char *id;
 
 /*)Function	VOID	setbank()
  *
- *	The function setbank() sets the base address of the bank by
- *	finding the the first area in the bank and initializing the
- *	value to the bank base address.  The bank base address is always
- *	specified in 'byte' addressing.  A first area which is not 'byte'
- *	addressed (e.g. a processor addressed by a 'word' of 2 or more bytes)
- *	has the base address scaled to begin at the 'byte' address.
+ *	The function setbank() performs four functions:
  *
- *	If the area base address has been set using the -b linker
- *	option then the bank base address is NOT set.
+ *	    1)	Overrides the bank base address (if any)
+ *		when the -b linker option is used
  *
- *	The function setbank() also scans all the areas searching
- *	for non-banked entries.  All non-banked areas are linked
- *	to bank[0] which does not have a bank file suffix.
+ *	    2)  Copies the bank base address into the
+ *		area base address of the first relocatable
+ *		area not having a -a linker option
+ *
+ *	    3)  Copies the bank base address into the
+ *		area base address of all abasolute
+ *		areas not having a -a linker option
+ *
+ *	    4)	All non-banked areas are linked to bank[0]
+ *		(which does not have a bank file suffix)
+ *
+ *	The bank base address is always	specified in 'byte'
+ *	addressing.  A first area which is not 'byte'
+ *	addressed (e.g. a processor addressed by a 'word'
+ *	of 2 or more bytes) has the base address scaled to
+ *	begin at the 'byte' address.
  *
  *	local variables:
+ *		a_uint	v		-b option bank base address
+ *		char	id[NCPS]	-b option bank name string
  *		a_uint	base		base address in 'bytes'
  *		int	bytes		size of PC increment in bytes
+ *		int	addrset		relocatable area base address set
  *
  *	global variables:
  *		area	*ap		Pointer to the current
  *				 	area structure
- *		area	*areap		The pointer to the first
+ *		area	*areap		Pointer to the first
  *				 	area structure of a linked list
  *		bank	*bp		Pointer to the current
  *				 	bank structure
- *		bank	*bankp		The pointer to the first
+ *		bank	*bankp		Pointer to the first
  *				 	bank structure of a linked list
+ *		base	*bsp		Pointer to the current
+ *					-b option structure
+ *		base	*b_basep	Pointer to the first
+ *					-b option structure of a linked list
+ *		a_uint	a_mask		machine size value mask
+ *					
  *
  *	functions called:
- *		none
+ *		expr()			lkeval.c
+ *		fprintf()		c_library
+ *		getid()			lklex.c
  *
  *	side effects:
  *		Base starting address may be set and non-banked
@@ -301,34 +321,72 @@ char *id;
 VOID
 setbank()
 {
+	a_uint v;
+	char id[NCPS];
 	a_uint base;
 	int bytes;
+	int addrset;
+
+	/*
+	 * -b bank address options override any
+	 * assembler defined bank base addresses.
+	 */
+	b_bsp = b_basep;
+	while (b_bsp) {
+		ip = b_bsp->strp;
+		getid(id, -1);
+		if (getnb() == '=') {
+			v = expr(0) & a_mask;
+			for (bp = bankp; bp != NULL; bp = bp->b_bp) {
+				if (symeq(id, bp->b_id, 1))
+					break;
+			}
+			if (bp == NULL) {
+				fprintf(stderr,	"?ASlink-Error-No definition of bank %s\n", id);
+				lkerr++;
+			} else {
+				bp->b_base = v;
+				bp->b_flag = B_BASE;
+			}
+		} else {
+			fprintf(stderr, "?ASlink-Error-No '=' in base expression");
+			lkerr++;
+		}
+		b_bsp = b_bsp->link;
+	}
 
 	/*
 	 * For each bank structure with a defined base address value
-	 * scan the area structures for the first relocatable area
-	 * in the bank and all absolute areas in the bank.
-	 * Load the base address value into the area address if the
-	 * bank base address has not been overridden by a -b option.
+	 *   1) Scan the area structures for all absolute areas in the bank.
+	 *	Load the bank base address value into the area base address(s).
+	 *   2) Scan the area structures for the first relocatable area
+	 *	in the bank that has not been overridden by a -a option.
+	 *	Load the bank base address value into that area base address.
 	 * The bank base address is always expressed in 'bytes'.
 	 */
 	for (bp = bankp; bp != NULL; bp = bp->b_bp) {
 		if ((bp->b_flag & B_BASE) == 0)
 			continue;
-		for (ap = areap; ap != NULL; ap = ap->a_ap) {
+		for (ap = areap, addrset = 0; ap != NULL; ap = ap->a_ap) {
 			if (ap->a_bp != bp)
 				continue;
 			if ((ap->a_flag & A4_BNK) != A4_BNK)
 				continue;
-			if (ap->a_bset)
+			if (ap->a_bset) {
+				fprintf(stderr,
+				"?ASlink-Warning-Area[%s] with '-a' option in Bank[%s]\n", ap->a_id, bp->b_id);
 				continue;
+			}
 			bytes = 1 + (ap->a_flag & A4_WLMSK);
 			base = bp->b_base;
-			ap->a_addr = (base/bytes) + ((base % bytes) ? 1 : 0);
-			ap->a_bset = 1;
 			if ((ap->a_flag & A4_ABS) == A4_ABS) {
-				continue;
-			} else {
+				ap->a_addr = (base/bytes) + ((base % bytes) ? 1 : 0);
+				ap->a_bset = 1;
+			} else
+			if (addrset == 0) {
+				ap->a_addr = (base/bytes) + ((base % bytes) ? 1 : 0);
+				ap->a_bset = 1;
+				addrset = 1;
 				break;
 			}
 		}
@@ -359,7 +417,7 @@ setbank()
  *	local variables:
  *		a_uint	alow		lowest  address in a bank
  *		a_uint	ahigh		highest address in a bank
- *		a_uint	blimit		bank size limit
+ *		a_uint	addr		address value
  *
  *	global variables:
  *		area	*ap		Pointer to the current
@@ -372,9 +430,10 @@ setbank()
  *				 	bank structure of a linked list
  *
  *	functions called:
- *		none
+ *		fprintf()		c_library
  *
  *	side effects:
+ *		Area addresses may be flagged
  *		Bank size may be flagged.
  */
 
@@ -382,16 +441,9 @@ VOID
 chkbank(fp)
 FILE *fp;
 {
-	a_uint alow, ahigh, blimit, bytes;
+	a_uint alow, ahigh, addr;
 
 	for (bp = bankp; bp != NULL; bp = bp->b_bp) {
-		if ((bp->b_flag & B_SIZE) == 0) {
-			continue;
-		}
-		blimit = bp->b_size;
-		if (blimit == 0) {
-			continue;
-		}
 		alow = ~0;
 		ahigh = 0;
 		for (ap = areap; ap != NULL; ap = ap->a_ap) {
@@ -401,19 +453,35 @@ FILE *fp;
 			if ((ap->a_flag & A4_BNK) != A4_BNK) {
 				continue;
 			}
-			bytes = ap->a_addr * (1 + (ap->a_flag & A4_WLMSK));
-			if (bytes < alow) {
-				alow = bytes;
+			addr = ap->a_addr * (1 + (ap->a_flag & A4_WLMSK));
+			if (addr < alow) {
+				alow = addr;
 			}
-			bytes = (ap->a_addr + ap->a_size) * (1 + (ap->a_flag & A4_WLMSK));
-			if (bytes > ahigh) {
-				ahigh = bytes;
+			if ((bp->b_flag & B_BASE) && bp->b_base) {
+				if (addr < bp->b_base) {
+					fprintf(fp,
+					"?ASlink-Error-Base Address of Area[%s] less than Bank[%s] Base Address\n", ap->a_id, bp->b_id);
+					lkerr++;
+				}
+			}
+			addr = (ap->a_addr + ap->a_size) * (1 + (ap->a_flag & A4_WLMSK));
+			if (addr > ahigh) {
+				ahigh = addr;
+			}
+			if ((bp->b_flag & B_SIZE) && bp->b_size) {
+				if ((alow != ~0) && (ahigh != 0) && (addr > (bp->b_base + bp->b_size))) {
+					fprintf(fp,
+					"?ASlink-Error-Addresses in Area[%s] overflow Bank[%s] region\n", ap->a_id, bp->b_id);
+					lkerr++;
+				}
 			}
 		}
-		if ((ahigh - alow) > blimit) {
-			fprintf(fp,
-			"\n?ASlink-Warning-Size limit exceeded in bank %s\n", bp->b_id);
-			lkerr++;
+		if ((bp->b_flag & B_SIZE) && bp->b_size) {
+			if ((alow != ~0) && (ahigh != 0) && ((ahigh - alow) > bp->b_size)) {
+				fprintf(fp,
+				"?ASlink-Error-Size limit exceeded in Bank[%s]\n", bp->b_id);
+				lkerr++;
+			}
 		}
 	}
 }
@@ -469,22 +537,35 @@ VOID
 lkfopen()
 {
 	int idx;
-	char * frmt;
 	char str[NCPS+NCPS];
 	struct bank *tbp;
 	struct sym *sp;
 	FILE * fp;
 
+	/*
+	 * If -O+ And No -i/-s/-t Then Default Output To Hex
+	 */
+	if ((outnam != NULL) || (outext != NULL)) {
+		if (oflag == 0) {
+			oflag = 1;
+		}
+	}
+
 	if (oflag == 0) return;
+
+	if (outnam != NULL) {
+		idx = strlen(outnam);
+		strcpy(str, outnam);
+	} else {
+		idx = linkp->f_idx + fndext(linkp->f_idp + linkp->f_idx);
+		strncpy(str, linkp->f_idp, idx);
+		str[idx] = 0;
+	}
 
 	/*
 	 * Scan bank structures preparing
 	 * the output file specifications.
 	 */
-	idx = linkp->f_idx + fndext(linkp->f_idp + linkp->f_idx);
-	strncpy(str, linkp->f_idp, idx);
-	str[idx] = 0;
-
 	for (bp = bankp; bp != NULL; bp = bp->b_bp) {
 		if (bp->b_flag & B_FSFX) {
 			strcpy(str + idx, bp->b_fsfx);
@@ -533,31 +614,27 @@ lkfopen()
 				 * Open output file
 				 */
 				if (oflag == 1) {
-					switch(a_bytes) {
-					default:
-					case 2: frmt = "ihx"; break;
-					case 3:
-					case 4: frmt = "i86"; break;
+					if (outext == NULL) {
+						outext = "hex";
 					}
-					fp = afile(bp->b_fspec, frmt, 1);
+					fp = afile(bp->b_fspec, outext, 1);
 				} else
 				if (oflag == 2) {
-					switch(a_bytes) {
-					default:
-					case 2: frmt = "s19"; break;
-					case 3: frmt = "s28"; break;
-					case 4: frmt = "s37"; break;
+					if (outext == NULL) {
+						switch(a_bytes) {
+						default:
+						case 2: outext = "s19"; break;
+						case 3: outext = "s28"; break;
+						case 4: outext = "s37"; break;
+						}
 					}
-					fp = afile(bp->b_fspec, frmt, 1);
+					fp = afile(bp->b_fspec, outext, 1);
 				} else
 				if (oflag == 3) {
-					switch(a_bytes) {
-					default:
-					case 2: frmt = "bin"; break;
-					case 3: frmt = "bi3"; break;
-					case 4: frmt = "bi4"; break;
+					if (outext == NULL) {
+						outext = "bin";
 					}
-					fp = afile(bp->b_fspec, frmt, 3);
+					fp = afile(bp->b_fspec, outext, 3);
 				}
 				if (fp != stderr) {
 					if (fp == NULL) {

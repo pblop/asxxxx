@@ -1,7 +1,7 @@
 /* s26mch.c */
 
 /*
- *  Copyright (C) 2005-2014  Alan R. Baldwin
+ *  Copyright (C) 2005-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,8 +34,8 @@ char	*dsft	= "asm";
 #define	OPCY_SDP	((char) (0xFF))
 #define	OPCY_ERR	((char) (0xFE))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	UN	((char) (OPCY_NONE | 0x00))
 
@@ -74,43 +74,19 @@ struct mne *mp;
 {
 	int op, c;
 	struct expr e1, e2;
-	struct area *espa;
-	char id[NCPS];
 	int t1, a1, v1;
 	int t2, a2, v2;
+
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
 
 	clrexpr(&e1);
 	clrexpr(&e2);
 	op = (int) mp->m_valu;
 	switch (mp->m_type) {
-
-	case S_SDP:
-		opcycles = OPCY_SDP;
-		espa = NULL;
-		if (more()) {
-			expr(&e1, 0);
-			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
-				if (e1.e_addr) {
-					err('b');
-				}
-			}
-			if ((c = getnb()) == ',') {
-				getid(id, -1);
-				espa = alookup(id);
-				if (espa == NULL) {
-					err('u');
-				}
-			} else {
-				unget(c);
-			}
-		}
-		if (espa) {
-			outdp(espa, &e1, 0);
-		} else {
-			outdp(dot.s_area, &e1, 0);
-		}
-		lmode = SLIST;
-		break;
 
 	case S_IO:
 		/*
@@ -123,7 +99,7 @@ struct mne *mp;
 		a1 = aindx;
 		outab(op | (0x03 & a1));
 		if (t1 != S_REG) {
-			aerr();
+			xerr('a', "Register R0, R1, R2, or R3 required.");
 		}
 		break;
 
@@ -139,24 +115,26 @@ struct mne *mp;
 		outab(op | (0x03 & a1));
 		outrb(&e2, 0);
 		if (t1 != S_REG) {
-			aerr();
+			xerr('a', "First argument must be a register.");
 		}
 		if (t2 != S_IMMED) {
-			aerr();
+			xerr('a', "Second argument must be a number, #___.");
 		}
 		break;
 
 	case S_TYP1:
 		/*
-		 * lodr	r,*DISP
-		 * strr	r,*DISP
-		 * addr	r,*DISP
-		 * subr	r,*DISP
-		 * andr	r,*DISP
-		 * iorr	r,*DISP
-		 * eorr	r,*DISP
-		 * comr	r,*DISP
-		 * cmpr	r,*DISP
+		 * MODES: r,ADDR or r,@ADDR or r,[ADDR]
+		 *
+		 * lodr	r,(@)ADDR
+		 * strr	r,(@)ADDR
+		 * addr	r,(@)ADDR
+		 * subr	r,(@)ADDR
+		 * andr	r,(@)ADDR
+		 * iorr	r,(@)ADDR
+		 * eorr	r,(@)ADDR
+		 * comr	r,(@)ADDR
+		 * cmpr	r,(@)ADDR
 		 */
 		t1 = addr(&e1);
 		a1 = aindx;
@@ -169,22 +147,21 @@ struct mne *mp;
 		}
 		expr(&e2, 0);
 		outab(op | (0x03 & a1));
-		if (mchpcr(&e2)) {
-			v2 = (int) (e2.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e2, &v2, 1)) {
 			if ((v2 < -64) || (v2 > 63)) {
-				aerr();
+				xerr('a', "Branching range exceeded.");
 			}
 			outab(a2 | (0x7F & v2));
 		} else {
-			outrbm(&e2, R_PCR | M_7BIT, a2);
+			outrbm(&e2, R_PCR | R_MBRS | M_7BIT, a2);
 		}
 		if (c == '[') {
 			if (getnb() != ']') {
-				aerr();
+				xerr('q', "Missing ']'.");
 			}
 		}
 		if (t1 != S_REG) {
-			aerr();
+			xerr('a', "First argument must be a register.");
 		}
 		if (e2.e_mode != S_USER) {
 			rerr();
@@ -193,15 +170,18 @@ struct mne *mp;
 
 	case S_TYP2:
 		/*
-		 * loda	r,*ADDR(X)
-		 * stra	r,*ADDR(X)
-		 * adda	r,*ADDR(X)
-		 * suba	r,*ADDR(X)
-		 * anda	r,*ADDR(X)
-		 * iora	r,*ADDR(X)
-		 * eora	r,*ADDR(X)
-		 * coma	r,*ADDR(X)
-		 * cmpa	r,*ADDR(X)
+		 * MODES: r,ADDR or r,@ADDR, or r,[ADDR]
+		 * MODES: r0,ADDR,X or r0,@ADDR,X or r0,[ADDR,X]
+		 *
+		 * loda	r,(@)ADDR(,X)
+		 * stra	r,(@)ADDR(,X)
+		 * adda	r,(@)ADDR(,X)
+		 * suba	r,(@)ADDR(,X)
+		 * anda	r,(@)ADDR(,X)
+		 * iora	r,(@)ADDR(,X)
+		 * eora	r,(@)ADDR(,X)
+		 * coma	r,(@)ADDR(,X)
+		 * cmpa	r,(@)ADDR(,X)
 		 */
 		t1 = addr(&e1);
 		a1 = aindx;
@@ -211,17 +191,17 @@ struct mne *mp;
 		if (t2 == S_INDX) {
 			outab(op | (0x03 & a2));
 			if ((0x03 & a1) != 0x00) {
-				aerr();
+				xerr('a', "Indexing requires R0 as first argument.");
 			}
 		} else {
 			outab(op | (0x03 & a1));
 		}
 		outrwm(&e2, M_13BIT, (0xE0 & a2) << 8);
 		if (t1 != S_REG) {
-			aerr();
+			xerr('a', "First argument must be a register.");
 		}
 		if ((t2 != S_EXT) && (t2 != S_INDX)) {
-			aerr();
+			xerr('a', "Second argument requires an address.");
 		}
 		break;
 
@@ -243,18 +223,21 @@ struct mne *mp;
 		t2 = addr(&e2);
 		outab(op | (0x03 & a1));
 		outrb(&e2, 0);
-		if ((t1 != S_REG) || (t2 != S_IMMED)) {
-			aerr();
+		if (t1 != S_REG) {
+			xerr('a', "First argument must be a register.");
+		}
+		if (t2 != S_IMMED) {
+			xerr('a', "Second argument must be a number, #___.");
 		}
 		break;
 
 	case S_TYP4:
 		/*
 		 * lodz	r	lodz r0		==>> iorz r0
-		 * strz	r
+		 * strz	r	strz r0		is illegal (NOP)
 		 * addz	r
 		 * subz	r
-		 * andz	r	andz r0		is illegal
+		 * andz	r	andz r0		is illegal (HALT)
 		 * iorz	r
 		 * eorz	r
 		 * comz	r
@@ -267,15 +250,18 @@ struct mne *mp;
 		a1 = aindx;
 		v1 = op | (0x03 & a1);
 		if (v1 == 0) {
-			outab(0x60);
+			outab(0x60);		/* iorz r0 */
 		} else {
 			outab(v1);
-			if (v1 == 0x40) {
-				err('o');
+			if (v1 == 0x40) {	/* andz r0 */
+				xerr('o', "ANDZ R0 is illegal (HALT).");
+			}
+			if (v1 == 0xC0) {	/* strz r0 */
+				xerr('o', "STRZ R0 is illegal (NOP).");
 			}
 		}
 		if (t1 != S_REG) {
-			aerr();
+			xerr('a', "First argument must be a register.");
 		}
 		break;
 
@@ -292,14 +278,16 @@ struct mne *mp;
 		outab(op);
 		outrb(&e1, 0);
 		if (t1 != S_IMMED) {
-			aerr();
+			xerr('a', "First argument must be a number, #___.");
 		}
 		break;
 
 	case S_BRAZ:
 		/*
-		 * zbrr	*DISP
-		 * zbsr	*DISP
+		 * MODES: ADDR or @ADDR or [ADDR]
+		 *
+		 * zbrr	(@)ADDR
+		 * zbsr	(@)ADDR
 		 */
 		a1 = 0;		/* Indirect Bit */
 		if (((c = getnb()) == '@') || (c == '[')) {
@@ -309,10 +297,9 @@ struct mne *mp;
 		}
 		expr(&e1, 0);
 		outab(op);
-		if (mchpcr(&e1)) {
-			v1 = (int) (e1.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e1, &v1, 1)) {
 			if ((v1 < -64) || (v1 > 63)) {
-				aerr();
+				xerr('a', "Branching range exceeded.");
 			}
 			outab(a1 | (0x7F & v1));
 		} else {
@@ -320,7 +307,7 @@ struct mne *mp;
 		}
 		if (c == '[') {
 			if (getnb() != ']') {
-				aerr();
+				xerr('q', "Missing ']'.");
 			}
 		}
 		if (e1.e_mode != S_USER) {
@@ -330,24 +317,28 @@ struct mne *mp;
 
 	case S_BRAE:
 		/*
-		 * bsxa	*BADD
-		 * bxa	*BADD
+		 * MODES: ADDR,R3 or @ADDR,R3 or [ADDR,R3]
+		 * bsxa	(@)ADDR,R3
+		 * bxa	(@)ADDR,R3
 		 */
 		t1 = addr(&e1);
 		a1 = aindx;
 		outab(op);
 		outrwm(&e1, M_15BIT | R_MBRO, (0x80 & a1) << 8);
-		if (t1 != S_EXT) {
-			aerr();
+		if (t1 != S_INDX) {
+			xerr('a', "Instruction requires indexing.");
+		}
+		if ((aindx & 0x63) != 0x63) {
+			xerr('a', "Index register must be R3.");
 		}
 		break;
 
 	case S_BRCR:
 		/*
-		 * bctr	#DATA2,*DISP
-		 * bcfr	#DATA2,*DISP	bcfr 3,*DISP	is illegal
-		 * bstr	#DATA2,*DISP
-		 * bsfr	#DATA2,*DISP	bsfr 3,*DISP	is illegal
+		 * bctr	.xx.,ADDR
+		 * bcfr	.xx.,ADDR	bcfr .un.,ADDR	is illegal
+		 * bstr	.xx.,ADDR
+		 * bsfr	.xx.,ADDR	bsfr .un.,ADDR	is illegal
 		 */
 		t1 = addr(&e1);
 		a1 = aindx;
@@ -365,7 +356,7 @@ struct mne *mp;
 		} else
 		if (is_abs(&e1)) {
 			if (e1.e_addr & ~0x03) {
-				aerr();
+				xerr('a', "First argument value must be 0, 1, 2, or 3.");
 			}
 			v1 = op | (0x03 & (int) e1.e_addr);
 			outab(v1);
@@ -373,25 +364,27 @@ struct mne *mp;
 			v1 = 0;
 			outrbm(&e1, M_2BIT | R_MBRO, op);
 		}
-		if (mchpcr(&e2)) {
-			v2 = (int) (e2.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e2, &v2, 1)) {
 			if ((v2 < -64) || (v2 > 63)) {
-				aerr();
+				xerr('a', "Branching range exceeded.");
 			}
 			outab(a2 | (0x7F & v2));
 		} else {
-			outrbm(&e2, R_PCR | M_7BIT, a2);
+			outrbm(&e2, R_PCR | R_MBRS | M_7BIT, a2);
 		}
 		if (c == '[') {
 			if (getnb() != ']') {
-				aerr();
+				xerr('a', "Missing ']'.");
 			}
 		}
-		if ((v1 == 0x9B) || (v1 == 0xBB)) {
-			err('o');
+		if (v1 == 0x9B) {	/* bcfr .un.,--- */
+			xerr('o', "BCFR .un.,--- is not allowed.");
+		}
+		if (v1 == 0xBB) {	/* bsfr .un.,--- */
+			xerr('o', "BSFR .un.,--- is not allowed.");
 		}
 		if ((t1 != S_CC) && (t1 != S_IMMED)) {
-			aerr();
+			xerr('a', "First argument value must be .eq., .gt., .lt. or .un.");
 		}
 		if (e2.e_mode != S_USER) {
 			rerr();
@@ -400,10 +393,10 @@ struct mne *mp;
 		
 	case S_BRCA:
 		/*
-		 * bcta	#DATA2,*BADD
-		 * bcfa	#DATA2,*BADD	bcfa 3,*BADD	is illegal
-		 * bsta	#DATA2,*BADD
-		 * bsfa	#DATA2,*BADD	bsfa 3,*BADD	is illegal
+		 * bcta	.xx.,ADDR
+		 * bcfa	.xx.,ADDR	bcfa .un.,ADDR	is illegal
+		 * bsta	.xx.,ADDR
+		 * bsfa	.xx.,ADDR	bsfa .un.,ADDR	is illegal
 		 */
 		t1 = addr(&e1);
 		a1 = aindx;
@@ -416,7 +409,7 @@ struct mne *mp;
 		} else
 		if (is_abs(&e1)) {
 			if (e1.e_addr & ~0x03) {
-				aerr();
+				xerr('a', "First argument value must be .eq., .gt., .lt. or .un.");
 			}
 			v1 = op | (0x03 & (int) e1.e_addr);
 			outab(v1);
@@ -424,24 +417,29 @@ struct mne *mp;
 			v1 = 0;
 			outrbm(&e1, M_2BIT | R_MBRO, op);
 		}
-		outrwm(&e2, M_15BIT | R_MBRO, (0x80 & a2) << 8);
-		if ((v1 == 0x9F) || (v1 == 0xBF)) {
-			err('o');
+		outrwm(&e2, M_15BIT | R_MBRO, (0x80 &a2) << 8);
+		if (v1 == 0x9F) {	/* bcfa .un.,--- */
+			xerr('o', "BCFA .un.,--- is not allowed.");
+		}
+		if (v1 == 0xBF) {	/* bsfa .un.,--- */
+			xerr('o', "BSFA .un.,--- is not allowed.");
 		}
 		if ((t1 != S_CC) && (t1 != S_IMMED)) {
-			aerr();
+			xerr('a', "First argument value must be .eq., .gt., .lt. or .un.");
 		}
 		if (t2 != S_EXT) {
-			aerr();
+			xerr('a', "Second argument requires an address.");
 		}
 		break;
 
 	case S_BRRR:
 		/*
-		 * birr	r,*DISP
-		 * bdrr	r,*DISP
-		 * brnr	r,*DISP
-		 * bsnr	r,*DISP
+		 * MODES: r,ADDR or r,@ADDR or r,[ADDR]
+		 *
+		 * birr	r,(@)ADDR
+		 * bdrr	r,(@)ADDR
+		 * brnr	r,(@)ADDR
+		 * bsnr	r,(@)ADDR
 		 */
 		t1 = addr(&e1);
 		a1 = aindx;
@@ -454,22 +452,21 @@ struct mne *mp;
 		}
 		expr(&e2, 0);
 		outab(op | (0x03 & a1));
-		if (mchpcr(&e2)) {
-			v2 = (int) (e2.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e2, &v2, 1)) {
 			if ((v2 < -64) || (v2 > 63)) {
-				aerr();
+				xerr('a', "Branching range exceeded.");
 			}
 			outab(a2 | (0x7F & v2));
 		} else {
-			outrbm(&e2, R_PCR | M_7BIT, a2);
+			outrbm(&e2, R_PCR | R_MBRS | M_7BIT, a2);
 		}
 		if (c == '[') {
 			if (getnb() != ']') {
-				aerr();
+				xerr('q', "Missing ']'.");
 			}
 		}
 		if (t1 != S_REG) {
-			aerr();
+			xerr('a', "First argument must be a register.");
 		}
 		if (e2.e_mode != S_USER) {
 			rerr();
@@ -478,10 +475,12 @@ struct mne *mp;
 
 	case S_BRRA:
 		/*
-		 * bira	r,*BADD
-		 * bdra	r,*BADD
-		 * brna	r,*BADD
-		 * bsna	r,*BADD
+		 * MODES: r,ADDR or r,@ADDR or r,[ADDR]
+		 *
+		 * bira	r,(@)ADDR
+		 * bdra	r,(@)ADDR
+		 * brna	r,(@)ADDR
+		 * bsna	r,(@)ADDR
 		 */
 		t1 = addr(&e1);
 		a1 = aindx;
@@ -491,17 +490,17 @@ struct mne *mp;
 		outab(op | (0x03 & a1));
 		outrwm(&e2, M_15BIT | R_MBRO, (0x80 & a2) << 8);
 		if (t1 != S_REG) {
-			aerr();
+			xerr('a', "First argument must be a register.");
 		}
 		if (t2 != S_EXT) {
-			aerr();
+			xerr('a', "Second argument requires an address.");
 		}
 		break;
 
 	case S_RET:
 		/*
-		 * retc	#DATA2
-		 * rete	#DATA2
+		 * retc	.xx.
+		 * rete	.xx.
 		 */
 		t1 = addr(&e1);
 		a1 = aindx;	
@@ -511,14 +510,14 @@ struct mne *mp;
 		if (is_abs(&e1)) {
 			v1 = (int) e1.e_addr;
 			if (v1 & ~0x03) {
-				aerr();
+				xerr('a', "First argument value must be .eq., .gt., .lt. or .un.");
 			}
 			outab(op | (0x03 & v1));
 		} else {
 			outrbm(&e1, M_2BIT | R_MBRO, op);
 		}
 		if ((t1 != S_IMMED) && (t1 != S_CC)) {
-			aerr();
+			xerr('a', "First argument value must be .eq., .gt., .lt. or .un.");
 		}
 		break;
 			
@@ -537,23 +536,46 @@ struct mne *mp;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 
 	if (opcycles == OPCY_NONE) {
 		opcycles = s26cyc[cb[0] & 0xFF];
 	}
+ 	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - n);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - n);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {

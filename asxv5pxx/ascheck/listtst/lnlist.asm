@@ -187,7 +187,6 @@
 	.sbttl	Error Override
 
 	.nlist
-	.list (err)
 
 	.error	1		;error code
 
@@ -201,28 +200,50 @@
 	; Define a Macro
 	.nlist	(md)
 	.macro	adda	I
+	  ; Nothing Listed
 	  .byte	0x10,I
 	.endm
 
-	.list	(md)
+	.list
 	.macro	addb	I
+	  ; Lists All Enabled
+	  .list	(me)
+	  ; B2
 	  .byte	0x20,I
 	.endm
 
-	; Normal Listing Mode Inhibits Listing of Macro Expansion and Binary
+	.list
+	.macro	addc	I
+	  ; Lists Location / Binary
+	  .list	(meb)
+	  ; C2
+	  .byte	0x30,I
+	.endm
+
+	.list
+	.macro	addd	I
+	  ; Lists Location / Binary and All Enabled
+	  .list	(mel)
+	  ; D2
+	  .byte	0x40,I
+	.endm
+
+	; Normal Listing Mode Inhibits Listing of Macro Expansion
 	adda	#1
 
-	; .list (meb) Lists Expansion Binary
-	.list	(meb)
-	adda	#2
-
 	; .list (me) Lists Enabled Fields of Macro Expansion
-	.list	(me)
-	addb	#3
+	addb	#2
+
+	; .list (meb) Lists Only Location/Binary of Macro Expansion
+	addc	#3
+
+	; .list (mel) Lists Location/Binary and Enabled Fields of Macro Expansion
+	addd	#4
+
 
 	; Error Override of Macro Listing Control
 	.list
-	addb	1-.		; Relocation error
+	adda	1-.		; Relocation error
 
 
 	.list

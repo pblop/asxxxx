@@ -1,7 +1,7 @@
 /* avrmch.c */
 
 /*
- *  Copyright (C) 2001-2014  Alan R. Baldwin
+ *  Copyright (C) 2001-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ static a_uint mchtyp;
 			AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 			ATmega603|ATmega103|ATmega161|ATmega163|
 			ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-		err('o');
+		xerr('o', "Unknown Machine Type.");
 	}
 #endif
 /* *****-----*****-----***** */
@@ -55,8 +55,8 @@ static a_uint mchtyp;
 #define	OPCY_SDP	((char) (0xFF))
 #define	OPCY_ERR	((char) (0xFE))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	OPCY_4K		((char) (0xFD))
 #define	OPCY_CPU	((char) (0xFC))
@@ -97,6 +97,12 @@ struct mne *mp;
 	int c, t, t1, v, v1;
 	a_uint op;
 	struct expr e, e1;
+
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
 
 	clrexpr(&e);
 	clrexpr(&e1);
@@ -142,9 +148,9 @@ struct mne *mp;
 		lmode = SLIST;
 		expr(&e, 0);
 		if (is_abs(&e)) {
-			avr_4k = (int) e.e_addr;
+			avr_4k = e.e_addr ? 1 : 0;
 		} else {
-			err('o');
+			xerr('a', "Required constant value: 0 or !0.");
 		}
 		break;
 
@@ -166,7 +172,7 @@ struct mne *mp;
 		if (op == 0x9409) {	/* ijmp */
 			if (mchtyp &   (AT90S1200|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-				err('o');
+				xerr('o', "IJMP not supported by this device.");
 			}
 		}
 #endif
@@ -177,7 +183,7 @@ struct mne *mp;
 					AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 					ATmega603|ATmega103|ATmega161|ATmega163|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-				err('o');
+				xerr('o', "EIJMP not supported by this device.");
 			}
 		}
 #endif
@@ -186,7 +192,7 @@ struct mne *mp;
 		if (op == 0x9509) {	/* icall */
 			if (mchtyp &   (AT90S1200|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-				err('o');
+				xerr('o', "ICALL not supported by this device.");
 			}
 		}
 #endif
@@ -197,7 +203,7 @@ struct mne *mp;
 					AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 					ATmega603|ATmega103|ATmega163|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-				err('o');
+				xerr('o', "EICALL not supported by this device.");
 			}
 		}
 #endif
@@ -206,7 +212,7 @@ struct mne *mp;
 		if (op == 0x9598) {	/* break */
 			if (mchtyp &   (AT90S1200|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-				err('o');
+				xerr('o', "BREAK not supported by this device.");
 			}
 		}
 #endif
@@ -217,7 +223,7 @@ struct mne *mp;
 					AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 					ATmega603|ATmega103|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-				err('o');
+				xerr('o', "SPM not supported by this device.");
 			}
 		}
 #endif
@@ -232,16 +238,22 @@ struct mne *mp;
 		 */
 		t = addr(&e);
 		if (!is_abs(&e) || (e.e_addr < 16) || (e.e_addr > 31)) {
-			aerr();
+			xerr('a', "First argument: R16 -> R31 or constant 16 -> 31.");
 		}
 		comma(1);
 		t1 = addr(&e1);
 		if (is_abs(&e1)) {
-			if (e1.e_addr > 255)
-				aerr();
+			if ((op == 0x4000) || (op == 0x5000)) {	/* sbci or subi */
+				v1 = (int) e1.e_addr;
+				if ((v1 < -128) || (v1 > 255))
+					xerr('a', "First argument value < -128 or > 255.");
+			} else {
+				if (e1.e_addr > 255)
+					xerr('a', "First argument has more than 8 Bits.");
+			}
 		} else
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be #__ or value.");
 		}
 		outrwm(&e1, M_IBYTE, op | ((e.e_addr & 0x0F) << 4));
 		break;
@@ -253,15 +265,15 @@ struct mne *mp;
 		 */
 		t = addr(&e);
 		if (!is_abs(&e) || (e.e_addr < 16) || (e.e_addr > 31)) {
-			aerr();
+			xerr('a', "First argument: R16 -> R31 or constant 16 -> 31.");
 		}
 		comma(1);
 		t1 = addr(&e1);
 		if (is_abs(&e1)) {
 			if (e1.e_addr > 255)
-				aerr();
+				xerr('a', "Second argument has more than 8 Bits.");
 		} else {
-			aerr();
+			xerr('a', "Second argument must be #__ or constant value.");
 		}
 		v1 = (int) (((~e1.e_addr & 0xF0) << 4) + (~e1.e_addr & 0xF));
 		outaw(op | ((e.e_addr & 0x0F) << 4) | v1);
@@ -272,7 +284,7 @@ struct mne *mp;
 #if OPCODE_ERRORS
 		if (mchtyp &   (AT90S1200|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-			err('o');
+			xerr('o', "ADIW and SBIW are not supported by this device.");
 		}
 #endif
 
@@ -281,17 +293,17 @@ struct mne *mp;
 		 * or any constant from 24 to 30.
 		 */
 		t = addr(&e);
-		if (!is_abs(&e) || ((e.e_addr & 0x19) != 0x18)) {
-			aerr();
+		if (!is_abs(&e) || (e.e_addr < 24) || (e.e_addr > 31) || (e.e_addr & 1)) {
+			xerr('a', "First argument: R24,R26,R28,R30 or constant 24,26,28,30.");
 		}
 		comma(1);
 		t1 = addr(&e1);
 		if (is_abs(&e1)) {
 			if (e1.e_addr > 63)
-				aerr();
+				xerr('a', "Second argument: 0 -> 63.");
 		} else
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be #__ or value.");
 		}
 		outrwm(&e1, R_MBRO | M_IWORD, op | ((e.e_addr & 0x06) << 3));
 		break;
@@ -302,7 +314,7 @@ struct mne *mp;
 		if ((op == 0x900F) || (op == 0x920F)) {		/* pop, push */
 			if (mchtyp &   (AT90S1200|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-				err('o');
+				xerr('o', "Not supported by this device.");
 			}
 		}
 #endif
@@ -312,8 +324,8 @@ struct mne *mp;
 		 * or any constant from 0 to 31.
 		 */
 		t = addr(&e);
-		if (!is_abs(&e) ||  (e.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e) || (e.e_addr > 31)) {
+			xerr('a', "Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		outaw(op | ((e.e_addr & 0x1F) << 4));
 		break;
@@ -324,8 +336,8 @@ struct mne *mp;
 		 * or any constant from 0 to 31.
 		 */
 		t = addr(&e);
-		if (!is_abs(&e) ||  (e.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e) || (e.e_addr > 31)) {
+			xerr('a', "Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		outaw(op | ((e.e_addr & 0x1F) << 4) | ((e.e_addr & 0x10) << 5) | (e.e_addr & 0x0F));
 		break;
@@ -336,13 +348,13 @@ struct mne *mp;
 		 * or any constant from 0 to 31.
 		 */
 		t = addr(&e);
-		if (!is_abs(&e) ||  (e.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e) || (e.e_addr > 31)) {
+			xerr('a', "First Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		comma(1);
 		t1 = addr(&e1);
-		if (!is_abs(&e1) ||  (e1.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e1) || (e1.e_addr > 31)) {
+			xerr('a', "Second Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		outaw(op | ((e.e_addr & 0x1F) << 4) | ((e1.e_addr & 0x10) << 5) | (e1.e_addr & 0x0F));
 		break;
@@ -353,7 +365,7 @@ struct mne *mp;
 		if (mchtyp &   (AT90S1200|AT90S2313|AT90S2343|AT90S2323|AT90S2333|AT90S4433|
 				AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-			err('o');
+			xerr('o', "MOVW Rd,Rs not supported by this device.");
 		}
 #endif
 
@@ -363,12 +375,12 @@ struct mne *mp;
 		 */
 		t = addr(&e);
 		if (!is_abs(&e) || (e.e_addr > 31) || (e.e_addr & 0x01)) {
-			aerr();
+			xerr('a', "First Argument: Even Registers R0 -> R30 or even constants 0 -> 30.");
 		}
 		comma(1);
 		t1 = addr(&e1);
 		if (!is_abs(&e1) || (e1.e_addr > 31) || (e1.e_addr & 0x01)) {
-			aerr();
+			xerr('a', "Second Argument: Even Registers R0 -> R30 or even constants 0 -> 30.");
 		}
 		outaw(op | (((e.e_addr >> 1) & 0x0F) << 4) | ((e1.e_addr >> 1) & 0x0F));
 		break;
@@ -383,7 +395,7 @@ struct mne *mp;
 				AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 				ATmega603|ATmega103|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-			err('o');
+			xerr('o', "MUL Rd,Rs not supported by this device.");
 		}
 #endif
 
@@ -392,13 +404,13 @@ struct mne *mp;
 		 * or any constant from 0 to 31.
 		 */
 		t = addr(&e);
-		if (!is_abs(&e) ||  (e.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e) || (e.e_addr > 31)) {
+			xerr('a', "First Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		comma(1);
 		t1 = addr(&e1);
-		if (!is_abs(&e1) ||  (e1.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e1) || (e1.e_addr > 31)) {
+			xerr('a', "Second Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		outaw(op | ((e.e_addr & 0x1F) << 4) | ((e1.e_addr & 0x10) << 5) | (e1.e_addr & 0x0F));
 		break;
@@ -413,7 +425,7 @@ struct mne *mp;
 				AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 				ATmega603|ATmega103|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-			err('o');
+			xerr('o', "MULS Rd,Rr not supported by this device.");
 		}
 #endif
 
@@ -423,12 +435,12 @@ struct mne *mp;
 		 */
 		t = addr(&e);
 		if (!is_abs(&e) || (e.e_addr < 16) || (e.e_addr > 31)) {
-			aerr();
+			xerr('a', "First Argument: R16 -> R31 or constant 16 -> 31.");
 		}
 		comma(1);
 		t1 = addr(&e1);
 		if (!is_abs(&e1) || (e1.e_addr < 16) || (e1.e_addr > 31)) {
-			aerr();
+			xerr('a', "Second Argument: R16 -> R31 or constant 16 -> 31.");
 		}
 		outaw(op | ((e.e_addr & 0x0F) << 4) | (e1.e_addr & 0x0F));
 		break;
@@ -446,7 +458,7 @@ struct mne *mp;
 				AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 				ATmega603|ATmega103|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-			err('o');
+			xerr('o', "FMUL Rd,Rr not supported by this device.");
 		}
 #endif
 
@@ -456,12 +468,12 @@ struct mne *mp;
 		 */
 		t = addr(&e);
 		if (!is_abs(&e) || (e.e_addr < 16) || (e.e_addr > 23)) {
-			aerr();
+			xerr('a', "First Argument: R16 -> R23 or constant 16 -> 23.");
 		}
 		comma(1);
 		t1 = addr(&e1);
 		if (!is_abs(&e1) || (e1.e_addr < 16) || (e1.e_addr > 23)) {
-			aerr();
+			xerr('a', "Second Argument: R16 -> R23 or constant 16 -> 23.");
 		}
 		outaw(op | ((e.e_addr & 0x07) << 4) | (e1.e_addr & 0x07));
 		break;
@@ -473,16 +485,16 @@ struct mne *mp;
 		 */
 		t = addr(&e);
 		if (!is_abs(&e) || (e.e_addr < 16) || (e.e_addr > 31)) {
-			aerr();
+			xerr('a', "Argument: R16 -> R31 or constant 16 -> 31.");
 		}
 		outaw(op | ((e.e_addr & 0xF) << 4));
 		break;
 
 	case S_SREG:	/* Bit Number  /  b <= 7 */
 		t = addr(&e);
-		abscheck(&e);
-		if (e.e_addr > 7)
-			aerr();
+		if (!is_abs(&e) || (e.e_addr > 7)) {
+			xerr('a', "Valid bit number: 0 -> 7."); 
+		}
 		outaw(op | ((e.e_addr & 0x07) << 4));
 		break;
 
@@ -493,24 +505,22 @@ struct mne *mp;
 		 * or any constant from 0 to 31.
 		 */
 		t = addr(&e);
-		if (!is_abs(&e) ||  (e.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e) || (e.e_addr > 31)) {
+			xerr('a', "First Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		comma(1);
 		expr(&e1, 0);
-		abscheck(&e1);
-		if (e1.e_addr > 7)
-			aerr();
+		if (!is_abs(&e1) || e1.e_addr > 7)
+			xerr('a', "Valid bit number: 0 -> 7."); 
 		outaw(op | ((e.e_addr & 0x1F) << 4) | (e1.e_addr & 7));
 		break;
 
 	case S_BRA:	/* BR__  label */
 		/* Relative branch */
 		expr(&e, 0);
-		if (mchpcr(&e)) {
-			v = (int) (e.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e, &v, 1)) {
 			if ((v < -64) || (v > 63))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outaw(op | ((v & 0x7F) << 3));
 		} else {
 			outrwm(&e, R_PCR | M_BRA, op);
@@ -522,15 +532,13 @@ struct mne *mp;
 	case S_SBRA:	/* BR__  b,label  /  b <= 7 */
 		/* Relative branch */
 		expr(&e, 0);
-		abscheck(&e);
-		if (e.e_addr > 7)
-			aerr();
+		if (!is_abs(&e1) || e1.e_addr > 7)
+			xerr('a', "Valid bit number: 0 -> 7."); 
 		comma(1);
 		expr(&e1, 0);
-		if (mchpcr(&e1)) {
-			v = (int) (e1.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e1, &v, 1)) {
 			if ((v < -64) || (v > 63))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outaw(op | ((v & 0x7F) << 3) | (e.e_addr & 0x07));
 		} else {
 			outrwm(&e1, R_PCR | M_BRA, op | (e.e_addr & 0x07));
@@ -545,12 +553,12 @@ struct mne *mp;
 		if (mchtyp &   (AT90S1200|AT90S2313|AT90S2343|AT90S2323|AT90S2333|AT90S4433|
 				AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-			err('o');
+			xerr('o', "JMP not supported by this device.");
 		}
 #endif
 
 		if (a_bytes != 4) {
-			aerr();
+			xerr('a', "Allowed only on a 32-Bit cpu.");
 		}
 		expr(&e, 0);
 		outr4bm(&e, R_MBRO | M_JMP, op);
@@ -558,11 +566,10 @@ struct mne *mp;
 
 	case S_RJMP:	/* label */
 		expr(&e, 0);
-		if (mchpcr(&e)) {
-			v = (int) (e.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e, &v, 1)) {
 			if (avr_4k == 0)
 				if ((v < -2048) || (v > 2047))
-					aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outaw(op | (v & 0x0FFF));
 		} else {
 			outrwm(&e, (avr_4k ? R_PCRN : R_PCR) | M_RJMP, op);
@@ -576,16 +583,15 @@ struct mne *mp;
 		t = addr(&e);
 		if (is_abs(&e)) {
 			if (e.e_addr > 31)
-				aerr();
+				xerr('a', "Valid Port Values: 0 -> 31.");
 		} else
 		if ((t != S_IMMED) && (t != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be #__ or value.");
 		}
 		comma(1);
 		expr(&e1, 0);
-		abscheck(&e1);
-		if (e1.e_addr > 7)
-			aerr();
+		if (!is_abs(&e1) || e1.e_addr > 7)
+			xerr('a', "Valid bit number: 0 -> 7."); 
 		outrwm(&e, R_MBRO | M_IOR, op | (e1.e_addr & 7));
 		break;
 
@@ -595,17 +601,17 @@ struct mne *mp;
 		 * or any constant from 0 to 31.
 		 */
 		t = addr(&e);
-		if (!is_abs(&e) ||  (e.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e) || (e.e_addr > 31)) {
+			xerr('a', "First Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		comma(1);
 		t1 = addr(&e1);
 		if (is_abs(&e1)) {
 			if (e1.e_addr > 63)
-				aerr();
+				xerr('a', "Second argument: 0 -> 63.");
 		} else
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be #__ or value.");
 		}
 		outrwm(&e1, R_MBRO | M_IOP, op | ((e.e_addr & 0x1F) << 4));
 		break;
@@ -614,10 +620,10 @@ struct mne *mp;
 		t = addr(&e);
 		if (is_abs(&e)) {
 			if (e.e_addr > 63)
-				aerr();
+				xerr('a', "First argument: 0 -> 63.");
 		} else
 		if ((t != S_IMMED) && (t != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be #__ or value.");
 		}
 		comma(1);
 		/*
@@ -625,8 +631,8 @@ struct mne *mp;
 		 * or any constant from 0 to 31.
 		 */
 		t1 = addr(&e1);
-		if (!is_abs(&e1) ||  (e1.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e1) || (e1.e_addr > 31)) {
+			xerr('a', "Second Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		outrwm(&e, R_MBRO | M_IOP, op | ((e1.e_addr & 0x1F) << 4));
 		break;
@@ -638,18 +644,18 @@ struct mne *mp;
 		 */
 		t = addr(&e);
 		if (!is_abs(&e) || (e.e_addr > 31)) {
-			aerr();
+			xerr('a', "First Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		comma(1);
 		t1 = addr(&e1);
 		if (t1 != S_IND)
-			aerr();
+			xerr('a', "Second argument must be X, -X, or X+.");
 
 #if OPCODE_ERRORS
 		if (e1.e_addr) {	/* != Rd,Z */
 			if (mchtyp &   (AT90S1200|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-				err('o');
+				xerr('o', "LD not supported by this device.");
 			}
 		}
 #endif
@@ -660,13 +666,13 @@ struct mne *mp;
 	case S_ST:	/* X,Rd */
 		t = addr(&e);
 		if (t != S_IND)
-			aerr();
+			xerr('a', "First argument must be X, -X, or X+.");
 
 #if OPCODE_ERRORS
 		if (e.e_addr) {		/* != Rd,Z */
 			if (mchtyp &   (AT90S1200|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-				err('o');
+				xerr('o', "ST not supported by this device.");
 			}
 		}
 #endif
@@ -678,7 +684,7 @@ struct mne *mp;
 		 */
 		t1 = addr(&e1);
 		if (!is_abs(&e1) || (e1.e_addr > 31)) {
-			aerr();
+			xerr('a', "Second Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		outaw(op | e.e_addr | ((e1.e_addr & 0x1F) << 4));
 		break;
@@ -688,7 +694,7 @@ struct mne *mp;
 #if OPCODE_ERRORS
 		if (mchtyp &   (AT90S1200|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-			err('o');
+				xerr('o', "LDD not supported by this device.");
 		}
 #endif
 
@@ -698,24 +704,24 @@ struct mne *mp;
 		 */
 		t = addr(&e);
 		if (!is_abs(&e) || (e.e_addr > 31)) {
-			aerr();
+			xerr('a', "First Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		comma(1);
 		c = getnb();
 		if (getnb() != '+')
-			qerr();
+			xerr('q', "Missing '+' following index register.");
 		t1 = addr(&e1);
 		if (is_abs(&e1)) {
 			if (e1.e_addr > 63)
-				aerr();
+				xerr('a', "Second argument: 0 -> 63.");
 		} else
 		if ((t1 != S_IMMED) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "Second argument must be #__ or value.");
 		}
 		switch(ccase[c & 0x7F]) {
 		default:
 		case 'x':
-			aerr();
+			xerr('a', "LDD Rd,X or LDD Rd,X+n are not supported.");
 			outaw(0);
 			break;
 		case 'y':
@@ -731,20 +737,19 @@ struct mne *mp;
 #if OPCODE_ERRORS
 		if (mchtyp &   (AT90S1200|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-			err('o');
+				xerr('o', "STD not supported by this device.");
 		}
 #endif
 
 		c = getnb();
 		if (getnb() != '+')
-			qerr();
+			xerr('q', "Missing '+' following index register.");
 		t = addr(&e);
-		if (is_abs(&e)) {
-			if (e.e_addr > 63)
-				aerr();
+		if (!is_abs(&e) || (e.e_addr > 63)) {
+				xerr('a', "First argument: 0 -> 63.");
 		} else
 		if ((t != S_IMMED) && (t != S_EXT)) {
-			aerr();
+			xerr('a', "First argument must be #__ or value.");
 		}
 		comma(1);
 		/*
@@ -752,13 +757,13 @@ struct mne *mp;
 		 * or any constant from 0 to 31.
 		 */
 		t1 = addr(&e1);
-		if (!is_abs(&e1) ||  (e1.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e1) || (e1.e_addr > 31)) {
+			xerr('a', "Second argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		switch(ccase[c & 0x7F]) {
 		default:
 		case 'x':
-			aerr();
+			xerr('a', "STD Rd,X or STD Rd,X+n are not supported.");
 			outaw(0);
 			break;
 		case 'y':
@@ -774,7 +779,7 @@ struct mne *mp;
 #if OPCODE_ERRORS
 		if (mchtyp &   (AT90S1200|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-			err('o');
+			xerr('o', "LDS not supported by this device.");
 		}
 #endif
 
@@ -783,13 +788,13 @@ struct mne *mp;
 		 * or any constant from 0 to 31.
 		 */
 		t = addr(&e);
-		if (!is_abs(&e) ||  (e.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e) || (e.e_addr > 31)) {
+			xerr('a', "First Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		comma(1);
 		t1 = addr(&e1);
 		if (t1 != S_EXT)
-			aerr();
+			xerr('a', "Second argument must be an address.");
 		outaw(op | ((e.e_addr & 0x1F) << 4));
 		outrw(&e1, R_NORM);
 		break;
@@ -799,21 +804,21 @@ struct mne *mp;
 #if OPCODE_ERRORS
 		if (mchtyp &   (AT90S1200|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny28)	) {
-			err('o');
+			xerr('o', "STS not supported by this device.");
 		}
 #endif
 
 		t = addr(&e);
 		if (t != S_EXT)
-			aerr();
+			xerr('a', "First argument must be an address.");
 		comma(1);
 		/*
 		 * The addressing mode can be S_REG
 		 * or any constant from 0 to 31.
 		 */
 		t1 = addr(&e1);
-		if (!is_abs(&e1) ||  (e1.e_addr > 31)) {
-			aerr();
+		if (!is_abs(&e1) || (e1.e_addr > 31)) {
+			xerr('a', "Second Argument: R0 -> R31 or constant 0 -> 31.");
 		}
 		outaw(op | ((e1.e_addr & 0x1F) << 4));
 		outrw(&e, R_NORM);
@@ -826,7 +831,7 @@ struct mne *mp;
 			if (mchtyp &   (AT90S1200|AT90S2313|AT90S2343|AT90S2323|AT90S2333|AT90S4433|
 					AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-				err('o');
+			xerr('o', "LPM not supported by this device.");
 			}
 #endif
 
@@ -835,13 +840,13 @@ struct mne *mp;
 			 * or any constant from 0 to 31.
 			 */
 			t = addr(&e);
-			if (!is_abs(&e) ||  (e.e_addr > 31)) {
-				aerr();
+			if (!is_abs(&e) || (e.e_addr > 31)) {
+				xerr('a', "First Argument: R0 -> R31 or constant 0 -> 31.");
 			}
 			comma(1);
 			t1 = addr(&e1);
 			if (t1 != S_IND)
-				aerr();
+				xerr('a', "Second argument must be Z or Z+.");
 			if (e1.e_addr == 0x0000) {	/* Rd,z  */
 				outaw(0x9004 | ((e.e_addr & 0x1F) << 4));
 			} else
@@ -849,14 +854,14 @@ struct mne *mp;
 				outaw(0x9005 | ((e.e_addr & 0x1F) << 4));
 			} else {
 				outaw(op);
-				aerr();
+				xerr('a', "Second argument must be Z or Z+.");
 			}
 		} else {				/* blank */
 
 #if OPCODE_ERRORS
 			if (mchtyp &   (AT90S1200|
 					ATtiny10|ATtiny11|ATtiny12)	) {
-				err('o');
+				xerr('o', "LPM not supported by this device.");
 			}
 #endif
 
@@ -872,7 +877,7 @@ struct mne *mp;
 				AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 				ATmega603|ATmega103|ATmega161|ATmega163|
 				ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-			err('o');
+			xerr('o', "ELPM not supported by this device.");
 		}
 #endif
 
@@ -881,21 +886,21 @@ struct mne *mp;
 			 * or any constant from 0 to 31.
 			 */
 			t = addr(&e);
-			if (!is_abs(&e) ||  (e.e_addr > 31)) {
-				aerr();
+			if (!is_abs(&e) || (e.e_addr > 31)) {
+				xerr('a', "First Argument: R0 -> R31 or constant 0 -> 31.");
 			}
 			comma(1);
 			t1 = addr(&e1);
 			if (t1 != S_IND)
-				aerr();
-			if (e1.e_addr == 0) {		/* Rd,z  */
+				xerr('a', "Second argument must be Z or Z+.");
+			if (e1.e_addr == 0x0000) {	/* Rd,z  */
 				outaw(0x9006 | ((e.e_addr & 0x1F) << 4));
 			} else
 			if (e1.e_addr == 0x1001) {	/* Rd,z+ */
 				outaw(0x9007 | ((e.e_addr & 0x1F) << 4));
 			} else {
 				outaw(op);
-				aerr();
+				xerr('a', "Second argument must be Z or Z+.");
 			}
 		} else {				/* blank */
 
@@ -904,7 +909,7 @@ struct mne *mp;
 					AT90S4414|AT90S8515|AT90S4434|AT90S8535|AT90C8534|
 					ATmega603|ATmega103|ATmega163|
 					ATtiny10|ATtiny11|ATtiny12|ATtiny15|ATtiny22|ATtiny28)	) {
-				err('o');
+				xerr('o', "ELPM not supported by this device.");
 			}
 #endif
 
@@ -914,7 +919,7 @@ struct mne *mp;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 
@@ -1085,16 +1090,39 @@ struct mne *mp;
 			}
 		}
 	}
+ 	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - n);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - n);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {

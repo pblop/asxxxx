@@ -1,7 +1,7 @@
 /* ST8.h */
 
 /*
- *  Copyright (C) 2010-2014  Alan R. Baldwin
+ *  Copyright (C) 2010-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -70,7 +70,7 @@
 #define	S_EXT		0x04
 /*	Illegal		0x03, 0x05, 0x06, 0x07	*/
 
-#define	S_IXO		0x08
+#define	S_IX		0x08
 #define	S_IXB		0x09
 #define	S_IXW		0x0A
 #define	S_IXE		0x0C
@@ -89,7 +89,7 @@
 /*	Illegal		0x1B, 0x1D, 0x1E, 0x1F	*/
 
 #define	S_IMM		0x20
-#define	S_IX		0x21
+#define	S_IXR		0x22
 
 /*
  * Instruction types
@@ -122,7 +122,7 @@
 #define	S_INH72		85
 #define	S_MLDV		86
 #define	S_DIVW		87
-
+#define	S_INT		88
 /*
  * Extended Addressing Modes
  */
@@ -148,15 +148,13 @@ extern	int		addr(struct expr *esp);
 extern	int		addr1(struct expr *esp);
 extern	int		addrsl(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
 	/* ST8mch.c */
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
-extern	VOID		opcy_aerr(void);
-extern	VOID		valu_aerr(struct expr *e, int n);
+extern	int		valu_err(struct expr *e, int n);
 extern	int		ls_mode(struct expr *e);
 extern	int		setbit(int b);
 extern	int		getbit(void);
@@ -168,15 +166,13 @@ extern	int		addr();
 extern	int		addr1();
 extern	int		addrsl();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
 	/* ST8mch.c */
 extern	VOID		machine();
 extern	int		mchpcr();
 extern	VOID		minit();
-extern	VOID		opcy_aerr();
-extern	VOID		valu_aerr();
+extern	int		valu_err();
 extern	int		ls_mode();
 extern	int		setbit();
 extern	int		getbit();

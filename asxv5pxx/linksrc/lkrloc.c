@@ -88,7 +88,7 @@ int c;
 		break;
 
 	default:
-		fprintf(stderr, "Internal Version Error");
+		fprintf(stderr, "?ASlink-Error-Internal Version Error");
 		lkexit(ER_FATAL);
 		break;
 	}

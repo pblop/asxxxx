@@ -1,14 +1,14 @@
 	.title	6800 Assembler Error Check
 
 	.area	DIRECT
+	.setdp	0,DIRECT
 
 dirval:	.blkb	0d256
 
+dir:	;	=	0x0100
+
 	.area	AS6800
 
-	.setdp	0,DIRECT
-
-	dir	=	0x0100
 	offset	=	0x0101
 
 1$:	sta a	#32		;error

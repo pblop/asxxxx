@@ -1,7 +1,7 @@
 /* m12adr.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,6 +32,18 @@ addr(esp)
 struct expr *esp;
 {
 	int c;
+	char *p;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	aindx = 0;
 	/*
@@ -47,7 +59,7 @@ struct expr *esp;
 	if (c == '[') {
 		addr1(esp);
 		if (getnb() != ']') {
-			aerr();
+			xerr('q', "Missing ']'.");
 		}
 		/*
 		 * [n,r]  - 16-bit offset indexed-indirect
@@ -61,12 +73,12 @@ struct expr *esp;
 		if (esp->e_mode == S_AOFST) {
 			esp->e_mode = S_AIND;
 			if ((aindx & 0x03) != 0x02) {
-				aerr();
+				xerr('a', "Register D Required.");
 			}
 			aindx |= 0x03;
 		} else {
 			esp->e_mode = S_IND;
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 	} else {
 		unget(c);
@@ -86,8 +98,11 @@ struct expr *esp;
 	 */
 	if (admode(abd)) {
 		comma(1);
+		if (admode(prepost)) {
+			xerr('a', "(+/-)R and R(+/-) are invalid.");
+		} else
 		if (!admode(xysp))
-			aerr();
+			xerr('a', "Register X, Y, S(P), Or PC Is Required.");
 		aindx |= 0xE4;
 		esp->e_mode = S_AOFST;
 	} else
@@ -101,7 +116,7 @@ struct expr *esp;
 		esp->e_mode = S_AUTO;
 		esp->e_addr = 1;
 		if ((aindx & 0xE0) == 0xE0) {
-			aerr();
+			xerr('a', "Register PC Is Invalid.");
 		}
 	} else
 	/*
@@ -112,23 +127,26 @@ struct expr *esp;
 	 *  ,r+	- Auto Post-Increment (1)
 	 */
 	if ((c = getnb()) == ',') {
-		if (admode(xysp)) {
-			esp->e_mode = S_OFST;
-		} else
 		if (admode(prepost)) {
 			esp->e_mode = S_AUTO;
 			esp->e_addr = 1;
 			if ((aindx & 0xE0) == 0xE0) {
-				aerr();
+				xerr('a', "Register PC Is Invalid.");
 			}
+		} else
+		if (admode(xysp)) {
+			esp->e_mode = S_OFST;
 		} else {
-			aerr();
+			xerr('a', "R, (+/-)R, or R(+/-) Required.");
 		}
 	} else
 	if (c == '*') {
 		expr(esp, 0);
 		esp->e_mode = S_DIR;
 		if ((c = getnb()) == ',') {
+			if (admode(prepost)) {
+				xerr('a', "(+/-)R and R(+/-) are invalid.");
+			} else
 			if (admode(xysp)) {
 				esp->e_mode = S_OFST;
 			} else {
@@ -140,16 +158,35 @@ struct expr *esp;
 	} else {
 		unget(c);
 		expr(esp, 0);
-		esp->e_mode = S_EXT;
+		if ((!esp->e_flag)
+		    && (esp->e_base.e_ap == NULL)
+		    && !(esp->e_addr & ~0xFF)) {
+			esp->e_mode = S_DIR;
+		} else {
+			if (zpg != NULL) {
+				if (esp->e_flag) {
+					if (esp->e_base.e_sp->s_area == zpg) {
+						esp->e_mode = S_DIR;	/* ___  (*)arg */
+					}
+				} else {
+					if (esp->e_base.e_ap == zpg) {
+						esp->e_mode = S_DIR;	/* ___  (*)arg */
+					}
+				}
+			}
+		}
+		if (esp->e_mode != S_DIR) {
+			esp->e_mode = S_EXT;
+		}
 		if ((c = getnb()) == ',') {
-			if (admode(xysp)) {
-				esp->e_mode = S_OFST;
-			} else
 			if (admode(prepost)) {
 				esp->e_mode = S_AUTO;
 				if ((aindx & 0xE0) == 0xE0) {
-					aerr();
+					xerr('a', "Register PC Is Invalid.");
 				}
+			} else
+			if (admode(xysp)) {
+				esp->e_mode = S_OFST;
 			} else {
 				unget(c);
 			}
@@ -159,6 +196,23 @@ struct expr *esp;
 	}
 	return (esp->e_mode);
 }
+
+/*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
 
 /*
  * Enter admode() to search a specific addressing mode table
@@ -211,24 +265,10 @@ char *str;
 	}
 
 	if (!*str)
-		if (any(*ptr," \t\n,];")) {
+		if (!(ctype[*ptr & 0x007F] & LTR16)) {
 			ip = ptr;
 			return(1);
 		}
-	return(0);
-}
-
-/*
- *      any --- does str contain c?
- */
-int
-any(c,str)
-int c;
-char *str;
-{
-	while (*str)
-		if(*str++ == c)
-			return(1);
 	return(0);
 }
 

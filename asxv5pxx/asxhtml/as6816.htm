@@ -72,6 +72,27 @@ sions.
 struction, refer to the 6816 technical data for valid modes.  
 
 
+Instruction Notes 
+
+
+   Several  instructions  have  argument  conditions that can be
+confusing to the uninitiated.  The AIS, AIX, AIY, AIZ, ADDD, and
+ADDE instructions have 8 and 16 bit immediate forms:  
+
+        AIS     ii              and
+        AIS     jjkk
+
+Where  each  argument  is  sign extended to 20 bits.  This means
+that the 8 bit value is between -128 and  +127  and  the  16 bit
+value  is between -32768 and +32765.  The assembler checks for a
+constant argument with a value from -128 to +127 and  emits  the
+8 bit  opcode and signed 8 bit value.  This implies that that an
+argument  0xFC, often used to specify a value of -4 when dealing
+with  8 bit  arguments,  is not -4 but +252.  The assembler will
+emit the 16 bit opcode and the value 0x00FC, not  what  was  ex-
+pected.
+  
+
 Inherent Instructions 
 
         aba             abx             aby             abz
@@ -272,6 +293,6 @@ Multiply and Accumulate Instructions
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

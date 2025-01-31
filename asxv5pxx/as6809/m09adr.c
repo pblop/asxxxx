@@ -1,7 +1,7 @@
 /* M09ADR.C */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,6 +32,18 @@ addr(esp)
 struct expr *esp;
 {
 	int c;
+	char *p;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	aindx = 0;
 	if ((c = getnb()) == '#') {
@@ -42,7 +54,7 @@ struct expr *esp;
 		aindx = 0x90;
 		addr1(esp);
 		if (getnb() != ']') {
-			aerr();
+			xerr('q', "Missing ']'.");
 		}
 	} else {
 		unget(c);
@@ -59,21 +71,27 @@ struct expr *esp;
 
 	if (admode(abd)) {
 		comma(1);
+		if (admode(auto2)) {
+			xerr('a', "(++/--)R and R(++/--) are invalid.");
+		} else
+		if (admode(auto1)) {
+			xerr('a', "(+/-)R and R(+/-) are invalid.");
+		} else
 		if (!admode(xyus))
-			aerr();
+			xerr('a', "X, Y, U, Or S Required.");
 		esp->e_mode = S_IND;
 	} else
 	if ((c = getnb()) == ',') {
-		if (admode(xyus)) {
-			aindx |= 0x04;
-		} else
 		if (admode(auto2)) {
 			;
 		} else
 		if (!(aindx & 0x10) && admode(auto1)) {
 			;
+		} else
+		if (admode(xyus)) {
+			aindx |= 0x04;
 		} else {
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		esp->e_mode = S_IND;
 	} else
@@ -81,6 +99,12 @@ struct expr *esp;
 		expr(esp, 0);
 		esp->e_mode = S_DIR;
 		if (comma(0)) {
+			if (admode(auto2)) {
+				xerr('a', "(++/--)R and R(++/--) are invalid.");
+			} else
+			if (admode(auto1)) {
+				xerr('a', "(+/-)R and R(+/-) are invalid.");
+			} else
 			if (admode(xyus)) {
 				esp->e_mode = S_OFST;
 			} else
@@ -90,13 +114,36 @@ struct expr *esp;
 			if (admode(pc)) {
 				esp->e_mode = S_PC;
 			} else {
-				aerr();
+				xerr('a', "Invalid Addressing Mode.");
 			}
 		}
 	} else {
 		unget(c);
 		expr(esp, 0);
+		if ((!esp->e_flag)
+			&& (esp->e_base.e_ap == NULL)
+			&& ((esp->e_addr & ~0xFF) == zpgadr)) {
+			esp->e_mode = S_DIR;
+		} else {
+			if (zpg != NULL) {
+				if (esp->e_flag) {
+					if (esp->e_base.e_sp->s_area == zpg) {
+						esp->e_mode = S_DIR;	/* ___  (*)arg */
+					}
+				} else {
+					if (esp->e_base.e_ap == zpg) {
+						esp->e_mode = S_DIR;	/* ___  (*)arg */
+					}
+				}
+			}
+		}
 		if (comma(0)) {
+			if (admode(auto2)) {
+				xerr('a', "(++/--)R and R(++/--) are invalid.");
+			} else
+			if (admode(auto1)) {
+				xerr('a', "(+/-)R and R(+/-) are invalid.");
+			} else
 			if (admode(xyus)) {
 				esp->e_mode = S_OFST;
 			} else
@@ -106,16 +153,33 @@ struct expr *esp;
 			if (admode(pc)) {
 				esp->e_mode = S_PC;
 			} else {
-				aerr();
+				xerr('a', "Invalid Addressing Mode.");
 			}
-		} else {
+		} else
+		if (esp->e_mode != S_DIR) {
 			esp->e_mode = S_EXT;
 		}
 	}
 	return (esp->e_mode);
 }
 
-	
+/*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
+
 /*
  * Enter admode() to search a specific addressing mode table
  * for a match. Return the addressing value on a match or
@@ -167,24 +231,10 @@ char *str;
 	}
 
 	if (!*str)
-		if (any(*ptr," \t\n,];")) {
+		if (!(ctype[*ptr & 0x007F] & LTR16)) {
 			ip = ptr;
 			return(1);
 		}
-	return(0);
-}
-
-/*
- *      any --- does str contain c?
- */
-int
-any(c,str)
-int c;
-char *str;
-{
-	while (*str)
-		if(*str++ == c)
-			return(1);
 	return(0);
 }
 

@@ -1,7 +1,7 @@
 /* lklibr.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2018  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -150,10 +150,13 @@ addlib()
  *	path / file specifications or if the file is not found.
  *
  *	local variables:
+ *		FILE	*fp		file handle
  *		lbname	*lbnh		pointer to new name structure
  *		lbname	*lbn		temporary pointer
- *		char *	str		path / file string
- *		char *	strend		end of path pointer
+ *		char	*p		temporary pointer
+ *		char	*q		temporary pointer
+ *		char	*str		path / file string
+ *		char	*strend		end of path pointer
  *
  *	global variables:
  *		lbname	*lbnhead	The pointer to the first
@@ -176,6 +179,7 @@ char *libfil;
 {
 	FILE *fp;
 	char *str, *strend;
+	char *p, *q;
 	struct lbname *lbnh, *lbn;
 
 	if ((path != NULL) && (strchr(libfil,':') == NULL)){
@@ -191,7 +195,11 @@ char *libfil;
 		str = (char *) malloc (strlen(libfil) + 5);
 		strcpy(str,libfil);
 	}
-	if(strchr(str,FSEPX) == NULL) {
+	p = libfil;
+	if (((q = strrchr(p,'\\')) != NULL) || ((q = strrchr(p,'/')) != NULL)) {
+		p = q;
+	}
+	if(strchr(p,FSEPX) == NULL) {
 		sprintf(&str[strlen(str)], "%clib", FSEPX);
 	}
 	if ((fp = fopen(str, "r")) != NULL) {
@@ -323,6 +331,8 @@ search()
  *		FILE	*libfp		file handle for library file
  *		lbname	*lbnh		pointer to lbname structure
  *		char	*path		file specification path
+ *		char	*p		temporary pointer
+ *		char	*q		temporary pointer
  *		char	relfil[]	[.REL] file specification
  *		char	*str		combined path and file specification
  *		char	*strend		end of path pointer
@@ -367,10 +377,11 @@ char *name;
 	FILE *libfp, *fp;
 	struct lbname *lbnh;
 	struct lbfile *lbfh, *lbf;
-	char relfil[NINPUT+2];
-	char buf[NINPUT+2];
+	char relfil[NINPUT];
+	char buf[NINPUT];
 	char symname[NINPUT];
 	char *path,*str,*strend;
+	char *p, *q;
 	char c;
 	int lbscan;
 
@@ -380,7 +391,7 @@ char *name;
 
 /*1*/	for (lbnh=lbnhead; lbnh; lbnh=lbnh->next) {
 		if ((libfp = fopen(lbnh->libspc, "r")) == NULL) {
-			fprintf(stderr, "Cannot open library file %s\n",
+			fprintf(stderr, "?ASlink-Error-Cannot open library file %s\n",
 				lbnh->libspc);
 			lkexit(ER_FATAL);
 		}
@@ -393,7 +404,6 @@ char *name;
 		 */
 
 /*2*/		while (fgets(relfil, NINPUT, libfp) != NULL) {
-		    relfil[NINPUT+1] = '\0';
 		    chopcrlf(relfil);
 		    if (path != NULL) {
 			str = (char *) malloc (strlen(path)+strlen(relfil)+5);
@@ -408,7 +418,11 @@ char *name;
 			str = (char *) malloc (strlen(relfil) + 5);
 			strcpy(str,relfil);
 		    }
-		    if(strchr(str,FSEPX) == NULL) {
+		    p = relfil;
+		    if (((q = strrchr(p,'\\')) != NULL) || ((q = strrchr(p,'/')) != NULL)) {
+			p = q;
+		    }
+		    if(strchr(p,FSEPX) == NULL) {
 			sprintf(&str[strlen(str)], "%crel", FSEPX);
 		    }
 		    /*
@@ -431,7 +445,6 @@ char *name;
 			
 /*4*/			while (fgets(buf, NINPUT, fp) != NULL) {
 
-			buf[NINPUT+1] = '\0';
 			chopcrlf(buf);
 
 			/*
@@ -557,7 +570,7 @@ char *filspc;
 	char str[NINPUT];
 
 	if ((fp = fopen(filspc,"r")) != NULL) {
-		while (fgets(str, sizeof(str), fp) != NULL) {
+		while (fgets(str, NINPUT, fp) != NULL) {
 			chopcrlf(str);
 			ip = str;
 			link();

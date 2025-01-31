@@ -1,0 +1,42 @@
+.nlist
+	.list	(!,src)
+;	ascii.def       Symbols                 Defined
+	.nlist
+
+	nul	=:	0x00	; (null)
+	soh	=:	0x01	; (start of heading)		; ^A
+	stx	=:	0x02	; (start of text)		; ^B
+	etx	=:	0x03	; (end of text)			; ^C
+	eot	=:	0x04	; (end of transmission)		; ^D
+	enq	=:	0x05	; (enquiry)			; ^E
+	ack	=:	0x06	; (acknowledge)			; ^F
+	bel	=:	0x07	; (bell)			; ^G
+	bs	=:	0x08	; (backspace)			; ^H
+	tab	=:	0x09	; (horizontal tab)		; ^I
+	lf	=:	0x0A	; (NL line feed, new line)	; ^J
+	vt	=:	0x0B	; (vertical tab)		; ^K
+	ff	=:	0x0C	; (NP form feed, new page)	; ^L
+	cr	=:	0x0D	; (carriage return)		; ^M
+	so	=:	0x0E	; (shift out)			; ^N
+	si	=:	0x0F	; (shift in)			; ^O
+	dle	=:	0x10	; (data link escape)		; ^P
+	dc1	=:	0x11	; (device control 1)		; ^Q
+	dc2	=:	0x12	; (device control 2)		; ^R
+	dc3	=:	0x13	; (device control 3)		; ^S
+	dc4	=:	0x14	; (device control 4)		; ^T
+	nak	=:	0x15	; (negative acknowledge)	; ^U
+	syn	=:	0x16	; (synchronous idle)		; ^V
+	etb	=:	0x17	; (end of transmission block)	; ^W
+	can	=:	0x18	; (cancel)			; ^X
+	em	=:	0x19	; (end of medium)		; ^Y
+	sub	=:	0x1A	; (substitute)			; ^Z
+	esc	=:	0x1B	; (escape)
+	fs	=:	0x1C	; (file seperator)
+	gs	=:	0x1D	; (group seperator)
+	rs	=:	0x1E	; (record seperator)
+	us	=:	0x1F	; (unit seperator)
+
+	spc	=:	0x20	; (space)
+
+	.end
+

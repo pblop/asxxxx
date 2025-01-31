@@ -19,8 +19,8 @@ AVR ASSEMBLER NOTES
 scheme:  the instruction addressing is 1 per  instruction  word,
 each  instruction uses 2 bytes of memory.  The processor data is
 addressed as 1 per byte of data.  To properly address  the  pro-
-gram/data spaces you, the programmer, must seperate your program
-and data into seperate code and data areas.  The  data  area  is
+gram/data spaces you, the programmer, must separate your program
+and data into separate code and data areas.  The  data  area  is
 addressed  as 1 per byte and the code area is addressed as 1 per
 instruction.  
 
@@ -29,7 +29,16 @@ the linker will output 2 bytes for each instruction  word.   The
 instruction  word  address  will  be  the  file  encoded address
 divided by 2.  
 
+   The  default  address  space  is assumed to be 64K (16-bits).
+The larger address space (ATmega...) processors must specify the
+32-Bit  addressing assembler directive '.32bit' in order to pro-
+cess the JMP instruction.  
 
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
 PROCESSOR SPECIFIC DIRECTIVES 
 
      The  normal  PC relative addressing is -2047 to +2048 rela-
@@ -119,7 +128,7 @@ output to the created .rel file.
    The  assembler  .globl  directive  may  be used to change the
 variable type to global causing its definition to be  output  to
 the  .rel file.  The inclusion of the definition of the variable
-'.__.CPU.' might be a useful means of validating that seperately
+'.__.CPU.' might be a useful means of validating that separately
 assembled  files have been compiled for the same processor type.
 The linker will report an error for variables with multiple  non
 equal definitions.  
@@ -329,6 +338,6 @@ AVR Data Transfer Instructions
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

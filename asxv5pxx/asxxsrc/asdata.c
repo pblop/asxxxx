@@ -1,7 +1,7 @@
 /* asdata.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -41,10 +41,54 @@
  *	structures, and variables used in the assembler.
  */
 
+/*
+ *	The number of cycle count digits to display.
+ *	The valid range is bounded be >= 2 and <= 4.
+ *	An assembler requiring other than the default
+ *	of 2 digits should set this value in minit().
+ */
+int	cycldgts;
+
+/*
+ *	A pointer to the external function
+ *	which provides auxiliary functionallity
+ *	to the term() function in asexpr.c
+ *	returns:	!0 if item processed
+ *			 0 if nothing processed
+ */
+int	(*mchterm_ptr)(struct expr *esp);
+
+/*
+ *	A pointer to the external function which
+ *	provides auxiliary functionallity to the
+ *	.enabl/.dsabl processing in asmain.c
+ *	returns:	!0 if item processed
+ *			 0 if nothing processed
+ */
+int	(*mchoptn_ptr)(char *id, int v);
+
+
 int	aserr;		/*	ASxxxx error counter
+			 */
+int	trcflags;	/*	ASxxxx tracing flags
 			 */
 jmp_buf	jump_env;	/*	compiler dependent structure
 			 *	used by setjmp() and longjmp()
+			 */
+/*
+ *	Parameters which specify the optional multi-pass
+ *	processing for assemblers that have variable
+ *	length instructions.
+ */
+int	nflglmt;	/* command option pass 1 repeat limit
+			 */
+int	passlmt;	/* default maximum pass 1 repeat limit
+			 */ 
+int	passcnt;	/* number of passes executed
+			 */
+int	passJLH;	/* JLH output pass
+			 */
+int	passfuz;	/* residual fuss after pass == 1
 			 */
 
 /*
@@ -72,11 +116,14 @@ jmp_buf	jump_env;	/*	compiler dependent structure
  *		char	afn[FILSPC];	File Name
  *	};
  */
-struct	asmf	*asmp;	/*	The pointer to the first assembler
-			 *	source file structure of a linked list
-			 */
 struct	asmf	*asmc;	/*	Pointer to the current
 			 *	source input structure
+			 */
+struct	asmf	*asmo;	/*	The pointer to the first
+			 *	command line insert structure
+			 */
+struct	asmf	*asmp;	/*	The pointer to the first assembler
+			 *	source file structure of a linked list
 			 */
 struct	asmf	*asmi;	/*	Queued pointer to an include file
 			 *	source input structure
@@ -111,6 +158,9 @@ struct	asmf	*asmq;	/*	Queued pointer to a macro
  *	narg	is the number of macro definition arguments
  *	bgnarg	is a pointer to the first definition argument string
  *	endarg	is a pointer to the last  definition argument string
+ *	darg	is number of macro defintion default values
+ *	bgndrg	is a pointer to the first macro defintion default value
+ *	enddrg	is a pointer to	the last macro definition default value
  *	xarg	is the number of expansion arguments at macro invocation
  *	bgnxrg	is a pointer to the first expansion argument string
  *	endxrg	is a pointer to the last  expansion argument string
@@ -126,6 +176,9 @@ struct	asmf	*asmq;	/*	Queued pointer to a macro
  *		int		narg;		number of macro defintion arguments
  *		struct strlst * bgnarg;		link to first macro defintion argument
  *		struct strlst * endarg;		link to last macro definition argument
+ *		int		darg;		number of macro defintion default values
+ *		struct strlst * bgndrg;		link to first macro defintion default value
+ *		struct strlst * enddrg;		link to last macro definition default value
  *		int		xarg;		number of macro expansion arguments
  *		struct strlst * bgnxrg;		link to first macro expansion argument
  *		struct strlst * endxrg;		link to last macro xpansion argument
@@ -175,6 +228,22 @@ int	maxinc;		/*	maximum include file nesting encountered
 int	mcrfil;		/*	macro nesting counter
 			 */
 int	maxmcr;		/*	maximum macro nesting encountered
+			 */
+int	mcrcnt;		/*	regular macros created
+			 */
+int	mcrexe;		/*	regular macros executed
+			 */
+int	inlcnt;		/*	inline macros created
+			 */
+int	inlexe;		/*	inline macros executed
+			 */
+int	mlevel;		/*	macro Stack Level
+			 */
+struct mstack mstk[MAXMCR]; /*	macro Stack
+			 */
+int	alevel;		/*	area stack pointer
+			 */
+struct	area *astack[16]; /*	area stack
 			 */
 int	flevel;		/*	IF-ELSE-ENDIF flag (false != 0)
 			 */
@@ -231,9 +300,11 @@ int	fflag;		/*	-f(f), relocations flagged flag
 			 */
 int	gflag;		/*	-g, make undefined symbols global flag
 			 */
-			/*	-h, diagnostic help printout flag
+int	iflag;		/*	-i, insert command line string flag
 			 */
 int	jflag;		/*	-j, enable NoICE Debug Symbols
+			 */
+int	kflag;		/*	-k, disable error output to .lst file
 			 */
 int	lflag;		/*	-l, generate listing flag
 			 */
@@ -292,6 +363,8 @@ char	*ep;		/*	pointer into error list
 			 */
 char	eb[NERR];	/*	array of generated error codes
 			 */
+char	*ex[NERR];	/*	array of error string pointers
+			 */
 char	*ip;		/*	pointer into the assembler-source
 			 *	text line in ib[]
 			 */
@@ -313,13 +386,17 @@ int	*cpt;		/*	pointer to assembler relocation type
 int	cbt[NCODE];	/*	array of assembler relocation types
 			 *	describing the data in cb[]
 			 */
+int	awg;		/*	default size value (special coding)
+			 *	0 - default not defined, 1-4 - 1-4 bytes
+			 */
+int	csn;		/*	'C' Style Numbers - 0nnn (Octal), 0xnnn (Hex), Else Decimal
+			 *	0 - default disabled, 1 - enabled
+			 */
 int	opcycles;	/*	opcode execution cycles
 			 */
 char	tb[NTITL];	/*	Title string buffer
 			 */
 char	stb[NSBTL];	/*	Subtitle string buffer
-			 */
-char	erb[NINPUT+4];	/*	Error string buffer
 			 */
 
 char	symtbl[] = { "Symbol Table" };
@@ -494,6 +571,27 @@ char	*txtp = &txt[0];/*	Pointer to T Line Values
 			 */
 char	*relp = &rel[0];/*	Pointer to R Line Values
 			 */
+/*
+ * ASCII Table
+ */
+/*----	\000	\001	\002	\003	\004	\005	\006	\007	*/
+/*----------------------------------------------------------------------*/
+/*\000	NUL	SOH	STX	ETX	EOT	ENQ	ACK	BELL	*/
+/*\010	BS	TAB	LF	VT	FF	CR	SO	SI	*/
+/*\020	DLE	DC1	DC2	DC3	DC4	NAK	SYN	ETB	*/
+/*\030	CAN	EM	SUB	ESC	FS	GS	RS	US	*/
+/*\040	SPACE	!	"	#	$	%	&	`	*/
+/*\050	(	)	*	+	`	-	.	/	*/
+/*\060	0	1	2	3	4	5	5	7	*/
+/*\070	8	9	:	;	<	=	>	?	*/
+/*\100	@	A	B	C	D	E	F	G	*/
+/*\110	H	I	J	K	L	M	N	O	*/
+/*\120	P	Q	R	S	T	U	V	W	*/
+/*\130	X	Y	Z	[	\	]	^	_	*/
+/*\140	'	a	b	c	d	e	f	g	*/
+/*\150	h	i	j	k	l	m	n	o	*/
+/*\160	p	q	r	s	t	u	v	w	*/
+/*\170	x	y	z	{	|	}	~	DEL	*/
 
 /*
  *	an array of character types,

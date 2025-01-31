@@ -79,8 +79,8 @@ WVList
 0
 19
 MItem
-26
-..\..\..\AS78k0s\r78kadr.c
+27
+..\..\..\as78k0s\r78ksadr.c
 20
 WString
 4
@@ -97,8 +97,8 @@ WVList
 0
 23
 MItem
-26
-..\..\..\AS78k0s\r78kmch.c
+27
+..\..\..\as78k0s\r78ksmch.c
 24
 WString
 4
@@ -115,8 +115,8 @@ WVList
 0
 27
 MItem
-26
-..\..\..\AS78k0s\r78kpst.c
+27
+..\..\..\as78k0s\r78kspst.c
 28
 WString
 4

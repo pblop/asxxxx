@@ -1,7 +1,7 @@
 /* m6804.h */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -82,6 +82,12 @@ struct adsym
  */
 #define	S_SDP	80
 
+/*
+ * Extended Addressing Modes
+ */
+#define	R_3BIT	0x0100
+#define	R_5BIT	0x0200
+#define	R_12BIT	0x0300
 
 	/* machine dependent functions */
 
@@ -91,12 +97,12 @@ struct adsym
 extern	struct	adsym	xy[];
 extern	int		addr(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
 	/* m04mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 
 #else
@@ -105,10 +111,10 @@ extern	VOID		minit(void);
 extern	struct	adsym	xy[];
 extern	int		addr();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
 	/* m04mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine();
 extern	int		mchpcr();
 extern	VOID		minit();

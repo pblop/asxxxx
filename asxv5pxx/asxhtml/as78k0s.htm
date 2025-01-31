@@ -54,20 +54,20 @@ for each addressing mode supported by AS78K0S:
                         long br instruction
 
         @saddr          short direct addressing
-                        0xFE20 <= saddr <= 0xFF1F
+                        0xFE20 &lt;= saddr &lt;= 0xFF1F
 
         @saddr.bit      short direct addressing
         @saddr,bit      with bit addressing (0-7)
-                        0xFE20 <= saddr <= 0xFF1F
+                        0xFE20 &lt;= saddr &lt;= 0xFF1F
 
         *sfr            special function registers
-                        0xFF00 <= sfr <= 0xFFCF  or
-                        0xFFE0 <= sfr <= 0xFFFF
+                        0xFF00 &lt;= sfr &lt;= 0xFFCF  or
+                        0xFFE0 &lt;= sfr &lt;= 0xFFFF
 
         *sfr.bit        special function registers
         *sfr,bit        wiht bit addressing (0-7)
-                        0xFF00 <= sfr <= 0xFFCF  or
-                        0xFFE0 <= sfr <= 0xFFFF
+                        0xFF00 &lt;= sfr &lt;= 0xFFCF  or
+                        0xFFE0 &lt;= sfr &lt;= 0xFFFF
 
         label           branch label
                         (pc relative addressing)
@@ -101,12 +101,12 @@ the 'saddr' range first and then as being in the 'sfr' range  if
 no explicit @ or * is specified.  
 
    The  bit addressing modes *sfr.bit and @saddr.bit use the '.'
-as a seperator from the address and  the  bit  value.   The  bit
+as a separator from the address and  the  bit  value.   The  bit
 value  can  be  a numeric constant, a named constant, an expres-
 sion, or a combination of these.  Because  the  '.'  is  also  a
 legal character in a name or label the assembler may not be able
 to resolve the address and bit value.  The  optional  method  of
-using a ',' to seperate the address and bit value may be used in
+using a ',' to separate the address and bit value may be used in
 this case.  
 
    If  the 'sfr' or 'saddr' address is external then the user is
@@ -203,6 +203,6 @@ Double Operand Instructions
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: October 2014</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

@@ -1,0 +1,4628 @@
+                              1 	.title	Test of Z280 assembler
+                              2 	.module	tz280x.asm
+                              3 
+                              4 	; To test asz280 with .con and .lst defined:
+                              5     	; Constants / Internal symbols mode.
+                              6 	; Verifies assembler output.
+                              7 	;
+                              8 	;	asz280 -lbcoxff -p tz280x_CL asz280_CL tz280x 
+                              9 	;	asxscn tz280x_CL.lst
+                             10 	;
+                             11 	;
+                             12 	; To test asz280 with .con and .rst defined:
+                             13     	; Constants / Internal symbols mode.
+                             14 	; Verifies linked code.
+                             15 	;
+                             16 	;	asz280 -lbcoxff -p tz280x_CR asz280_CR tz280x 
+                             17 	;	aslink -nf tz280x_CR
+                             18 	;	asxscn tz280x_CR.rst
+                             19 	;
+                             20 	;
+                             21 	; To test asz280 with .ext and .lst defined:
+                             22     	; Constants with External symbols mode.
+                             23 	; Verifies assembler output.
+                             24 	;
+                             25 	;	asz280 -lbcoxff -p tz280x_XL asz280_XL tz280x 
+                             26 	;	asxscn tz280x_XL.lst
+                             27 	;
+                             28 	;
+                             29 	; To test asz280 with .ext and .rst defined:
+                             30     	; Constants with External symbols mode.
+                             31 	; Verifies linked code.
+                             32 	;
+                             33 	;	asz280 -lbcoxff -p tz280x_XR asz280_XR tz280x 
+                             34 	;	aslink -nf tz280x_XR
+                             35 	;	asxscn tz280x_XR.rst
+                             36 	;
+                             37 	; To test asz280 with .ext and .lst defined:
+                             38 	; Full external symbol mode. (.EXLR defined)
+                             39 	; Verifies assembler output.
+                             40 	;
+                             41 	;	asz280 -lbcoxff -p tz280x_EXL asz280_EXL tz280x 
+                             42 	;	asxscn tz280x_EXL.lst
+                             43 	;
+                             44 	;
+                             45 	; To test asz280 with .ext and .rst defined:
+                             46 	; Full external symbol mode. (.EXLR defined)
+                             47 	; Verifies linked code.
+                             48 	;
+                             49 	;	asz280 -lbcoxff -p tz280x_EXR asz280_EXR tz280x 
+                             50 	;	aslink -nf tz280x_EXR
+                             51 	;	asxscn tz280x_EXR.rst
+                             52 	;
+                             53 
+                     0005    85 	CXLR = CXLR	; .con / .ext / .lst / .rst
+                             86 
+                             95 	; Assembled with .ext option.
+                            105 	; Assembled with .rst option.
+                            114     	; Constants + External Symbols Mode. (.EXLR not defined)
+                            118 
+                     0008   119 	C_LR = 0x08 - (CXLR & 0x08)	; = 0  if .con with either .lst/.rst
+                     0000   120 	_XLR = 0x04 - (CXLR & 0x04)	; = 0  if .ext with either .lst/.rst
+                     0002   121 	CXL_ = 0x02 - (CXLR & 0x02)	; = 0  if .lst with either .con/.ext
+                     0000   122 	CX_R = 0x01 - (CXLR & 0x01)	; = 0  if .rst with either .con/.ext
+                     0005   123 	C_L_ = 0x0A - CXLR		; = 0  if .con and .lst
+                     0004   124 	C__R = 0x09 - CXLR		; = 0  if .con and .rst
+                     0001   125 	_XL_ = 0x06 - CXLR		; = 0  if .ext and .lst
+                     0000   126 	_X_R = 0x05 - CXLR		; = 0  if .ext and .rst
+                            127 
+                            131 
+                            132 ;*******************************************************************	
+                            133 ;*******************************************************************
+                            134 
+                     0055   135 	offset	=	0x55		;arbitrary constants
+                     0020   136 	n	=	0x20
+                     0584   137 	nn	=	0x0584
+                            138 
+                     0055   139 	sxoff	=	0x55		; SX offset (-128..127)
+                     1122   140 	lxoff	=	0x1122		;  X offset
+                     1234   141 	raoff	=	0x1234		; RA address/offset
+                     3344   142 	daddr	=	0x3344		; DA address
+                            143 
+                     0055   144 	offsetc	==	offset		;arbitrary constants
+                     0020   145 	nc	==	n
+                     0584   146 	nnc	==	nn
+                            147 
+                     0055   148 	sxofc	==	sxoff		; SX offset (-128..127)
+                     1122   149 	lxofc	==	lxoff		;  X offset
+                     1234   150 	raofc	==	raoff		; RA address/offset
+                     3344   151 	daddc	==	daddr		; DA address
+                            152 
+                            156 ;*******************************************************************	
+                            157 ;*******************************************************************
+                            158 ;	Test of External References By Substitution
+                            159 ;*******************************************************************	
+                            160 ;*******************************************************************
+                            161 
+                            190 		.globl	x		; External symbol given a
+                            191 					; default value of 0 by
+                            192 					; assembler. Value defined
+                            193 					; at link time from another
+                            194 					; object file or by the
+                            195 					; linker -g x=value option.
+                            196 
+                            197 	.define		offset		"offsetc+x"
+                            198 	.define		n		"nc+x"
+                            199 	.define		nn		"nnc+x"
+                            200 	.define		sxoff		"sxofc+x"
+                            201 	.define		lxoff		"lxofc+x"
+                            202 	.define		raoff		"raofc+x"
+                            203 	.define		daddr		"daddc+x"
+                            215 
+                            216 	.macro	.pcr_lclx A,B
+                            217 	  .globl A
+                            218 	  .ifb B
+                            219 	    x'A == . + 4
+                            220 	  .else
+                            221 	    x'A == . + B
+                            222 	  .endif
+                            223 	.endm
+                            224 
+                            225 	.macro	.pcr_xtrn A,B,C
+                            226 	  .globl A
+                            227 	  .ifb C
+                            228 	    x'A == B + . + 4
+                            229 	  .else
+                            230 	    x'A == B + . + C
+                            231 	  .endif
+                            232 	.endm
+                            233 
+                            234 ;*******************************************************************	
+                            235 ;*******************************************************************	
+                            236 ;*******************************************************************
+                            248 
+                            249 	.macro	.pcr_ofst A,B
+                            250           .nval	_dot_, .
+                            251 	  .ifb B
+                            252  	    pcr_ofst = A + _dot_ + 4
+                            253 	  .else
+                            254  	    pcr_ofst = A + _dot_ + B
+                            255 	  .endif
+                            256 	.endm
+                            257 
+                            258 
+                     0000   259 ODDBALL_SHIFT_ROTATE	=	0	; prefer this set to 0
+                            260 
+                            261 	.area	_code
+                            262 	
+                            263 	.z80
+   0000 83                  264 	.byte	.__.CPU.	; 83
+                            265 	.z80u
+   0001 87                  266 	.byte	.__.CPU.	; 87
+                            267 	.z180
+   0002 8B                  268 	.byte	.__.CPU.	; 8B
+                            269 	.hd64
+   0003 8B                  270 	.byte	.__.CPU.	; 8B
+                            271 	.z280
+   0004 33                  272 	.byte	.__.CPU.	; 33
+                            273 	.z280n
+   0005 11                  274 	.byte	.__.CPU.	; 11
+                            275 	.z280p
+   0006 F3                  276 	.byte	.__.CPU.	; F3
+                            277 
+                     0000   278 	. = . - 7
+                            279 
+                            280 ;*******************************************************************	
+                            281 ;*******************************************************************
+                            282 ;	Start test of addressing syntax	
+                            283 ;*******************************************************************	
+                            284 ;*******************************************************************	
+                            285 	;***********************************************************
+                            286 	; add with carry
+                            287 	.z280
+   0000 8E                  288 	adc	a,(hl)			;8E
+   0001 DD 89               289 	adc	a,(hl+ix)		;DD 89
+   0003 DD 8A               290 	adc	a,(hl+iy)		;DD 8A
+   0005 FD 8B 22 11         310 	adc	a,(hl+lxofc+x)		;FD 8B 22 11
+   0009 FD 8B 55 00         311 	adc	a,(hl+sxofc+x)		;FD 8B 55 00
+   000D FD 8B 22 11         312 	adc	a,lxofc+x(hl)		;FD 8B 22 11
+   0011 FD 8B 55 00         313 	adc	a,sxofc+x(hl)		;FD 8B 55 00
+   0015 DD 8B               317 	adc	a,(ix+iy)		;DD 8B
+   0017 DD 8E 00            318 	adc	a,(ix)			;DD 8E 00
+   001A FD 89 22 11         339 	adc	a,(ix+lxofc+x)		;FD 89 22 11
+   001E FD 89 22 11         340 	adc	a,lxofc+x(ix)		;FD 89 22 11
+   0022 FD 89 DE EE         349 	adc	a,(ix-lxofc+x)		;FD 89 DE EE
+   0026 FD 89 DE EE         350 	adc	a,-lxofc+x(ix)		;FD 89 DE EE
+   002A FD 89 55 00         385 	adc	a,(ix+sxofc+x)		;FD 89 55 00
+   002E FD 89 55 00         386 	adc	a,sxofc+x(ix)		;FD 89 55 00
+   0032 FD 89 AB FF         395  	adc	a,(ix-sxofc+x)		;FD 89 AB FF
+   0036 FD 89 AB FF         396 	adc	a,-sxofc+x(ix)		;FD 89 AB FF
+   003A FD 8E 00            409 	adc	a,(iy)			;FD 8E 00
+   003D FD 8A 22 11         430 	adc	a,(iy+lxofc+x)		;FD 8A 22 11
+   0041 FD 8A 22 11         431 	adc	a,lxofc+x(iy)		;FD 8A 22 11
+   0045 FD 8A DE EE         440 	adc	a,(iy-lxofc+x)		;FD 8A DE EE
+   0049 FD 8A DE EE         441 	adc	a,-lxofc+x(iy)		;FD 8A DE EE
+   004D FD 8A 55 00         474 	adc	a,(iy+sxofc+x)		;FD 8A 55 00
+   0051 FD 8A 55 00         475 	adc	a,sxofc+x(iy)		;FD 8A 55 00
+   0055 FD 8A AB FF         484 	adc	a,(iy-sxofc+x)		;FD 8A AB FF
+   0059 FD 8A AB FF         485 	adc	a,-sxofc+x(iy)		;FD 8A AB FF
+   005D FD 88 22 11         617 	adc	a,lxofc+adc01(pc)	;FD 88 22 11
+   0061 FD 88 22 11         621 	adc	a,(pc+lxofc+adc02)	;FD 88 22 11
+   0065 FD 88 22 11         625 	adc	a,[lxofc+adc03]		;FD 88 22 11
+   0069 FD 88 55 00         629 	adc	a,sxofc+adc04(pc)	;FD 88 55 00
+   006D FD 88 55 00         633 	adc	a,(pc+sxofc+adc05)	;FD 88 55 00
+   0071 FD 88 55 00         637 	adc	a,[sxofc+adc06]		;FD 88 55 00
+   0075 FD 88 34 12         641 	adc	a,raofc+adc07(pc)	;FD 88 34 12
+   0079 FD 88 34 12         645 	adc	a,(pc+raofc+adc08)	;FD 88 34 12
+   007D FD 88 34 12         649 	adc	a,[raofc+adc09]		;FD 88 34 12
+   0081 FD 88 FC FF         707 	adc	a,[.]			;FD 88 FC FF
+   0085 DD 88 22 11         725 	adc	a,(sp+lxofc+x)		;DD 88 22 11
+   0089 DD 88 22 11         726 	adc	a,lxofc+x(sp)		;DD 88 22 11
+   008D DD 8F 44 33         727 	adc	a,(daddc+x)		;DD 8F 44 33
+   0091 88                  731 	adc	a,b			;88
+   0092 89                  732 	adc	a,c			;89
+   0093 8A                  733 	adc	a,d			;8A
+   0094 8B                  734 	adc	a,e			;8B
+   0095 8C                  735 	adc	a,h			;8C
+   0096 8D                  736 	adc	a,l			;8D
+   0097 8E                  737 	adc	a,(hl)			;8E
+   0098 8F                  738 	adc	a,a			;8F
+   0099 DD 8C               739 	adc	a,ixh			;DD 8C
+   009B DD 8D               740 	adc	a,ixl			;DD 8D
+   009D FD 8C               741 	adc	a,iyh			;FD 8C
+   009F FD 8D               742 	adc	a,iyl			;FD 8D
+   00A1 CE 20               760 	adc	a,#nc+x			;CE 20
+   00A3 CE 20               761 	adc	a, nc+x			;CE 20
+   00A5 CE 22               762 	adc	a,lxofc+x			;CE 22
+   00A7 ED 4A               766 	adc	hl,bc			;ED 4A
+   00A9 ED 5A               767 	adc	hl,de			;ED 5A
+   00AB ED 6A               768 	adc	hl,hl			;ED 6A
+   00AD ED 7A               769 	adc	hl,sp			;ED 7A
+   00AF DD ED 4A            770 	adc	ix,bc			;DD ED 4A
+   00B2 DD ED 5A            771 	adc	ix,de			;DD ED 5A
+   00B5 DD ED 6A            772 	adc	ix,ix			;DD ED 6A
+   00B8 DD ED 7A            773 	adc	ix,sp			;DD ED 7A
+   00BB FD ED 4A            774 	adc	iy,bc			;FD ED 4A
+   00BE FD ED 5A            775 	adc	iy,de			;FD ED 5A
+   00C1 FD ED 6A            776 	adc	iy,iy			;FD ED 6A
+   00C4 FD ED 7A            777 	adc	iy,sp			;FD ED 7A
+                            778 	
+                            779 	
+                            780 ;*******************************************************************
+                            781 ;*******************************************************************
+                            782 ;	End test of addressing syntax	
+                            783 ;*******************************************************************
+                            784 ;*******************************************************************
+                            785 ;*******************************************************************
+                            786 
+                            787 
+                            788 ;*******************************************************************
+                            789 ;	ADC	
+                            790 ;		Leading 'a' operand is optional.
+                            791 ;		If offset is ommitted 0 is assumed.
+                            792 ;*******************************************************************
+                            793 	;***********************************************************
+                            794 	; add with carry to 'a'
+                            795 	.z80
+   00C7 8E                  796 	adc	a,(hl)			;8E
+   00C8 DD 8E 55            816 	adc	a,offsetc+x(ix)		;DD 8E 55
+   00CB FD 8E 55            817 	adc	a,offsetc+x(iy)		;FD 8E 55
+   00CE DD 8E 55            818 	adc	a,(ix+offsetc+x)		;DD 8E 55
+   00D1 FD 8E 55            819 	adc	a,(iy+offsetc+x)		;FD 8E 55
+   00D4 DD 8E 00            823 	adc	a,(ix)			;DD 8E 00
+   00D7 FD 8E 00            824 	adc	a,(iy)			;FD 8E 00
+   00DA 8F                  825 	adc	a,a			;8F
+   00DB 88                  826 	adc	a,b			;88
+   00DC 89                  827 	adc	a,c			;89
+   00DD 8A                  828 	adc	a,d			;8A
+   00DE 8B                  829 	adc	a,e			;8B
+   00DF 8C                  830 	adc	a,h			;8C
+   00E0 8D                  831 	adc	a,l			;8D
+   00E1 CE 20               847 	adc	a,#nc+x			;CE 20
+   00E3 CE 20               848 	adc	a, nc+x			;CE 20
+                            852 	;***********************************************************
+   00E5 8E                  853 	adc	(hl)			;8E
+   00E6 DD 8E 55            873 	adc	offsetc+x(ix)		;DD 8E 55
+   00E9 FD 8E 55            874 	adc	offsetc+x(iy)		;FD 8E 55
+   00EC DD 8E 55            875 	adc	(ix+offsetc+x)		;DD 8E 55
+   00EF FD 8E 55            876 	adc	(iy+offsetc+x)		;FD 8E 55
+   00F2 DD 8E 00            880 	adc	(ix)			;DD 8E 00
+   00F5 FD 8E 00            881 	adc	(iy)			;FD 8E 00
+   00F8 8F                  882 	adc	a			;8F
+   00F9 88                  883 	adc	b			;88
+   00FA 89                  884 	adc	c			;89
+   00FB 8A                  885 	adc	d			;8A
+   00FC 8B                  886 	adc	e			;8B
+   00FD 8C                  887 	adc	h			;8C
+   00FE 8D                  888 	adc	l			;8D
+   00FF CE 20               904 	adc	#nc+x			;CE 20
+   0101 CE 20               905 	adc	 nc+x			;CE 20
+                            909 	;***********************************************************
+                            910 	; add with carry register pair to 'hl'
+   0103 ED 4A               911 	adc	hl,bc			;ED 4A
+   0105 ED 5A               912 	adc	hl,de			;ED 5A
+   0107 ED 6A               913 	adc	hl,hl			;ED 6A
+   0109 ED 7A               914 	adc	hl,sp			;ED 7A
+                            915 	;***********************************************************
+                            916 	; add with carry to accumulator with 'a'
+                            917 	.z280
+   010B DD 8F 8A 05         971 	adc	a,(nnc+x+6)		;DD 8F 8A 05
+   010F FD 89 84 05         972 	adc	a,(ix+nnc+x)		;FD 89 84 05
+   0113 FD 8A 84 05         973 	adc	a,(iy+nnc+x)		;FD 8A 84 05
+   0117 DD 88 84 05         974 	adc	a,(sp+nnc+x)		;DD 88 84 05
+   011B FD 89 55 00         978 	adc	a,sxofc+x(ix)		;FD 89 55 00
+   011F FD 89 55 00         979 	adc	a,(ix+sxofc+x)		;FD 89 55 00
+   0123 FD 8A 55 00         980 	adc	a,sxofc+x(iy)		;FD 8A 55 00
+   0127 FD 8A 55 00         981 	adc	a,(iy+sxofc+x)		;FD 8A 55 00
+   012B FD 8B 55 00         992 	adc	a,sxofc+x(hl)		;FD 8B 55 00
+   012F FD 8B 55 00         993 	adc	a,(hl+sxofc+x)		;FD 8B 55 00
+   0133 DD 88 55 00         994 	adc	a,sxofc+x(sp)		;DD 88 55 00
+   0137 DD 88 55 00         995 	adc	a,(sp+sxofc+x)		;DD 88 55 00
+   013B FD 89 22 11         996 	adc	a,lxofc+x(ix)		;FD 89 22 11
+   013F FD 89 22 11         997 	adc	a,(ix+lxofc+x)		;FD 89 22 11
+   0143 FD 8A 22 11         998 	adc	a,lxofc+x(iy)		;FD 8A 22 11
+   0147 FD 8A 22 11         999 	adc	a,(iy+lxofc+x)		;FD 8A 22 11
+   014B FD 8B 22 11        1000 	adc	a,lxofc+x(hl)		;FD 8B 22 11
+   014F FD 8B 22 11        1001 	adc	a,(hl+lxofc+x)		;FD 8B 22 11
+   0153 DD 88 22 11        1002 	adc	a,lxofc+x(sp)		;DD 88 22 11
+   0157 DD 88 22 11        1003 	adc	a,(sp+lxofc+x)		;DD 88 22 11
+   015B DD 8E 00           1007 	adc	a,(ix)			;DD 8E 00
+   015E FD 8E 00           1008 	adc	a,(iy)			;FD 8E 00
+   0161 8E                 1009 	adc	a,(hl)			;8E
+   0162 DD 88 00 00        1010 	adc	a,(sp)			;DD 88 00 00
+   0166 FD 88 34 12        1058 	adc	a,raofc+adc11(pc)	;FD 88 34 12
+   016A FD 88 34 12        1062 	adc	a,(pc+raofc+adc12)	;FD 88 34 12
+   016E FD 88 34 12        1066 	adc	a,[raofc+adc13]		;FD 88 34 12
+   0172 FD 88 1C 00        1094 	adc	a,[.+32]		;FD 88 1C 00
+   0176 DD 89              1095 	adc	a,(hl+ix)		;DD 89
+   0178 DD 8A              1096 	adc	a,(hl+iy)		;DD 8A
+   017A DD 8B              1097 	adc	a,(ix+iy)		;DD 8B
+                           1098 	;***********************************************************
+                           1099 	; add with carry to accumulator without 'a'
+                           1100 	.z280
+   017C DD 8F 8A 05        1156 	adc	(nnc+x+6)			;DD 8F 8A 05
+   0180 FD 89 84 05        1157 	adc	(ix+nnc+x)			;FD 89 84 05
+   0184 FD 8A 84 05        1158 	adc	(iy+nnc+x)			;FD 8A 84 05
+   0188 DD 88 84 05        1159 	adc	(sp+nnc+x)			;DD 88 84 05
+   018C FD 89 55 00        1163 	adc	sxofc+x(ix)		;FD 89 55 00
+   0190 FD 89 55 00        1164 	adc	(ix+sxofc+x)		;FD 89 55 00
+   0194 FD 8A 55 00        1165 	adc	sxofc+x(iy)		;FD 8A 55 00
+   0198 FD 8A 55 00        1166 	adc	(iy+sxofc+x)		;FD 8A 55 00
+   019C FD 8B 55 00        1177 	adc	sxofc+x(hl)		;FD 8B 55 00
+   01A0 FD 8B 55 00        1178 	adc	(hl+sxofc+x)		;FD 8B 55 00
+   01A4 DD 88 55 00        1179 	adc	sxofc+x(sp)		;DD 88 55 00
+   01A8 DD 88 55 00        1180 	adc	(sp+sxofc+x)		;DD 88 55 00
+   01AC FD 89 22 11        1181 	adc	lxofc+x(ix)		;FD 89 22 11
+   01B0 FD 89 22 11        1182 	adc	(ix+lxofc+x)		;FD 89 22 11
+   01B4 FD 8A 22 11        1183 	adc	lxofc+x(iy)		;FD 8A 22 11
+   01B8 FD 8A 22 11        1184 	adc	(iy+lxofc+x)		;FD 8A 22 11
+   01BC FD 8B 22 11        1185 	adc	lxofc+x(hl)		;FD 8B 22 11
+   01C0 FD 8B 22 11        1186 	adc	(hl+lxofc+x)		;FD 8B 22 11
+   01C4 DD 88 22 11        1187 	adc	lxofc+x(sp)		;DD 88 22 11
+   01C8 DD 88 22 11        1188 	adc	(sp+lxofc+x)		;DD 88 22 11
+   01CC DD 8E 00           1192 	adc	(ix)			;DD 8E 00
+   01CF FD 8E 00           1193 	adc	(iy)			;FD 8E 00
+   01D2 8E                 1194 	adc	(hl)			;8E
+   01D3 DD 88 00 00        1195 	adc	(sp)			;DD 88 00 00
+   01D7 FD 88 34 12        1243 	adc	raofc+adc14(pc)		;FD 88 34 12
+   01DB FD 88 34 12        1247 	adc	(pc+raofc+adc15)	;FD 88 34 12
+   01DF FD 88 34 12        1251 	adc	[raofc+adc16]		;FD 88 34 12
+   01E3 FD 88 1C 00        1279 	adc	[.+32]			;FD 88 1C 00
+   01E7 DD 89              1280 	adc	(hl+ix)			;DD 89
+   01E9 DD 8A              1281 	adc	(hl+iy)			;DD 8A
+   01EB DD 8B              1282 	adc	(ix+iy)			;DD 8B
+                           1283 	;***********************************************************
+                           1284 	; add with carry to register IX, IY
+   01ED DD ED 4A           1285 	adc	ix,bc			;DD ED 4A
+   01F0 DD ED 5A           1286 	adc	ix,de			;DD ED 5A
+   01F3 DD ED 6A           1287 	adc	ix,ix			;DD ED 6A
+   01F6 DD ED 7A           1288 	adc	ix,sp			;DD ED 7A
+   01F9 FD ED 4A           1289 	adc	iy,bc			;FD ED 4A
+   01FC FD ED 5A           1290 	adc	iy,de			;FD ED 5A
+   01FF FD ED 6A           1291 	adc	iy,iy			;FD ED 6A
+   0202 FD ED 7A           1292 	adc	iy,sp			;FD ED 7A
+                           1293 		
+                           1294 ;*******************************************************************
+                           1295 ;	ADD	
+                           1296 ;		Leading 'a' operand is optional.
+                           1297 ;		If offset is ommitted 0 is assumed.
+                           1298 ;*******************************************************************
+                           1299 	;***********************************************************
+                           1300 	; add operand to 'a' with 'a'
+                           1301 	.z80
+   0205 86                 1302 	add	a,(hl)			;86
+   0206 DD 86 55           1322 	add	a,offsetc+x(ix)		;DD 86 55
+   0209 FD 86 55           1323 	add	a,offsetc+x(iy)		;FD 86 55
+   020C DD 86 55           1324 	add	a,(ix+offsetc+x)		;DD 86 55
+   020F FD 86 55           1325 	add	a,(iy+offsetc+x)		;FD 86 55
+   0212 87                 1329 	add	a,a			;87
+   0213 80                 1330 	add	a,b			;80
+   0214 81                 1331 	add	a,c			;81
+   0215 82                 1332 	add	a,d			;82
+   0216 83                 1333 	add	a,e			;83
+   0217 84                 1334 	add	a,h			;84
+   0218 85                 1335 	add	a,l			;85
+   0219 C6 20              1351 	add	a,#nc+x			;C6 20
+   021B C6 20              1352 	add	a, nc+x			;C6 20
+                           1356 	;***********************************************************
+                           1357 	; add operand to 'a' without 'a'
+   021D 86                 1358 	add	(hl)			;86	
+   021E DD 86 55           1378 	add	offsetc+x(ix)		;DD 86 55
+   0221 FD 86 55           1379 	add	offsetc+x(iy)		;FD 86 55
+   0224 DD 86 55           1380 	add	(ix+offsetc+x)		;DD 86 55
+   0227 FD 86 55           1381 	add	(iy+offsetc+x)		;FD 86 55
+   022A 87                 1385 	add	a			;87
+   022B 80                 1386 	add	b			;80
+   022C 81                 1387 	add	c			;81
+   022D 82                 1388 	add	d			;82
+   022E 83                 1389 	add	e			;83
+   022F 84                 1390 	add	h			;84
+   0230 85                 1391 	add	l			;85
+   0231 C6 20              1407 	add	#nc+x			;C6 20
+   0233 C6 20              1408 	add	 nc+x			;C6 20
+                           1412 	;***********************************************************
+                           1413 	; add register pair to 'hl'
+   0235 09                 1414 	add	hl,bc			;09
+   0236 19                 1415 	add	hl,de			;19
+   0237 29                 1416 	add	hl,hl			;29
+   0238 39                 1417 	add	hl,sp			;39
+                           1418 	;***********************************************************
+                           1419 	; add register pair to 'ix'
+   0239 DD 09              1420 	add	ix,bc			;DD 09
+   023B DD 19              1421 	add	ix,de			;DD 19
+   023D DD 29              1422 	add	ix,ix			;DD 29
+   023F DD 39              1423 	add	ix,sp			;DD 39
+                           1424 	;***********************************************************
+                           1425 	; add register pair to 'iy'
+   0241 FD 09              1426 	add	iy,bc			;FD 09
+   0243 FD 19              1427 	add	iy,de			;FD 19
+   0245 FD 29              1428 	add	iy,iy			;FD 29
+   0247 FD 39              1429 	add	iy,sp			;FD 39
+                           1430 	;***********************************************************
+                           1431 	; add operand to 'a' with 'a'
+                           1432 	;  p. 5-16
+                           1433 	.z280
+   0249 DD 84              1434 	add	a,ixh			;DD 84
+   024B DD 85              1435 	add	a,ixl			;DD 85
+   024D FD 84              1436 	add	a,iyh			;FD 84
+   024F FD 85              1437 	add	a,iyl			;FD 85
+   0251 DD 87 8A 05        1491 	add	a,(nnc+x+6)		;DD 87 8A 05
+   0255 FD 81 84 05        1492 	add	a,(ix+nnc+x)		;FD 81 84 05
+   0259 FD 82 84 05        1493 	add	a,(iy+nnc+x)		;FD 82 84 05
+   025D FD 83 84 05        1494 	add	a,(hl+nnc+x)		;FD 83 84 05
+   0261 DD 80 84 05        1495 	add	a,(sp+nnc+x)		;DD 80 84 05
+   0265 FD 81 55 00        1499 	add	a,sxofc+x(ix)		;FD 81 55 00
+   0269 FD 81 55 00        1500 	add	a,(ix+sxofc+x)		;FD 81 55 00
+   026D FD 82 55 00        1501 	add	a,sxofc+x(iy)		;FD 82 55 00
+   0271 FD 82 55 00        1502 	add	a,(iy+sxofc+x)		;FD 82 55 00
+   0275 FD 83 55 00        1513 	add	a,sxofc+x(hl)		;FD 83 55 00
+   0279 FD 83 55 00        1514 	add	a,(hl+sxofc+x)		;FD 83 55 00
+   027D DD 80 55 00        1515 	add	a,sxofc+x(sp)		;DD 80 55 00
+   0281 DD 80 55 00        1516 	add	a,(sp+sxofc+x)		;DD 80 55 00
+   0285 FD 81 22 11        1517 	add	a,lxofc+x(ix)		;FD 81 22 11
+   0289 FD 81 22 11        1518 	add	a,(ix+lxofc+x)		;FD 81 22 11
+   028D FD 82 22 11        1519 	add	a,lxofc+x(iy)		;FD 82 22 11
+   0291 FD 82 22 11        1520 	add	a,(iy+lxofc+x)		;FD 82 22 11
+   0295 FD 83 22 11        1521 	add	a,lxofc+x(hl)		;FD 83 22 11
+   0299 FD 83 22 11        1522 	add	a,(hl+lxofc+x)		;FD 83 22 11
+   029D DD 80 22 11        1523 	add	a,lxofc+x(sp)		;DD 80 22 11
+   02A1 DD 80 22 11        1524 	add	a,(sp+lxofc+x)		;DD 80 22 11
+   02A5 DD 86 00           1528 	add	a,(ix)			;DD 86 00
+   02A8 FD 86 00           1529 	add	a,(iy)			;FD 86 00
+   02AB 86                 1530 	add	a,(hl)			;86
+   02AC DD 80 00 00        1531 	add	a,(sp)			;DD 80 00 00
+   02B0 FD 80 34 12        1579 	add	a,raofc+add01(pc)	;FD 80 34 12
+   02B4 FD 80 34 12        1583 	add	a,(pc+raofc+add02)	;FD 80 34 12
+   02B8 FD 80 34 12        1587 	add	a,[raofc+add03]		;FD 80 34 12
+   02BC FD 80 30 12        1615 	add	a,[.+raofc]		;FD 80 30 12
+   02C0 DD 81              1616 	add	a,(hl+ix)		;DD 81
+   02C2 DD 82              1617 	add	a,(hl+iy)		;DD 82
+   02C4 DD 83              1618 	add	a,(ix+iy)		;DD 83
+                           1619 	;***********************************************************
+                           1620 	; add operand to 'a' without 'a'
+                           1621 	.z280
+   02C6 DD 84              1622 	add	ixh			;DD 84
+   02C8 DD 85              1623 	add	ixl			;DD 85
+   02CA FD 84              1624 	add	iyh			;FD 84
+   02CC FD 85              1625 	add	iyl			;FD 85
+   02CE DD 87 8A 05        1679 	add	(nnc+x+6)			;DD 87 8A 05
+   02D2 FD 81 84 05        1680 	add	(ix+nnc+x)			;FD 81 84 05
+   02D6 FD 82 84 05        1681 	add	(iy+nnc+x)			;FD 82 84 05
+   02DA FD 83 84 05        1682 	add	(hl+nnc+x)			;FD 83 84 05
+   02DE DD 80 84 05        1683 	add	(sp+nnc+x)			;DD 80 84 05
+   02E2 FD 81 55 00        1687 	add	sxofc+x(ix)		;FD 81 55 00
+   02E6 FD 81 55 00        1688 	add	(ix+sxofc+x)		;FD 81 55 00
+   02EA FD 82 55 00        1689 	add	sxofc+x(iy)		;FD 82 55 00
+   02EE FD 82 55 00        1690 	add	(iy+sxofc+x)		;FD 82 55 00
+   02F2 FD 83 55 00        1701 	add	sxofc+x(hl)		;FD 83 55 00
+   02F6 FD 83 55 00        1702 	add	(hl+sxofc+x)		;FD 83 55 00
+   02FA DD 80 55 00        1703 	add	sxofc+x(sp)		;DD 80 55 00
+   02FE DD 80 55 00        1704 	add	(sp+sxofc+x)		;DD 80 55 00
+   0302 FD 81 22 11        1705 	add	lxofc+x(ix)		;FD 81 22 11
+   0306 FD 81 22 11        1706 	add	(ix+lxofc+x)		;FD 81 22 11
+   030A FD 82 22 11        1707 	add	lxofc+x(iy)		;FD 82 22 11
+   030E FD 82 22 11        1708 	add	(iy+lxofc+x)		;FD 82 22 11
+   0312 FD 83 22 11        1709 	add	lxofc+x(hl)		;FD 83 22 11
+   0316 FD 83 22 11        1710 	add	(hl+lxofc+x)		;FD 83 22 11
+   031A DD 80 22 11        1711 	add	lxofc+x(sp)		;DD 80 22 11
+   031E DD 80 22 11        1712 	add	(sp+lxofc+x)		;DD 80 22 11
+   0322 DD 86 00           1716 	add	(ix)			;DD 86 00
+   0325 FD 86 00           1717 	add	(iy)			;FD 86 00
+   0328 86                 1718 	add	(hl)			;86
+   0329 DD 80 00 00        1719 	add	(sp)			;DD 80 00 00
+   032D FD 80 34 12        1767 	add	raofc+add04(pc)		;FD 80 34 12
+   0331 FD 80 34 12        1771 	add	(pc+raofc+add05)	;FD 80 34 12
+   0335 FD 80 34 12        1775 	add	[raofc+add06]		;FD 80 34 12
+   0339 FD 80 30 12        1803 	add	[.+raofc]		;FD 80 30 12
+   033D DD 81              1804 	add	(hl+ix)			;DD 81
+   033F DD 82              1805 	add	(hl+iy)			;DD 82
+   0341 DD 83              1806 	add	(ix+iy)			;DD 83
+                           1807 	;***********************************************************
+   0343 ED 6D              1808 	add	hl,a			;ED 6D
+   0345 DD ED 6D           1809 	add	ix,a			;DD ED 6D
+   0348 FD ED 6D           1810 	add	iy,a			;FD ED 6D
+                           1811 
+                           1812 ;*******************************************************************
+                           1813 ;	ADDW	
+                           1814 ;*******************************************************************
+                           1815 	;***********************************************************
+                           1816 	.z280
+   034B FD ED F6 20 00     1850 	addw	hl,#nc+x			;FD ED F6 20 00
+   0350 FD ED F6 44 33     1851 	addw	hl,#daddc+x		;FD ED F6 44 33
+   0355 DD ED D6 44 33     1852 	addw	hl,(daddc+x)		;DD ED D6 44 33
+   035A FD ED C6 55 00     1853 	addw	hl,sxofc+x(ix)		;FD ED C6 55 00
+   035F FD ED C6 55 00     1854 	addw	hl,(ix+sxofc+x)		;FD ED C6 55 00
+   0364 FD ED C6 22 11     1855 	addw	hl,lxofc+x(ix)		;FD ED C6 22 11
+   0369 FD ED C6 22 11     1856 	addw	hl,(ix+lxofc+x)		;FD ED C6 22 11
+   036E FD ED D6 55 00     1857 	addw	hl,sxofc+x(iy)		;FD ED D6 55 00
+   0373 FD ED D6 55 00     1858 	addw	hl,(iy+sxofc+x)		;FD ED D6 55 00
+   0378 FD ED D6 22 11     1859 	addw	hl,lxofc+x(iy)		;FD ED D6 22 11
+   037D FD ED D6 22 11     1860 	addw	hl,(iy+lxofc+x)		;FD ED D6 22 11
+   0382 DD ED C6           1864 	addw	hl,(hl)			;DD ED C6
+                           1865 	;***********************************************************
+                           1866 	; add register pair to 'hl'
+   0385 09                 1867 	addw	hl,bc			;09
+   0386 19                 1868 	addw	hl,de			;19
+   0387 29                 1869 	addw	hl,hl			;29
+   0388 39                 1870 	addw	hl,sp			;39
+                           1871 	;***********************************************************
+   0389 DD ED F6 34 12     1919 	addw	hl,raofc+addw01(pc)	;DD ED F6 34 12
+   038E DD ED F6 34 12     1923 	addw	hl,(pc+raofc+addw02)	;DD ED F6 34 12
+   0393 DD ED F6 34 12     1927 	addw	hl,[raofc+addw03]	;DD ED F6 34 12
+   0398 DD ED F6 1B 00     1955 	addw	hl,[.+nc]		;DD ED F6 1B 00
+                           1956 
+                           1957 	;***********************************************************
+                           1958 	; Equivalent to addw
+                           1959 	;  p. 5-18
+   039D FD ED F6 20 00     1993 	add	hl,#nc+x			;FD ED F6 20 00
+   03A2 FD ED F6 44 33     1994 	add	hl,#daddc+x		;FD ED F6 44 33
+   03A7 DD ED D6 44 33     1995 	add	hl,(daddc+x)		;DD ED D6 44 33
+   03AC FD ED C6 55 00     1996 	add	hl,sxofc+x(ix)		;FD ED C6 55 00
+   03B1 FD ED C6 55 00     1997 	add	hl,(ix+sxofc+x)		;FD ED C6 55 00
+   03B6 FD ED C6 22 11     1998 	add	hl,lxofc+x(ix)		;FD ED C6 22 11
+   03BB FD ED C6 22 11     1999 	add	hl,(ix+lxofc+x)		;FD ED C6 22 11
+   03C0 FD ED D6 55 00     2000 	add	hl,sxofc+x(iy)		;FD ED D6 55 00
+   03C5 FD ED D6 55 00     2001 	add	hl,(iy+sxofc+x)		;FD ED D6 55 00
+   03CA FD ED D6 22 11     2002 	add	hl,lxofc+x(iy)		;FD ED D6 22 11
+   03CF FD ED D6 22 11     2003 	add	hl,(iy+lxofc+x)		;FD ED D6 22 11
+                           2007 
+                           2008 ;*******************************************************************
+                           2009 ;	AND	
+                           2010 ;		Leading 'a' operand is optional.
+                           2011 ;		If offset is ommitted 0 is assumed.
+                           2012 ;*******************************************************************
+                           2013 	;***********************************************************
+                           2014 	; logical 'and' operand with 'a'
+                           2015 	.z80
+   03D4 A6                 2016 	and	a,(hl)			;A6
+   03D5 DD A6 55           2036 	and	a,offsetc+x(ix)		;DD A6 55
+   03D8 FD A6 55           2037 	and	a,offsetc+x(iy)		;FD A6 55
+   03DB DD A6 55           2038 	and	a,(ix+offsetc+x)		;DD A6 55
+   03DE FD A6 55           2039 	and	a,(iy+offsetc+x)		;FD A6 55
+   03E1 A7                 2043 	and	a,a			;A7
+   03E2 A0                 2044 	and	a,b			;A0
+   03E3 A1                 2045 	and	a,c			;A1
+   03E4 A2                 2046 	and	a,d			;A2
+   03E5 A3                 2047 	and	a,e			;A3
+   03E6 A4                 2048 	and	a,h			;A4
+   03E7 A5                 2049 	and	a,l			;A5
+   03E8 E6 20              2065 	and	a,#nc+x			;E6 20
+   03EA E6 20              2066 	and	a, nc+x			;E6 20
+                           2070 	;***********************************************************
+                           2071 	; logical 'and' operand without 'a'
+                           2072 	.z80
+   03EC A6                 2073 	and	(hl)			;A6
+   03ED DD A6 55           2093 	and	offsetc+x(ix)		;DD A6 55
+   03F0 FD A6 55           2094 	and	offsetc+x(iy)		;FD A6 55
+   03F3 DD A6 55           2095 	and	(ix+offsetc+x)		;DD A6 55
+   03F6 FD A6 55           2096 	and	(iy+offsetc+x)		;FD A6 55
+   03F9 A7                 2100 	and	a			;A7
+   03FA A0                 2101 	and	b			;A0
+   03FB A1                 2102 	and	c			;A1
+   03FC A2                 2103 	and	d			;A2
+   03FD A3                 2104 	and	e			;A3
+   03FE A4                 2105 	and	h			;A4
+   03FF A5                 2106 	and	l			;A5
+   0400 E6 20              2122 	and	#nc+x			;E6 20
+   0402 E6 20              2123 	and	 nc+x			;E6 20
+                           2127 	;***********************************************************
+                           2128 	; logical 'and' operand with 'a'
+                           2129 	;  p. 5--19
+                           2130 	.z280
+   0404 DD A4              2131 	and	a,ixh			;DD A4
+   0406 DD A5              2132 	and	a,ixl			;DD A5
+   0408 FD A4              2133 	and	a,iyh			;FD A4
+   040A FD A5              2134 	and	a,iyl			;FD A5
+   040C DD A7 26 00        2188 	and	a,(nc+x+6)			;DD A7 26 00
+   0410 FD A1 84 05        2189 	and	a,(ix+nnc+x)		;FD A1 84 05
+   0414 FD A2 84 05        2190 	and	a,(iy+nnc+x)		;FD A2 84 05
+   0418 FD A3 84 05        2191 	and	a,(hl+nnc+x)		;FD A3 84 05
+   041C DD A0 84 05        2192 	and	a,(sp+nnc+x)		;DD A0 84 05
+   0420 FD A1 55 00        2196 	and	a,sxofc+x(ix)		;FD A1 55 00
+   0424 FD A1 55 00        2197 	and	a,(ix+sxofc+x)		;FD A1 55 00
+   0428 FD A2 55 00        2198 	and	a,sxofc+x(iy)		;FD A2 55 00
+   042C FD A2 55 00        2199 	and	a,(iy+sxofc+x)		;FD A2 55 00
+   0430 FD A3 55 00        2210 	and	a,sxofc+x(hl)		;FD A3 55 00
+   0434 FD A3 55 00        2211 	and	a,(hl+sxofc+x)		;FD A3 55 00
+   0438 DD A0 55 00        2212 	and	a,sxofc+x(sp)		;DD A0 55 00
+   043C DD A0 55 00        2213 	and	a,(sp+sxofc+x)		;DD A0 55 00
+   0440 FD A1 22 11        2214 	and	a,lxofc+x(ix)		;FD A1 22 11
+   0444 FD A1 22 11        2215 	and	a,(ix+lxofc+x)		;FD A1 22 11
+   0448 FD A2 22 11        2216 	and	a,lxofc+x(iy)		;FD A2 22 11
+   044C FD A2 22 11        2217 	and	a,(iy+lxofc+x)		;FD A2 22 11
+   0450 FD A3 22 11        2218 	and	a,lxofc+x(hl)		;FD A3 22 11
+   0454 FD A3 22 11        2219 	and	a,(hl+lxofc+x)		;FD A3 22 11
+   0458 DD A0 22 11        2220 	and	a,lxofc+x(sp)		;DD A0 22 11
+   045C DD A0 22 11        2221 	and	a,(sp+lxofc+x)		;DD A0 22 11
+   0460 DD A6 00           2225 	and	a,(ix)			;DD A6 00
+   0463 FD A6 00           2226 	and	a,(iy)			;FD A6 00
+   0466 A6                 2227 	and	a,(hl)			;A6
+   0467 DD A0 00 00        2228 	and	a,(sp)			;DD A0 00 00
+   046B FD A0 34 12        2276 	and	a,raofc+and01(pc)	;FD A0 34 12
+   046F FD A0 34 12        2280 	and	a,(pc+raofc+and02)	;FD A0 34 12
+   0473 FD A0 34 12        2284 	and	a,[raofc+and03]		;FD A0 34 12
+   0477 FD A0 1C 00        2312 	and	a,[.+32]		;FD A0 1C 00
+   047B FD A0 30 12        2313 	and	a,(pc+(.+raofc))	;FD A0 30 12
+   047F DD A0 E0 FF        2333 	and	a,-nc+x(sp)		;DD A0 E0 FF
+   0483 DD A1              2343 	and	a,(hl+ix)		;DD A1
+   0485 DD A2              2344 	and	a,(hl+iy)		;DD A2
+   0487 DD A3              2345 	and	a,(ix+iy)		;DD A3
+                           2346 	;***********************************************************
+                           2347 	; logical 'and' operand without 'a'
+                           2348 	;  p. 5--19
+                           2349 	.z280
+   0489 DD A4              2350 	and	ixh			;DD A4
+   048B DD A5              2351 	and	ixl			;DD A5
+   048D FD A4              2352 	and	iyh			;FD A4
+   048F FD A5              2353 	and	iyl			;FD A5
+   0491 DD A7 44 33        2373 	and	(daddc+x)			;DD A7 44 33
+   0495 FD A1 22 11        2374 	and	lxofc+x(ix)		;FD A1 22 11
+   0499 FD A2 22 11        2375 	and	(iy+lxofc+x)		;FD A2 22 11
+   049D FD A3 22 11        2376 	and	lxofc+x(hl)		;FD A3 22 11
+   04A1 FD A0 34 12        2427 	and	raofc+and04(pc)		;FD A0 34 12
+   04A5 FD A0 34 12        2431 	and	(pc+raofc+and05)	;FD A0 34 12
+   04A9 FD A0 34 12        2435 	and	[raofc+and06]		;FD A0 34 12
+   04AD FD A0 1C 00        2463 	and	[.+32]			;FD A0 1C 00
+   04B1 FD A0 30 12        2464 	and	(pc+(.+raofc))		;FD A0 30 12
+   04B5 DD A0 E0 FF        2484 	and	-nc+x(sp)			;DD A0 E0 FF
+   04B9 DD A1              2494 	and	(hl+ix)			;DD A1
+   04BB DD A2              2495 	and	(hl+iy)			;DD A2
+   04BD DD A3              2496 	and	(ix+iy)			;DD A3
+                           2497 
+                           2498 ;*******************************************************************
+                           2499 ;	BIT	
+                           2500 ;*******************************************************************
+                           2501 	;***********************************************************
+                           2502 	; test bit of location or register
+                           2503 	.z80
+   04BF CB 46              2504 	bit	0,(hl)			;CB 46
+   04C1 DD CB 55 46        2524 	bit	0,offsetc+x(ix)		;DD CB 55 46
+   04C5 FD CB 55 46        2525 	bit	0,offsetc+x(iy)		;FD CB 55 46
+   04C9 DD CB 55 46        2526 	bit	0,(ix+offsetc+x)		;DD CB 55 46
+   04CD FD CB 55 46        2527 	bit	0,(iy+offsetc+x)		;FD CB 55 46
+   04D1 CB 47              2531 	bit	0,a			;CB 47
+   04D3 CB 40              2532 	bit	0,b			;CB 40
+   04D5 CB 41              2533 	bit	0,c			;CB 41
+   04D7 CB 42              2534 	bit	0,d			;CB 42
+   04D9 CB 43              2535 	bit	0,e			;CB 43
+   04DB CB 44              2536 	bit	0,h			;CB 44
+   04DD CB 45              2537 	bit	0,l			;CB 45
+   04DF CB 4E              2538 	bit	1,(hl)			;CB 4E
+   04E1 DD CB 55 4E        2558 	bit	1,offsetc+x(ix)		;DD CB 55 4E
+   04E5 FD CB 55 4E        2559 	bit	1,offsetc+x(iy)		;FD CB 55 4E
+   04E9 DD CB 55 4E        2560 	bit	1,(ix+offsetc+x)		;DD CB 55 4E
+   04ED FD CB 55 4E        2561 	bit	1,(iy+offsetc+x)		;FD CB 55 4E
+   04F1 CB 4F              2565 	bit	1,a			;CB 4F
+   04F3 CB 48              2566 	bit	1,b			;CB 48
+   04F5 CB 49              2567 	bit	1,c			;CB 49
+   04F7 CB 4A              2568 	bit	1,d			;CB 4A
+   04F9 CB 4B              2569 	bit	1,e			;CB 4B
+   04FB CB 4C              2570 	bit	1,h			;CB 4C
+   04FD CB 4D              2571 	bit	1,l			;CB 4D
+   04FF CB 56              2572 	bit	2,(hl)			;CB 56
+   0501 DD CB 55 56        2592 	bit	2,offsetc+x(ix)		;DD CB 55 56
+   0505 FD CB 55 56        2593 	bit	2,offsetc+x(iy)		;FD CB 55 56
+   0509 DD CB 55 56        2594 	bit	2,(ix+offsetc+x)		;DD CB 55 56
+   050D FD CB 55 56        2595 	bit	2,(iy+offsetc+x)		;FD CB 55 56
+   0511 CB 57              2599 	bit	2,a			;CB 57
+   0513 CB 50              2600 	bit	2,b			;CB 50
+   0515 CB 51              2601 	bit	2,c			;CB 51
+   0517 CB 52              2602 	bit	2,d			;CB 52
+   0519 CB 53              2603 	bit	2,e			;CB 53
+   051B CB 54              2604 	bit	2,h			;CB 54
+   051D CB 55              2605 	bit	2,l			;CB 55
+   051F CB 5E              2606 	bit	3,(hl)			;CB 5E
+   0521 DD CB 55 5E        2626 	bit	3,offsetc+x(ix)		;DD CB 55 5E
+   0525 FD CB 55 5E        2627 	bit	3,offsetc+x(iy)		;FD CB 55 5E
+   0529 DD CB 55 5E        2628 	bit	3,(ix+offsetc+x)		;DD CB 55 5E
+   052D FD CB 55 5E        2629 	bit	3,(iy+offsetc+x)		;FD CB 55 5E
+   0531 CB 5F              2633 	bit	3,a			;CB 5F
+   0533 CB 58              2634 	bit	3,b			;CB 58
+   0535 CB 59              2635 	bit	3,c			;CB 59
+   0537 CB 5A              2636 	bit	3,d			;CB 5A
+   0539 CB 5B              2637 	bit	3,e			;CB 5B
+   053B CB 5C              2638 	bit	3,h			;CB 5C
+   053D CB 5D              2639 	bit	3,l			;CB 5D
+   053F CB 66              2640 	bit	4,(hl)			;CB 66
+   0541 DD CB 55 66        2660 	bit	4,offsetc+x(ix)		;DD CB 55 66
+   0545 FD CB 55 66        2661 	bit	4,offsetc+x(iy)		;FD CB 55 66
+   0549 DD CB 55 66        2662 	bit	4,(ix+offsetc+x)		;DD CB 55 66
+   054D FD CB 55 66        2663 	bit	4,(iy+offsetc+x)		;FD CB 55 66
+   0551 CB 67              2667 	bit	4,a			;CB 67
+   0553 CB 60              2668 	bit	4,b			;CB 60
+   0555 CB 61              2669 	bit	4,c			;CB 61
+   0557 CB 62              2670 	bit	4,d			;CB 62
+   0559 CB 63              2671 	bit	4,e			;CB 63
+   055B CB 64              2672 	bit	4,h			;CB 64
+   055D CB 65              2673 	bit	4,l			;CB 65
+   055F CB 6E              2674 	bit	5,(hl)			;CB 6E
+   0561 DD CB 55 6E        2694 	bit	5,offsetc+x(ix)		;DD CB 55 6E
+   0565 FD CB 55 6E        2695 	bit	5,offsetc+x(iy)		;FD CB 55 6E
+   0569 DD CB 55 6E        2696 	bit	5,(ix+offsetc+x)		;DD CB 55 6E
+   056D FD CB 55 6E        2697 	bit	5,(iy+offsetc+x)		;FD CB 55 6E
+   0571 CB 6F              2701 	bit	5,a			;CB 6F
+   0573 CB 68              2702 	bit	5,b			;CB 68
+   0575 CB 69              2703 	bit	5,c			;CB 69
+   0577 CB 6A              2704 	bit	5,d			;CB 6A
+   0579 CB 6B              2705 	bit	5,e			;CB 6B
+   057B CB 6C              2706 	bit	5,h			;CB 6C
+   057D CB 6D              2707 	bit	5,l			;CB 6D
+   057F CB 76              2708 	bit	6,(hl)			;CB 76
+   0581 DD CB 55 76        2728 	bit	6,offsetc+x(ix)		;DD CB 55 76
+   0585 FD CB 55 76        2729 	bit	6,offsetc+x(iy)		;FD CB 55 76
+   0589 DD CB 55 76        2730 	bit	6,(ix+offsetc+x)		;DD CB 55 76
+   058D FD CB 55 76        2731 	bit	6,(iy+offsetc+x)		;FD CB 55 76
+   0591 CB 77              2735 	bit	6,a			;CB 77
+   0593 CB 70              2736 	bit	6,b			;CB 70
+   0595 CB 71              2737 	bit	6,c			;CB 71
+   0597 CB 72              2738 	bit	6,d			;CB 72
+   0599 CB 73              2739 	bit	6,e			;CB 73
+   059B CB 74              2740 	bit	6,h			;CB 74
+   059D CB 75              2741 	bit	6,l			;CB 75
+   059F CB 7E              2742 	bit	7,(hl)			;CB 7E
+   05A1 DD CB 55 7E        2762 	bit	7,offsetc+x(ix)		;DD CB 55 7E
+   05A5 FD CB 55 7E        2763 	bit	7,offsetc+x(iy)		;FD CB 55 7E
+   05A9 DD CB 55 7E        2764 	bit	7,(ix+offsetc+x)		;DD CB 55 7E
+   05AD FD CB 55 7E        2765 	bit	7,(iy+offsetc+x)		;FD CB 55 7E
+   05B1 CB 7F              2769 	bit	7,a			;CB 7F
+   05B3 CB 78              2770 	bit	7,b			;CB 78
+   05B5 CB 79              2771 	bit	7,c			;CB 79
+   05B7 CB 7A              2772 	bit	7,d			;CB 7A
+   05B9 CB 7B              2773 	bit	7,e			;CB 7B
+   05BB CB 7C              2774 	bit	7,h			;CB 7C
+   05BD CB 7D              2775 	bit	7,l			;CB 7D
+                           2776 
+                           2777 ;*******************************************************************
+                           2778 ;	CALL	
+                           2779 ;*******************************************************************
+                           2780 	;***********************************************************
+                           2781 	; call subroutine at nn if condition is true
+                           2782 	.z80
+   05BF DC 84 05           2818 	call	C,nnc+x			;DC 84 05
+   05C2 FC 84 05           2819 	call	M,nnc+x			;FC 84 05
+   05C5 FC 84 05           2820 	call	s,nnc+x			;FC 84 05
+   05C8 D4 84 05           2821 	call	NC,nnc+x			;D4 84 05
+   05CB C4 84 05           2822 	call	NZ,nnc+x			;C4 84 05
+   05CE F4 84 05           2823 	call	P,nnc+x			;F4 84 05
+   05D1 F4 84 05           2824 	CALL	NS,nnc+x			;F4 84 05
+   05D4 EC 84 05           2825 	call	PE,nnc+x			;EC 84 05
+   05D7 EC 84 05           2826 	call	V,nnc+x			;EC 84 05
+   05DA E4 84 05           2827 	call	PO,nnc+x			;E4 84 05
+   05DD E4 84 05           2828 	call	nv,nnc+x			;E4 84 05
+   05E0 CC 84 05           2829 	call	Z,nnc+x			;CC 84 05
+                           2833 	;***********************************************************
+                           2834 	; unconditional call to subroutine at nn
+   05E3 CD 84 05           2852 	call	nnc+x			;CD 84 05
+   05E6 CD 84 05           2853 	call	(nnc+x)			;CD 84 05
+   05E9 CD 84 05           2854 	call	#nnc+x			;CD 84 05
+                           2858 	;***********************************************************
+                           2859 	;  p. 5-21
+                           2860 	.z280
+   05EC DD CD              2861 	call	(hl)			;DD CD
+   05EE DD CC              2862 	call	z,(hl)			;DD CC
+   05F0 DD E4              2863 	call	NV,(hl)			;DD E4
+   05F2 FD CD 34 12        2911 	call	raofc+call01(pc)	;FD CD 34 12
+   05F6 FD CD 34 12        2915 	call	(pc+raofc+call02)	;FD CD 34 12
+   05FA FD CD 34 12        2919 	call	[raofc+call03]		;FD CD 34 12
+   05FE FD CD 04 01        2947 	call	[.+0x108]		;FD CD 04 01
+   0602 FD DC 34 12        2972 	call	c,raofc+call04(pc)	;FD DC 34 12
+   0606 FD DC 34 12        2976 	call	c,(pc+raofc+call05)	;FD DC 34 12
+   060A FD DC 34 12        2980 	call	c,[raofc+call06]	;FD DC 34 12
+   060E FD DC 04 01        3007 	call	c,.+0x108(pc)		;FD DC 04 01
+                           3008 ;*******************************************************************
+                           3009 ;	CCF	
+                           3010 ;*******************************************************************
+                           3011 	;***********************************************************
+                           3012 	; complement carry flag
+                           3013 	.z80
+   0612 3F                 3014 	ccf				;3F
+                           3015 
+                           3016 ;*******************************************************************
+                           3017 ;	CP	
+                           3018 ;		Leading 'a' operand is optional.
+                           3019 ;		If offset is ommitted 0 is assumed.
+                           3020 ;*******************************************************************
+                           3021 	;***********************************************************
+                           3022 	; compare operand with 'a'
+                           3023 	.z80
+   0613 BE                 3024 	cp	a,(hl)			;BE
+   0614 DD BE 55           3044 	cp	a,offsetc+x(ix)		;DD BE 55
+   0617 FD BE 55           3045 	cp	a,offsetc+x(iy)		;FD BE 55
+   061A DD BE 55           3046 	cp	a,(ix+offsetc+x)		;DD BE 55
+   061D FD BE 55           3047 	cp	a,(iy+offsetc+x)		;FD BE 55
+   0620 BF                 3051 	cp	a,a			;BF
+   0621 B8                 3052 	cp	a,b			;B8
+   0622 B9                 3053 	cp	a,c			;B9
+   0623 BA                 3054 	cp	a,d			;BA
+   0624 BB                 3055 	cp	a,e			;BB
+   0625 BC                 3056 	cp	a,h			;BC
+   0626 BD                 3057 	cp	a,l			;BD
+   0627 FE 20              3073 	cp	a,#nc+x			;FE 20
+   0629 FE 20              3074 	cp	a, nc+x			;FE 20
+                           3078 	;***********************************************************
+                           3079 	; compare operand without 'a'
+                           3080 	.z80
+   062B BE                 3081 	cp	a,(hl)			;BE
+   062C DD BE 55           3101 	cp	offsetc+x(ix)		;DD BE 55
+   062F FD BE 55           3102 	cp	offsetc+x(iy)		;FD BE 55
+   0632 DD BE 55           3103 	cp	(ix+offsetc+x)		;DD BE 55
+   0635 FD BE 55           3104 	cp	(iy+offsetc+x)		;FD BE 55
+   0638 BF                 3108 	cp	a			;BF
+   0639 B8                 3109 	cp	b			;B8
+   063A B9                 3110 	cp	c			;B9
+   063B BA                 3111 	cp	d			;BA
+   063C BB                 3112 	cp	e			;BB
+   063D BC                 3113 	cp	h			;BC
+   063E BD                 3114 	cp	l			;BD
+   063F FE 20              3130 	cp	#nc+x			;FE 20
+   0641 FE 20              3131 	cp	 nc+x			;FE 20
+                           3135 	;***********************************************************
+                           3136 	; compare operand with 'a'
+                           3137 	;  p. 5-23
+                           3138 	.z280
+   0643 DD BC              3139 	cp	a,ixh			;DD BC
+   0645 DD BD              3140 	cp	a,ixl			;DD BD
+   0647 FD BC              3141 	cp	a,iyh			;FD BC
+   0649 FD BD              3142 	cp	a,iyl			;FD BD
+   064B FE 20              3190 	cp	a,#nc+x			;FE 20
+   064D DD BF 44 33        3191 	cp	a,(daddc+x)		;DD BF 44 33
+   0651 FD B9 55 00        3195 	cp	a,sxofc+x(ix)		;FD B9 55 00
+   0655 FD B9 55 00        3196 	cp	a,(ix+sxofc+x)		;FD B9 55 00
+   0659 FD BA 55 00        3197 	cp	a,sxofc+x(iy)		;FD BA 55 00
+   065D FD BA 55 00        3198 	cp	a,(iy+sxofc+x)		;FD BA 55 00
+   0661 FD BB 55 00        3209 	cp	a,sxofc+x(hl)		;FD BB 55 00
+   0665 FD BB 55 00        3210 	cp	a,(hl+sxofc+x)		;FD BB 55 00
+   0669 DD B8 55 00        3211 	cp	a,sxofc+x(sp)		;DD B8 55 00
+   066D DD B8 55 00        3212 	cp	a,(sp+sxofc+x)		;DD B8 55 00
+   0671 FD B9 22 11        3213 	cp	a,lxofc+x(ix)		;FD B9 22 11
+   0675 FD B9 22 11        3214 	cp	a,(ix+lxofc+x)		;FD B9 22 11
+   0679 FD BA 22 11        3215 	cp	a,lxofc+x(iy)		;FD BA 22 11
+   067D FD BA 22 11        3216 	cp	a,(iy+lxofc+x)		;FD BA 22 11
+   0681 FD BB 22 11        3217 	cp	a,lxofc+x(hl)		;FD BB 22 11
+   0685 FD BB 22 11        3218 	cp	a,(hl+lxofc+x)		;FD BB 22 11
+   0689 DD B8 22 11        3219 	cp	a,lxofc+x(sp)		;DD B8 22 11
+   068D DD B8 22 11        3220 	cp	a,(sp+lxofc+x)		;DD B8 22 11
+   0691 DD BE 00           3224 	cp	a,(ix)			;DD BE 00
+   0694 FD BE 00           3225 	cp	a,(iy)			;FD BE 00
+   0697 BE                 3226 	cp	a,(hl)			;BE
+   0698 DD B8 00 00        3227 	cp	a,(sp)			;DD B8 00 00
+   069C FD B8 34 12        3275 	cp	a,raofc+cp01(pc)	;FD B8 34 12
+   06A0 FD B8 34 12        3279 	cp	a,(pc+raofc+cp02)	;FD B8 34 12
+   06A4 FD B8 34 12        3283 	cp	a,[raofc+cp03]		;FD B8 34 12
+   06A8 FD B8 51 00        3311 	cp	a,[.+offsetc]		;FD B8 51 00
+   06AC DD B9              3312 	cp	a,(hl+ix)		;DD B9
+   06AE DD BA              3313 	cp	a,(hl+iy)		;DD BA
+   06B0 DD BB              3314 	cp	a,(ix+iy)		;DD BB
+                           3315 	;***********************************************************
+                           3316 	; compare operand without 'a'
+                           3317 	;  p. 5-23
+                           3318 	.z280
+   06B2 FE 20              3366 	cp	#nc+x			;FE 20
+   06B4 DD BF 44 33        3367 	cp	(daddc+x)			;DD BF 44 33
+   06B8 FD B9 55 00        3371 	cp	sxofc+x(ix)		;FD B9 55 00
+   06BC FD B9 55 00        3372 	cp	(ix+sxofc+x)		;FD B9 55 00
+   06C0 FD BA 55 00        3373 	cp	sxofc+x(iy)		;FD BA 55 00
+   06C4 FD BA 55 00        3374 	cp	(iy+sxofc+x)		;FD BA 55 00
+   06C8 FD BB 55 00        3385 	cp	sxofc+x(hl)		;FD BB 55 00
+   06CC FD BB 55 00        3386 	cp	(hl+sxofc+x)		;FD BB 55 00
+   06D0 DD B8 55 00        3387 	cp	sxofc+x(sp)		;DD B8 55 00
+   06D4 DD B8 55 00        3388 	cp	(sp+sxofc+x)		;DD B8 55 00
+   06D8 FD B9 22 11        3389 	cp	lxofc+x(ix)		;FD B9 22 11
+   06DC FD B9 22 11        3390 	cp	(ix+lxofc+x)		;FD B9 22 11
+   06E0 FD BA 22 11        3391 	cp	lxofc+x(iy)		;FD BA 22 11
+   06E4 FD BA 22 11        3392 	cp	(iy+lxofc+x)		;FD BA 22 11
+   06E8 FD BB 22 11        3393 	cp	lxofc+x(hl)		;FD BB 22 11
+   06EC FD BB 22 11        3394 	cp	(hl+lxofc+x)		;FD BB 22 11
+   06F0 DD B8 22 11        3395 	cp	lxofc+x(sp)		;DD B8 22 11
+   06F4 DD B8 22 11        3396 	cp	(sp+lxofc+x)		;DD B8 22 11
+   06F8 DD BE 00           3400 	cp	(ix)			;DD BE 00
+   06FB FD BE 00           3401 	cp	(iy)			;FD BE 00
+   06FE BE                 3402 	cp	(hl)			;BE
+   06FF DD B8 00 00        3403 	cp	(sp)			;DD B8 00 00
+   0703 FD B8 34 12        3451 	cp	raofc+cp04(pc)		;FD B8 34 12
+   0707 FD B8 34 12        3455 	cp	(pc+raofc+cp05)		;FD B8 34 12
+   070B FD B8 34 12        3459 	cp	[raofc+cp06]		;FD B8 34 12
+   070F FD B8 51 00        3487 	cp	[.+offsetc]		;FD B8 51 00
+   0713 DD B9              3488 	cp	(hl+ix)			;DD B9
+   0715 DD BA              3489 	cp	(hl+iy)			;DD BA
+   0717 DD BB              3490 	cp	(ix+iy)			;DD BB
+                           3491 ;*******************************************************************
+                           3492 ;	CPW	
+                           3493 ;*******************************************************************
+                           3494 	;***********************************************************
+                           3495 	; compare word operand with 'hl'
+                           3496 	;  p. 5-29
+                           3497 	.z280
+   0719 ED C7              3498 	cpw	hl,bc			;ED C7
+   071B ED D7              3499 	cpw	hl,de			;ED D7
+   071D ED E7              3500 	cpw	hl,hl			;ED E7
+   071F ED F7              3501 	cpw	hl,sp			;ED F7
+   0721 DD ED E7           3502 	cpw	hl,ix			;DD ED E7
+   0724 FD ED E7           3503 	cpw	hl,iy			;FD ED E7
+   0727 FD ED F7 84 05     3535 	cpw	hl,#nnc+x			;FD ED F7 84 05
+   072C DD ED D7 44 33     3536 	cpw	hl,(daddc+x)		;DD ED D7 44 33
+   0731 FD ED C7 55 00     3537 	cpw	hl,sxofc+x(ix)		;FD ED C7 55 00
+   0736 FD ED C7 55 00     3538 	cpw	hl,(ix+sxofc+x)		;FD ED C7 55 00
+   073B FD ED C7 22 11     3539 	cpw	hl,lxofc+x(ix)		;FD ED C7 22 11
+   0740 FD ED C7 22 11     3540 	cpw	hl,(ix+lxofc+x)		;FD ED C7 22 11
+   0745 FD ED D7 55 00     3541 	cpw	hl,sxofc+x(iy)		;FD ED D7 55 00
+   074A FD ED D7 55 00     3542 	cpw	hl,(iy+sxofc+x)		;FD ED D7 55 00
+   074F FD ED D7 22 11     3543 	cpw	hl,lxofc+x(iy)		;FD ED D7 22 11
+   0754 FD ED D7 22 11     3544 	cpw	hl,(iy+lxofc+x)		;FD ED D7 22 11
+   0759 DD ED C7           3548 	cpw	hl,(hl)			;DD ED C7
+   075C FD ED C7 00 00     3549 	cpw	hl,(ix)			;FD ED C7 00 00
+   0761 FD ED D7 00 00     3550 	cpw	hl,(iy)			;FD ED D7 00 00
+   0766 DD ED F7 34 12     3598 	cpw	hl,raofc+cpw01(pc)	;DD ED F7 34 12
+   076B DD ED F7 34 12     3602 	cpw	hl,(pc+raofc+cpw02)	;DD ED F7 34 12
+   0770 DD ED F7 34 12     3606 	cpw	hl,[raofc+cpw03]	;DD ED F7 34 12
+   0775 DD ED F7 0F 00     3634 	cpw	hl,[.+20]		;DD ED F7 0F 00
+                           3635 
+                           3636 	;***********************************************************
+                           3637 	; compare word operand without 'hl'
+   077A ED C7              3638 	cpw	bc			;ED C7
+   077C ED D7              3639 	cpw	de			;ED D7
+   077E ED E7              3640 	cpw	hl			;ED E7
+   0780 ED F7              3641 	cpw	sp			;ED F7
+   0782 DD ED E7           3642 	cpw	ix			;DD ED E7
+   0785 FD ED E7           3643 	cpw	iy			;FD ED E7
+   0788 FD ED F7 84 05     3675 	cpw	#nnc+x			;FD ED F7 84 05
+   078D DD ED D7 44 33     3676 	cpw	(daddc+x)			;DD ED D7 44 33
+   0792 FD ED C7 55 00     3677 	cpw	sxofc+x(ix)		;FD ED C7 55 00
+   0797 FD ED C7 55 00     3678 	cpw	(ix+sxofc+x)		;FD ED C7 55 00
+   079C FD ED C7 22 11     3679 	cpw	lxofc+x(ix)		;FD ED C7 22 11
+   07A1 FD ED C7 22 11     3680 	cpw	(ix+lxofc+x)		;FD ED C7 22 11
+   07A6 FD ED D7 55 00     3681 	cpw	sxofc+x(iy)		;FD ED D7 55 00
+   07AB FD ED D7 55 00     3682 	cpw	(iy+sxofc+x)		;FD ED D7 55 00
+   07B0 FD ED D7 22 11     3683 	cpw	lxofc+x(iy)		;FD ED D7 22 11
+   07B5 FD ED D7 22 11     3684 	cpw	(iy+lxofc+x)		;FD ED D7 22 11
+   07BA DD ED C7           3688 	cpw	(hl)			;DD ED C7
+   07BD FD ED C7 00 00     3689 	cpw	(ix)			;FD ED C7 00 00
+   07C2 FD ED D7 00 00     3690 	cpw	(iy)			;FD ED D7 00 00
+   07C7 DD ED F7 34 12     3738 	cpw	raofc+cpw04(pc)		;DD ED F7 34 12
+   07CC DD ED F7 34 12     3742 	cpw	(pc+raofc+cpw05)	;DD ED F7 34 12
+   07D1 DD ED F7 34 12     3746 	cpw	[raofc+cpw06]		;DD ED F7 34 12
+   07D6 DD ED F7 0F 00     3774 	cpw	[.+20]			;DD ED F7 0F 00
+                           3775 
+                           3776 	;***********************************************************
+                           3777 	; Alternative to cpw hl,...
+                           3778 	;  p. 5-29
+                           3779 	.z280
+   07DB ED C7              3780 	cp	hl,bc			;ED C7
+   07DD ED D7              3781 	cp	hl,de			;ED D7
+   07DF ED E7              3782 	cp	hl,hl			;ED E7
+   07E1 ED F7              3783 	cp	hl,sp			;ED F7
+   07E3 DD ED E7           3784 	cp	hl,ix			;DD ED E7
+   07E6 FD ED E7           3785 	cp	hl,iy			;FD ED E7
+   07E9 FD ED F7 84 05     3817 	cp	hl,#nnc+x			;FD ED F7 84 05
+   07EE DD ED D7 44 33     3818 	cp	hl,(daddc+x)		;DD ED D7 44 33
+   07F3 FD ED C7 55 00     3819 	cp	hl,sxofc+x(ix)		;FD ED C7 55 00
+   07F8 FD ED C7 55 00     3820 	cp	hl,(ix+sxofc+x)		;FD ED C7 55 00
+   07FD FD ED C7 22 11     3821 	cp	hl,lxofc+x(ix)		;FD ED C7 22 11
+   0802 FD ED C7 22 11     3822 	cp	hl,(ix+lxofc+x)		;FD ED C7 22 11
+   0807 FD ED D7 55 00     3823 	cp	hl,sxofc+x(iy)		;FD ED D7 55 00
+   080C FD ED D7 55 00     3824 	cp	hl,(iy+sxofc+x)		;FD ED D7 55 00
+   0811 FD ED D7 22 11     3825 	cp	hl,lxofc+x(iy)		;FD ED D7 22 11
+   0816 FD ED D7 22 11     3826 	cp	hl,(iy+lxofc+x)		;FD ED D7 22 11
+   081B DD ED C7           3830 	cp	hl,(hl)			;DD ED C7
+   081E FD ED C7 00 00     3831 	cp	hl,(ix)			;FD ED C7 00 00
+   0823 FD ED D7 00 00     3832 	cp	hl,(iy)			;FD ED D7 00 00
+   0828 DD ED F7 34 12     3880 	cp	hl,raofc+cp07(pc)	;DD ED F7 34 12
+   082D DD ED F7 34 12     3884 	cp	hl,(pc+raofc+cp08)	;DD ED F7 34 12
+   0832 DD ED F7 34 12     3888 	cp	hl,[raofc+cp09]		;DD ED F7 34 12
+   0837 DD ED F7 0F 00     3916 	cp	hl,[.+20]		;DD ED F7 0F 00
+                           3917 
+                           3918 ;*******************************************************************
+                           3919 ;	CPD	
+                           3920 ;*******************************************************************
+                           3921 	;***********************************************************
+                           3922 	; compare location (hl) and 'a'
+                           3923 	; decrement 'hl' and 'bc'
+                           3924 	.z80
+   083C ED A9              3925 	cpd				;ED A9
+                           3926 
+                           3927 ;*******************************************************************
+                           3928 ;	CPDR	
+                           3929 ;*******************************************************************
+                           3930 	;***********************************************************
+                           3931 	; compare location (hl) and 'a'
+                           3932 	; decrement 'hl' and 'bc'
+                           3933 	; repeat until 'bc' = 0
+                           3934 	.z80
+   083E ED B9              3935 	cpdr				;ED B9
+                           3936 
+                           3937 ;*******************************************************************
+                           3938 ;	CPI	
+                           3939 ;*******************************************************************
+                           3940 	;***********************************************************
+                           3941 	; compare location (hl) and 'a'
+                           3942 	; increment 'hl' and decrement 'bc'
+                           3943 	.z80
+   0840 ED A1              3944 	cpi				;ED A1
+                           3945 
+                           3946 ;*******************************************************************
+                           3947 ;	CPIR	
+                           3948 ;*******************************************************************
+                           3949 	;***********************************************************
+                           3950 	; compare location (hl) and 'a'
+                           3951 	; increment 'hl' and decrement 'bc'
+                           3952 	; repeat until 'bc' = 0
+                           3953 	.z80
+   0842 ED B1              3954 	cpir				;ED B1
+                           3955 
+                           3956 ;*******************************************************************
+                           3957 ;	CPL	
+                           3958 ;*******************************************************************
+                           3959 	;***********************************************************
+                           3960 	; 1's complement of 'a'
+                           3961 	.z80
+   0844 2F                 3962 	cpl				;2F
+                           3963 
+                           3964 ;*******************************************************************
+                           3965 ;	DAA	
+                           3966 ;*******************************************************************
+                           3967 	;***********************************************************
+                           3968 	; decimal adjust 'a'
+                           3969 	.z80
+   0845 27                 3970 	daa				;27
+                           3971 
+                           3972 ;*******************************************************************
+                           3973 ;	DEC	
+                           3974 ;*******************************************************************
+                           3975 	;***********************************************************
+                           3976 	; decrement operand
+                           3977 	.z80
+   0846 35                 3978 	dec	(hl)			;35
+   0847 DD 35 55           3998 	dec	offsetc+x(ix)		;DD 35 55
+   084A FD 35 55           3999 	dec	offsetc+x(iy)		;FD 35 55
+   084D DD 35 55           4000 	dec	(ix+offsetc+x)		;DD 35 55
+   0850 FD 35 55           4001 	dec	(iy+offsetc+x)		;FD 35 55
+   0853 3D                 4005 	dec	a			;3D
+   0854 05                 4006 	dec	b			;05
+   0855 0B                 4007 	dec	bc			;0B
+   0856 0D                 4008 	dec	c			;0D
+   0857 15                 4009 	dec	d			;15
+   0858 1B                 4010 	dec	de			;1B
+   0859 1D                 4011 	dec	e			;1D
+   085A 25                 4012 	dec	h			;25
+   085B 2B                 4013 	dec	hl			;2B
+   085C DD 2B              4014 	dec	ix			;DD 2B
+   085E FD 2B              4015 	dec	iy			;FD 2B
+   0860 2D                 4016 	dec	l			;2D
+   0861 3B                 4017 	dec	sp			;3B
+                           4018 	;***********************************************************
+                           4019 	;  p. 5-32
+                           4020 	.z280
+   0862 DD 25              4021 	dec	ixh			;DD 25
+   0864 DD 2D              4022 	dec	ixl			;DD 2D
+   0866 FD 25              4023 	dec	iyh			;FD 25
+   0868 FD 2D              4024 	dec	iyl			;FD 2D
+   086A DD 3D 44 33        4070 	dec	(daddc+x)			;DD 3D 44 33
+   086E FD 0D 55 00        4074 	dec	sxofc+x(ix)		;FD 0D 55 00
+   0872 FD 0D 55 00        4075 	dec	(ix+sxofc+x)		;FD 0D 55 00
+   0876 FD 15 55 00        4076 	dec	sxofc+x(iy)		;FD 15 55 00
+   087A FD 15 55 00        4077 	dec	(iy+sxofc+x)		;FD 15 55 00
+   087E FD 1D 55 00        4088 	dec	sxofc+x(hl)		;FD 1D 55 00
+   0882 FD 1D 55 00        4089 	dec	(hl+sxofc+x)		;FD 1D 55 00
+   0886 DD 05 55 00        4090 	dec	sxofc+x(sp)		;DD 05 55 00
+   088A DD 05 55 00        4091 	dec	(sp+sxofc+x)		;DD 05 55 00
+   088E FD 0D 22 11        4092 	dec	lxofc+x(ix)		;FD 0D 22 11
+   0892 FD 0D 22 11        4093 	dec	(ix+lxofc+x)		;FD 0D 22 11
+   0896 FD 15 22 11        4094 	dec	lxofc+x(iy)		;FD 15 22 11
+   089A FD 15 22 11        4095 	dec	(iy+lxofc+x)		;FD 15 22 11
+   089E FD 1D 22 11        4096 	dec	lxofc+x(hl)		;FD 1D 22 11
+   08A2 FD 1D 22 11        4097 	dec	(hl+lxofc+x)		;FD 1D 22 11
+   08A6 DD 05 22 11        4098 	dec	lxofc+x(sp)		;DD 05 22 11
+   08AA DD 05 22 11        4099 	dec	(sp+lxofc+x)		;DD 05 22 11
+   08AE DD 35 00           4103 	dec	(ix)			;DD 35 00
+   08B1 FD 35 00           4104 	dec	(iy)			;FD 35 00
+   08B4 35                 4105 	dec	(hl)			;35
+   08B5 DD 05 00 00        4106 	dec	(sp)			;DD 05 00 00
+   08B9 FD 05 34 12        4154 	dec	raofc+dec01(pc)		;FD 05 34 12
+   08BD FD 05 34 12        4158 	dec	(pc+raofc+dec02)	;FD 05 34 12
+   08C1 FD 05 34 12        4162 	dec	[raofc+dec03]		;FD 05 34 12
+   08C5 FD 05 51 00        4190 	dec	[.+offsetc]		;FD 05 51 00
+   08C9 DD 0D              4191 	dec	(hl+ix)			;DD 0D
+   08CB DD 15              4192 	dec	(hl+iy)			;DD 15
+   08CD DD 1D              4193 	dec	(ix+iy)			;DD 1D
+                           4194 
+                           4195 ;*******************************************************************
+                           4196 ;	DECB	
+                           4197 ;*******************************************************************
+                           4198 	;***********************************************************
+                           4199 	; decrement byte operand
+                           4200 	;  p. 5-32
+                           4201 	.z80
+   08CF 35                 4202 	decb	(hl)			;35
+   08D0 DD 35 55           4222 	decb	offsetc+x(ix)		;DD 35 55
+   08D3 FD 35 55           4223 	decb	offsetc+x(iy)		;FD 35 55
+   08D6 DD 35 55           4224 	decb	(ix+offsetc+x)		;DD 35 55
+   08D9 FD 35 55           4225 	decb	(iy+offsetc+x)		;FD 35 55
+                           4229 	;***********************************************************
+                           4230 	.z280
+   08DC DD 3D 44 33        4276 	decb	(daddc+x)			;DD 3D 44 33
+   08E0 FD 0D 55 00        4280 	decb	sxofc+x(ix)		;FD 0D 55 00
+   08E4 FD 0D 55 00        4281 	decb	(ix+sxofc+x)		;FD 0D 55 00
+   08E8 FD 15 55 00        4282 	decb	sxofc+x(iy)		;FD 15 55 00
+   08EC FD 15 55 00        4283 	decb	(iy+sxofc+x)		;FD 15 55 00
+   08F0 FD 1D 55 00        4294 	decb	sxofc+x(hl)		;FD 1D 55 00
+   08F4 FD 1D 55 00        4295 	decb	(hl+sxofc+x)		;FD 1D 55 00
+   08F8 DD 05 55 00        4296 	decb	sxofc+x(sp)		;DD 05 55 00
+   08FC DD 05 55 00        4297 	decb	(sp+sxofc+x)		;DD 05 55 00
+   0900 FD 0D 22 11        4298 	decb	lxofc+x(ix)		;FD 0D 22 11
+   0904 FD 0D 22 11        4299 	decb	(ix+lxofc+x)		;FD 0D 22 11
+   0908 FD 15 22 11        4300 	decb	lxofc+x(iy)		;FD 15 22 11
+   090C FD 15 22 11        4301 	decb	(iy+lxofc+x)		;FD 15 22 11
+   0910 FD 1D 22 11        4302 	decb	lxofc+x(hl)		;FD 1D 22 11
+   0914 FD 1D 22 11        4303 	decb	(hl+lxofc+x)		;FD 1D 22 11
+   0918 DD 05 22 11        4304 	decb	lxofc+x(sp)		;DD 05 22 11
+   091C DD 05 22 11        4305 	decb	(sp+lxofc+x)		;DD 05 22 11
+   0920 DD 35 00           4309 	decb	(ix)			;DD 35 00
+   0923 FD 35 00           4310 	decb	(iy)			;FD 35 00
+   0926 35                 4311 	decb	(hl)			;35
+   0927 DD 05 00 00        4312 	decb	(sp)			;DD 05 00 00
+   092B FD 05 34 12        4360 	decb	raofc+decb01(pc)	;FD 05 34 12
+   092F FD 05 34 12        4364 	decb	(pc+raofc+decb02)	;FD 05 34 12
+   0933 FD 05 34 12        4368 	decb	[raofc+decb03]		;FD 05 34 12
+   0937 FD 05 51 00        4396 	decb	[.+offsetc]		;FD 05 51 00
+   093B DD 0D              4397 	decb	(hl+ix)			;DD 0D
+   093D DD 15              4398 	decb	(hl+iy)			;DD 15
+   093F DD 1D              4399 	decb	(ix+iy)			;DD 1D
+                           4400 
+                           4401 ;*******************************************************************
+                           4402 ;	DECW	
+                           4403 ;*******************************************************************
+                           4404 	;***********************************************************
+                           4405 	;  p. 5-32
+                           4406 	.z80
+   0941 0B                 4407 	decw	bc			;0B
+   0942 1B                 4408 	decw	de			;1B
+   0943 2B                 4409 	decw	hl			;2B
+   0944 3B                 4410 	decw	sp			;3B
+   0945 DD 2B              4411 	decw	ix			;DD 2B
+   0947 FD 2B              4412 	decw	iy			;FD 2B
+                           4413 	;***********************************************************
+                           4414 	;  p. 5-33
+                           4415 	.z280
+   0949 DD 1B 44 33        4445 	decw	(daddc+x)			;DD 1B 44 33
+   094D FD 0B 55 00        4446 	decw	sxofc+x(ix)		;FD 0B 55 00
+   0951 FD 0B 55 00        4447 	decw	(ix+sxofc+x)		;FD 0B 55 00
+   0955 FD 1B 55 00        4448 	decw	sxofc+x(iy)		;FD 1B 55 00
+   0959 FD 1B 55 00        4449 	decw	(iy+sxofc+x)		;FD 1B 55 00
+   095D FD 0B 22 11        4450 	decw	lxofc+x(ix)		;FD 0B 22 11
+   0961 FD 0B 22 11        4451 	decw	(ix+lxofc+x)		;FD 0B 22 11
+   0965 FD 1B 22 11        4452 	decw	lxofc+x(iy)		;FD 1B 22 11
+   0969 FD 1B 22 11        4453 	decw	(iy+lxofc+x)		;FD 1B 22 11
+   096D FD 0B 00 00        4457 	decw	(ix)			;FD 0B 00 00
+   0971 FD 1B 00 00        4458 	decw	(iy)			;FD 1B 00 00
+   0975 DD 0B              4459 	decw	(hl)			;DD 0B
+   0977 DD 3B 34 12        4507 	decw	raofc+decw01(pc)	;DD 3B 34 12
+   097B DD 3B 34 12        4511 	decw	(pc+raofc+decw02)	;DD 3B 34 12
+   097F DD 3B 34 12        4515 	decw	[raofc+decw03]		;DD 3B 34 12
+   0983 DD 3B 51 00        4543 	decw	[.+offsetc]		;DD 3B 51 00
+                           4544 
+                           4545 ;*******************************************************************
+                           4546 ;	DI	
+                           4547 ;*******************************************************************
+                           4548 	;***********************************************************
+                           4549 	; disable interrupts
+                           4550 	.z80
+   0987 F3                 4551 	di				;F3
+                           4552 ;	di	#3			;	q
+                           4553 	.z180
+   0988 F3                 4554 	di				;F3
+                           4555 ;	di	#3			;	q
+                           4556 	;***********************************************************
+                           4557 	;  p. 5-34
+                           4558 	.z280
+                           4559 ;	di				;	q
+                           4560 ;	di	#3			;	q
+                           4561 	.z280p
+   0989 F3                 4562 	di				;F3
+   098A ED 77 03           4563 	di	#3			;ED 77 03
+   098D ED 77 03           4564 	di	 3			;ED 77 03
+                           4565 
+                           4566 ;*******************************************************************
+                           4567 ;	DIV	
+                           4568 ;*******************************************************************
+                           4569 	;***********************************************************
+                           4570 	;  p. 5-35	DIV(byte)
+                           4571 	.z280
+   0990 ED FC              4572 	div	hl,a			;ED FC
+   0992 ED C4              4573 	div	hl,b			;ED C4
+   0994 ED CC              4574 	div	hl,c			;ED CC
+   0996 ED D4              4575 	div	hl,d			;ED D4
+   0998 ED DC              4576 	div	hl,e			;ED DC
+   099A ED E4              4577 	div	hl,h			;ED E4
+   099C ED EC              4578 	div	hl,l			;ED EC
+   099E DD ED E4           4579 	div	hl,ixh			;DD ED E4
+   09A1 DD ED EC           4580 	div	hl,ixl			;DD ED EC
+   09A4 FD ED E4           4581 	div	hl,iyh			;FD ED E4
+   09A7 FD ED EC           4582 	div	hl,iyl			;FD ED EC
+   09AA FD ED FC 0A        4583 	div	hl,#10			;FD ED FC 0A
+   09AE DD ED FC 44 33     4629 	div	hl,(daddc+x)		;DD ED FC 44 33
+   09B3 FD ED CC 55 00     4633 	div	hl,offsetc+x(ix)		;FD ED CC 55 00
+   09B8 FD ED CC 55 00     4634 	div	hl,(ix+offsetc+x)		;FD ED CC 55 00
+   09BD FD ED D4 55 00     4635 	div	hl,offsetc+x(iy)		;FD ED D4 55 00
+   09C2 FD ED D4 55 00     4636 	div	hl,(iy+offsetc+x)		;FD ED D4 55 00
+   09C7 FD ED DC 55 00     4647 	div	hl,offsetc+x(hl)		;FD ED DC 55 00
+   09CC FD ED DC 55 00     4648 	div	hl,(hl+offsetc+x)		;FD ED DC 55 00
+   09D1 DD ED C4 55 00     4649 	div	hl,offsetc+x(sp)		;DD ED C4 55 00
+   09D6 DD ED C4 55 00     4650 	div	hl,(sp+offsetc+x)		;DD ED C4 55 00
+   09DB FD ED CC 22 11     4651 	div	hl,lxofc+x(ix)		;FD ED CC 22 11
+   09E0 FD ED CC 22 11     4652 	div	hl,(ix+lxofc+x)		;FD ED CC 22 11
+   09E5 FD ED D4 22 11     4653 	div	hl,lxofc+x(iy)		;FD ED D4 22 11
+   09EA FD ED D4 22 11     4654 	div	hl,(iy+lxofc+x)		;FD ED D4 22 11
+   09EF FD ED DC 22 11     4655 	div	hl,lxofc+x(hl)		;FD ED DC 22 11
+   09F4 FD ED DC 22 11     4656 	div	hl,(hl+lxofc+x)		;FD ED DC 22 11
+   09F9 DD ED C4 22 11     4657 	div	hl,lxofc+x(sp)		;DD ED C4 22 11
+   09FE DD ED C4 22 11     4658 	div	hl,(sp+lxofc+x)		;DD ED C4 22 11
+   0A03 DD ED F4 00        4662 	div	hl,(ix)			;DD ED F4 00
+   0A07 FD ED F4 00        4663 	div	hl,(iy)			;FD ED F4 00
+                           4664 ; misprint in the manual on p. 5-35 says the following should assemble as ED E4
+                           4665 ;  Appendix C.  corrects this to ED F4
+   0A0B ED F4              4666 	div	hl,(hl)			;ED F4
+   0A0D FD ED C4 55 00     4714 	div	hl,offsetc+div01(pc)	;FD ED C4 55 00
+   0A12 FD ED C4 55 00     4718 	div	hl,(pc+offsetc+div02)	;FD ED C4 55 00
+   0A17 FD ED C4 55 00     4722 	div	hl,[offsetc+div03]	;FD ED C4 55 00
+   0A1C FD ED C4 50 00     4750 	div	hl,[.+offsetc]		;FD ED C4 50 00
+   0A21 DD ED CC           4751 	div	hl,(hl+ix)		;DD ED CC
+   0A24 DD ED D4           4752 	div	hl,(hl+iy)		;DD ED D4
+   0A27 DD ED DC           4753 	div	hl,(ix+iy)		;DD ED DC
+                           4754 
+                           4755 ;*******************************************************************
+                           4756 ;	DIVU
+                           4757 ;*******************************************************************
+                           4758 	;***********************************************************
+                           4759 	;  p. 5-37	DIVU(byte)
+                           4760 	.z280
+   0A2A ED FD              4761 	divu	hl,a			;ED FD
+   0A2C ED C5              4762 	divu	hl,b			;ED C5
+   0A2E ED CD              4763 	divu	hl,c			;ED CD
+   0A30 ED D5              4764 	divu	hl,d			;ED D5
+   0A32 ED DD              4765 	divu	hl,e			;ED DD
+   0A34 ED E5              4766 	divu	hl,h			;ED E5
+   0A36 ED ED              4767 	divu	hl,l			;ED ED
+   0A38 DD ED E5           4768 	divu	hl,ixh			;DD ED E5
+   0A3B DD ED ED           4769 	divu	hl,ixl			;DD ED ED
+   0A3E FD ED E5           4770 	divu	hl,iyh			;FD ED E5
+   0A41 FD ED ED           4771 	divu	hl,iyl			;FD ED ED
+   0A44 FD ED FD 0A        4772 	divu	hl,#10			;FD ED FD 0A
+   0A48 DD ED FD 44 33     4818 	divu	hl,(daddc+x)		;DD ED FD 44 33
+   0A4D FD ED CD 55 00     4822 	divu	hl,offsetc+x(ix)		;FD ED CD 55 00
+   0A52 FD ED CD 55 00     4823 	divu	hl,(ix+offsetc+x)		;FD ED CD 55 00
+   0A57 FD ED D5 55 00     4824 	divu	hl,offsetc+x(iy)		;FD ED D5 55 00
+   0A5C FD ED D5 55 00     4825 	divu	hl,(iy+offsetc+x)		;FD ED D5 55 00
+   0A61 FD ED DD 55 00     4836 	divu	hl,offsetc+x(hl)		;FD ED DD 55 00
+   0A66 FD ED DD 55 00     4837 	divu	hl,(hl+offsetc+x)		;FD ED DD 55 00
+   0A6B DD ED C5 55 00     4838 	divu	hl,offsetc+x(sp)		;DD ED C5 55 00
+   0A70 DD ED C5 55 00     4839 	divu	hl,(sp+offsetc+x)		;DD ED C5 55 00
+   0A75 FD ED CD 22 11     4840 	divu	hl,lxofc+x(ix)		;FD ED CD 22 11
+   0A7A FD ED CD 22 11     4841 	divu	hl,(ix+lxofc+x)		;FD ED CD 22 11
+   0A7F FD ED D5 22 11     4842 	divu	hl,lxofc+x(iy)		;FD ED D5 22 11
+   0A84 FD ED D5 22 11     4843 	divu	hl,(iy+lxofc+x)		;FD ED D5 22 11
+   0A89 FD ED DD 22 11     4844 	divu	hl,lxofc+x(hl)		;FD ED DD 22 11
+   0A8E FD ED DD 22 11     4845 	divu	hl,(hl+lxofc+x)		;FD ED DD 22 11
+   0A93 DD ED C5 22 11     4846 	divu	hl,lxofc+x(sp)		;DD ED C5 22 11
+   0A98 DD ED C5 22 11     4847 	divu	hl,(sp+lxofc+x)		;DD ED C5 22 11
+   0A9D FD ED F5 00        4851 	divu	hl,(iy)			;FD ED F5 00
+   0AA1 DD ED F5 00        4852 	divu	hl,(ix)			;DD ED F5 00
+   0AA5 ED F5              4853 	divu	hl,(hl)			;ED F5
+   0AA7 FD ED C5 55 00     4901 	divu	hl,offsetc+divu01(pc)	;FD ED C5 55 00
+   0AAC FD ED C5 55 00     4905 	divu	hl,(pc+offsetc+divu02)	;FD ED C5 55 00
+   0AB1 FD ED C5 55 00     4909 	divu	hl,[offsetc+divu03]	;FD ED C5 55 00
+   0AB6 FD ED C5 50 00     4937 	divu	hl,[.+offsetc]		;FD ED C5 50 00
+   0ABB DD ED CD           4938 	divu	hl,(hl+ix)		;DD ED CD
+   0ABE DD ED D5           4939 	divu	hl,(hl+iy)		;DD ED D5
+   0AC1 DD ED DD           4940 	divu	hl,(ix+iy)		;DD ED DD
+                           4941 
+                           4942 ;*******************************************************************
+                           4943 ;	DIVUW	
+                           4944 ;*******************************************************************
+                           4945 	;***********************************************************
+                           4946 	;  p. 5-39	DIVUW(word)
+                           4947 	.z280
+   0AC4 ED CB              4948 	divuw	dehl,bc			;ED CB
+   0AC6 ED DB              4949 	divuw	dehl,de			;ED DB
+   0AC8 ED EB              4950 	divuw	dehl,hl			;ED EB
+   0ACA ED FB              4951 	divuw	dehl,sp			;ED FB
+   0ACC DD ED EB           4952 	divuw	dehl,ix			;DD ED EB
+   0ACF FD ED EB           4953 	divuw	dehl,iy			;FD ED EB
+   0AD2 DD ED CB           4954 	divuw	dehl,(hl)		;DD ED CB
+   0AD5 FD ED CB 00 00     4955 	divuw	dehl,(ix)		;FD ED CB 00 00
+   0ADA FD ED DB 00 00     4956 	divuw	dehl,(iy)		;FD ED DB 00 00
+   0ADF FD ED FB 20 00     4990     	divuw	dehl,#nc+x			;FD ED FB 20 00
+   0AE4 FD ED FB 84 05     4991 	divuw	dehl,#nnc+x		;FD ED FB 84 05
+   0AE9 DD ED DB 44 33     4992 	divuw	dehl,(daddc+x)		;DD ED DB 44 33
+   0AEE FD ED CB 55 00     4993 	divuw	dehl,(ix+offsetc+x)	;FD ED CB 55 00
+   0AF3 FD ED CB 55 00     4994 	divuw	dehl,offsetc+x(ix)		;FD ED CB 55 00
+   0AF8 FD ED DB 55 00     4995 	divuw	dehl,(iy+offsetc+x)	;FD ED DB 55 00
+   0AFD FD ED DB 55 00     4996 	divuw	dehl,offsetc+x(iy)		;FD ED DB 55 00
+   0B02 FD ED CB 22 11     4997 	divuw	dehl,(ix+lxofc+x)		;FD ED CB 22 11
+   0B07 FD ED CB 22 11     4998 	divuw	dehl,lxofc+x(ix)		;FD ED CB 22 11
+   0B0C FD ED DB 22 11     4999 	divuw	dehl,(iy+lxofc+x)		;FD ED DB 22 11
+   0B11 FD ED DB 22 11     5000 	divuw	dehl,lxofc+x(iy)		;FD ED DB 22 11
+   0B16 FD ED CB 00 00     5004 	divuw	dehl,(ix)		;FD ED CB 00 00
+   0B1B FD ED DB 00 00     5005 	divuw	dehl,(iy)		;FD ED DB 00 00
+   0B20 DD ED CB           5006 	divuw	dehl,(hl)		;DD ED CB
+   0B23 DD ED FB 55 00     5054 	divuw	dehl,offsetc+divuw01(pc)	;DD ED FB 55 00
+   0B28 DD ED FB 55 00     5058 	divuw	dehl,(pc+offsetc+divuw02)	;DD ED FB 55 00
+   0B2D DD ED FB 55 00     5062 	divuw	dehl,[offsetc+divuw03]		;DD ED FB 55 00
+   0B32 DD ED FB 50 00     5090 	divuw	dehl,[.+offsetc]	;DD ED FB 50 00
+                           5091 
+                           5092 ;*******************************************************************
+                           5093 ;	DIVW	
+                           5094 ;*******************************************************************
+                           5095 	;***********************************************************
+                           5096 	;  p. 5-41	DIVW(word)
+                           5097 	.z280
+   0B37 ED CA              5098 	divw	dehl,bc			;ED CA
+   0B39 ED DA              5099 	divw	dehl,de			;ED DA
+   0B3B ED EA              5100 	divw	dehl,hl			;ED EA
+   0B3D ED FA              5101 	divw	dehl,sp			;ED FA
+   0B3F DD ED EA           5102 	divw	dehl,ix			;DD ED EA
+   0B42 FD ED EA           5103 	divw	dehl,iy			;FD ED EA
+   0B45 DD ED CA           5104 	divw	dehl,(hl)		;DD ED CA
+   0B48 FD ED CA 00 00     5105 	divw	dehl,(ix)		;FD ED CA 00 00
+   0B4D FD ED DA 00 00     5106 	divw	dehl,(iy)		;FD ED DA 00 00
+   0B52 FD ED FA 20 00     5140 	divw	dehl,#nc+x			;FD ED FA 20 00
+   0B57 FD ED FA 84 05     5141 	divw	dehl,#nnc+x		;FD ED FA 84 05
+   0B5C DD ED DA 44 33     5142 	divw	dehl,(daddc+x)		;DD ED DA 44 33
+   0B61 FD ED CA 55 00     5143 	divw	dehl,(ix+offsetc+x)	;FD ED CA 55 00
+   0B66 FD ED CA 55 00     5144 	divw	dehl,offsetc+x(ix)		;FD ED CA 55 00
+   0B6B FD ED DA 55 00     5145 	divw	dehl,(iy+offsetc+x)	;FD ED DA 55 00
+   0B70 FD ED DA 55 00     5146 	divw	dehl,offsetc+x(iy)		;FD ED DA 55 00
+   0B75 FD ED CA 22 11     5147 	divw	dehl,(ix+lxofc+x)		;FD ED CA 22 11
+   0B7A FD ED CA 22 11     5148 	divw	dehl,lxofc+x(ix)		;FD ED CA 22 11
+   0B7F FD ED DA 22 11     5149 	divw	dehl,(iy+lxofc+x)		;FD ED DA 22 11
+   0B84 FD ED DA 22 11     5150 	divw	dehl,lxofc+x(iy)		;FD ED DA 22 11
+   0B89 FD ED CA 00 00     5154 	divw	dehl,(ix)		;FD ED CA 00 00
+   0B8E FD ED DA 00 00     5155 	divw	dehl,(iy)		;FD ED DA 00 00
+   0B93 DD ED CA           5156 	divw	dehl,(hl)		;DD ED CA
+   0B96 DD ED FA 55 00     5204 	divw	dehl,offsetc+divw01(pc)		;DD ED FA 55 00
+   0B9B DD ED FA 55 00     5208 	divw	dehl,(pc+offsetc+divw02)	;DD ED FA 55 00
+   0BA0 DD ED FA 55 00     5212 	divw	dehl,[offsetc+divw03]		;DD ED FA 55 00
+   0BA5 DD ED FA 50 00     5240 	divw	dehl,[.+offsetc]	;DD ED FA 50 00
+                           5241 
+                           5242 ;*******************************************************************
+                           5243 ;	DJNZ	
+                           5244 ;*******************************************************************
+                           5245 	.z80
+                           5246 	;***********************************************************
+                           5247 	; decrement b and jump relative if b # 0
+   0BAA 10 10              5248 	djnz	.+0x12			;10 10
+                           5249 
+                           5250 ;*******************************************************************
+                           5251 ;	EI	
+                           5252 ;*******************************************************************
+                           5253 	;***********************************************************
+                           5254 	; enable interrupts
+                           5255 	.z80
+   0BAC FB                 5256 	ei				;FB
+                           5257 	.z180
+   0BAD FB                 5258 	ei				;FB
+                           5259 	;***********************************************************
+                           5260 	;  p. 5-44
+                           5261 	.z280p
+   0BAE FB                 5262 	ei				;FB
+   0BAF ED 7F 37           5263 	ei	#0x37			;ED 7F 37
+                           5264 
+                           5265 ;*******************************************************************
+                           5266 ;	EX	
+                           5267 ;		If offset is ommitted 0 is assumed.
+                           5268 ;*******************************************************************
+                           5269 	;***********************************************************
+                           5270 	; exchange location and (sp)
+                           5271 	.z80
+   0BB2 E3                 5272 	ex	(sp),hl			;E3
+   0BB3 DD E3              5273 	ex	(sp),ix			;DD E3
+   0BB5 FD E3              5274 	ex	(sp),iy			;FD E3
+                           5275 	;***********************************************************
+                           5276 	; exchange af and af'
+   0BB7 08                 5277 	ex	af,af'			;08
+                           5278 	;***********************************************************
+                           5279 	; exchange de and hl
+   0BB8 EB                 5280 	ex	de,hl			;EB
+                           5281 	;***********************************************************
+                           5282 	;  p. 5-47
+                           5283 	.z280
+   0BB9 ED EF              5284 	ex	h,l			;ED EF
+                           5285 	;  p. 5-48
+   0BBB DD EB              5286 	ex	ix,hl			;DD EB
+   0BBD FD EB              5287 	ex	iy,hl			;FD EB
+   0BBF FD EB              5288 	ex	hl,iy			;FD EB
+   0BC1 DD EB              5289 	ex	hl,ix			;DD EB
+                           5290 	; p. 5-49
+   0BC3 ED 3F              5291 	ex	a,a			;ED 3F
+   0BC5 ED 07              5292 	ex	a,b			;ED 07
+   0BC7 ED 0F              5293 	ex	a,c			;ED 0F
+   0BC9 ED 17              5294 	ex	a,d			;ED 17
+   0BCB ED 1F              5295 	ex	a,e			;ED 1F
+   0BCD ED 27              5296 	ex	a,h			;ED 27
+   0BCF ED 2F              5297 	ex	a,l			;ED 2F
+   0BD1 DD ED 27           5298 	ex	a,ixh			;DD ED 27
+   0BD4 DD ED 2F           5299 	ex	a,ixl			;DD ED 2F
+   0BD7 FD ED 27           5300 	ex	a,iyh			;FD ED 27
+   0BDA FD ED 2F           5301 	ex	a,iyl			;FD ED 2F
+   0BDD ED 37              5302 	ex	a,(hl)			;ED 37
+   0BDF DD ED 3F 44 33     5348 	ex	a,(daddc+x)		;DD ED 3F 44 33
+   0BE4 FD ED 0F 55 00     5352 	ex	a,offsetc+x(ix)		;FD ED 0F 55 00
+   0BE9 FD ED 0F 55 00     5353 	ex	a,(ix+offsetc+x)		;FD ED 0F 55 00
+   0BEE FD ED 17 55 00     5354 	ex	a,offsetc+x(iy)		;FD ED 17 55 00
+   0BF3 FD ED 17 55 00     5355 	ex	a,(iy+offsetc+x)		;FD ED 17 55 00
+   0BF8 FD ED 1F 55 00     5366 	ex	a,offsetc+x(hl)		;FD ED 1F 55 00
+   0BFD FD ED 1F 55 00     5367 	ex	a,(hl+offsetc+x)		;FD ED 1F 55 00
+   0C02 DD ED 07 55 00     5368 	ex	a,offsetc+x(sp)		;DD ED 07 55 00
+   0C07 DD ED 07 55 00     5369 	ex	a,(sp+offsetc+x)		;DD ED 07 55 00
+   0C0C FD ED 0F 22 11     5370 	ex	a,lxofc+x(ix)		;FD ED 0F 22 11
+   0C11 FD ED 0F 22 11     5371 	ex	a,(ix+lxofc+x)		;FD ED 0F 22 11
+   0C16 FD ED 17 22 11     5372 	ex	a,lxofc+x(iy)		;FD ED 17 22 11
+   0C1B FD ED 17 22 11     5373 	ex	a,(iy+lxofc+x)		;FD ED 17 22 11
+   0C20 FD ED 1F 22 11     5374 	ex	a,lxofc+x(hl)		;FD ED 1F 22 11
+   0C25 FD ED 1F 22 11     5375 	ex	a,(hl+lxofc+x)		;FD ED 1F 22 11
+   0C2A DD ED 07 22 11     5376 	ex	a,lxofc+x(sp)		;DD ED 07 22 11
+   0C2F DD ED 07 22 11     5377 	ex	a,(sp+lxofc+x)		;DD ED 07 22 11
+   0C34 DD ED 37 00        5381 	ex	a,(ix)			;DD ED 37 00
+   0C38 FD ED 37 00        5382 	ex	a,(iy)			;FD ED 37 00
+                           5383 ;	ex	a,(hl)			;FD ED 1F 00 00
+   0C3C FD ED 07 55 00     5431 	ex	a,offsetc+ex01(pc)	;FD ED 07 55 00
+   0C41 FD ED 07 55 00     5435 	ex	a,(pc+offsetc+ex02)	;FD ED 07 55 00
+   0C46 FD ED 07 55 00     5439 	ex	a,[offsetc+ex03]	;FD ED 07 55 00
+   0C4B FD ED 07 D9 EE     5467 	ex	a,[.-lxofc]		;FD ED 07 D9 EE
+   0C50 DD ED 0F           5468 	ex	a,(hl+ix)		;DD ED 0F
+   0C53 DD ED 17           5469 	ex	a,(hl+iy)		;DD ED 17
+   0C56 DD ED 1F           5470 	ex	a,(ix+iy)		;DD ED 1F
+                           5471 
+                           5472 ;*******************************************************************
+                           5473 ;	EXTS	
+                           5474 ;*******************************************************************
+                           5475 	;***********************************************************
+                           5476 	;  extend sign  a->hl,   hl->dehl
+                           5477 	;  pp. 5-50, 5-51
+   0C59 ED 64              5478 	exts				;ED 64
+   0C5B ED 64              5479 	exts	a			;ED 64
+   0C5D ED 6C              5480 	exts	hl			;ED 6C
+                           5481 
+                           5482 ;*******************************************************************
+                           5483 ;	EXX	
+                           5484 ;*******************************************************************
+                           5485 	;***********************************************************
+                           5486 	; exchange:
+                           5487 	;	bc <-> bc'
+                           5488 	;	de <-> de'
+                           5489 	;	hl <-> hl'
+                           5490 	.z80
+   0C5F D9                 5491 	exx				;D9
+                           5492 
+                           5493 ;*******************************************************************
+                           5494 ;	HALT	
+                           5495 ;*******************************************************************
+                           5496 	;***********************************************************
+                           5497 	; halt (wait for interrupt or reset)
+                           5498 	.z80
+   0C60 76                 5499 	halt				;76
+                           5500 
+                           5501 ;*******************************************************************
+                           5502 ;	IM	
+                           5503 ;*******************************************************************
+                           5504 	;***********************************************************
+                           5505 	; set interrupt mode
+                           5506 	.z80
+   0C61 ED 46              5507 	im	0			;ED 46
+   0C63 ED 56              5508 	im	1			;ED 56
+   0C65 ED 5E              5509 	im	2			;ED 5E
+                           5510 	.z280p
+   0C67 ED 4E              5511 	im	3			;ED 4E
+                           5512 
+                           5513 ;*******************************************************************
+                           5514 ;	IN and INW	
+                           5515 ;*******************************************************************
+                           5516 	;***********************************************************
+                           5517 	; load 'a' with input from device n
+                           5518 	.z80
+   0C69 DB 20              5532 	in	a,(nc+x)			;DB 20
+   0C6B DB 33              5536 	in	a,0x33			;DB 33
+                           5537 	;***********************************************************
+                           5538 	; load register with input from (c)
+   0C6D ED 78              5539 	in	a,(c)			;ED 78
+   0C6F ED 40              5540 	in	b,(c)			;ED 40
+   0C71 ED 48              5541 	in	c,(c)			;ED 48
+   0C73 ED 50              5542 	in	d,(c)			;ED 50
+   0C75 ED 58              5543 	in	e,(c)			;ED 58
+   0C77 ED 60              5544 	in	h,(c)			;ED 60
+   0C79 ED 68              5545 	in	l,(c)			;ED 68
+                           5546 	;***********************************************************
+                           5547 	;  p. 5-55
+                           5548 	.z280
+   0C7B DD ED 60           5549 	in	ixh,(c)			;DD ED 60
+   0C7E DD ED 68           5550 	in	ixl,(c)			;DD ED 68
+   0C81 FD ED 60           5551 	in	iyh,(c)			;FD ED 60
+   0C84 FD ED 68           5552 	in	iyl,(c)			;FD ED 68
+   0C87 DD ED 78 44 33     5598 	in	(daddc+x),(c)		;DD ED 78 44 33
+   0C8C FD ED 48 55 00     5599 	in	offsetc+x(ix),(c)		;FD ED 48 55 00
+   0C91 FD ED 48 55 00     5600 	in	(ix+offsetc+x),(c)		;FD ED 48 55 00
+   0C96 FD ED 50 55 00     5601 	in	offsetc+x(iy),(c)		;FD ED 50 55 00
+   0C9B FD ED 50 55 00     5602 	in	(iy+offsetc+x),(c)		;FD ED 50 55 00
+   0CA0 FD ED 58 55 00     5603 	in	offsetc+x(hl),(c)		;FD ED 58 55 00
+   0CA5 FD ED 58 55 00     5604 	in	(hl+offsetc+x),(c)		;FD ED 58 55 00
+   0CAA DD ED 40 55 00     5605 	in	offsetc+x(sp),(c)		;DD ED 40 55 00
+   0CAF DD ED 40 55 00     5606 	in	(sp+offsetc+x),(c)		;DD ED 40 55 00
+   0CB4 FD ED 48 22 11     5607 	in	lxofc+x(ix),(c)		;FD ED 48 22 11
+   0CB9 FD ED 48 22 11     5608 	in	(ix+lxofc+x),(c)		;FD ED 48 22 11
+   0CBE FD ED 50 22 11     5609 	in	lxofc+x(iy),(c)		;FD ED 50 22 11
+   0CC3 FD ED 50 22 11     5610 	in	(iy+lxofc+x),(c)		;FD ED 50 22 11
+   0CC8 FD ED 58 22 11     5611 	in	lxofc+x(hl),(c)		;FD ED 58 22 11
+   0CCD FD ED 58 22 11     5612 	in	(hl+lxofc+x),(c)		;FD ED 58 22 11
+   0CD2 DD ED 40 22 11     5613 	in	lxofc+x(sp),(c)		;DD ED 40 22 11
+   0CD7 DD ED 40 22 11     5614 	in	(sp+lxofc+x),(c)		;DD ED 40 22 11
+   0CDC FD ED 40 55 00     5665 	in	offsetc+in01(pc),(c)	;FD ED 40 55 00
+   0CE1 FD ED 40 55 00     5669 	in	(pc+offsetc+in02),(c)	;FD ED 40 55 00
+   0CE6 FD ED 40 55 00     5673 	in	[offsetc+in03],(c)	;FD ED 40 55 00
+   0CEB FD ED 40 50 00     5701 	in	[.+offsetc],(c)		;FD ED 40 50 00
+   0CF0 DD ED 48           5702 	in	(ix+hl),(c)		;DD ED 48
+   0CF3 DD ED 50           5703 	in	(hl+iy),(c)		;DD ED 50
+   0CF6 DD ED 58           5704 	in	(iy+ix),(c)		;DD ED 58
+                           5705 	;***********************************************************
+                           5706 	;  p. 5-65
+   0CF9 ED B7              5707 	in	hl,(c)			;ED B7
+   0CFB ED B7              5708 	inw	hl,(c)			;ED B7
+                           5709 
+                           5710 ;*******************************************************************
+                           5711 ;	INC	
+                           5712 ;		If offset is ommitted 0 is assumed.
+                           5713 ;*******************************************************************
+                           5714 	;***********************************************************
+                           5715 	; increment operand
+                           5716 	.z80
+   0CFD 34                 5717 	inc	(hl)			;34
+   0CFE DD 34 55           5737 	inc	offsetc+x(ix)		;DD 34 55
+   0D01 DD 34 55           5738 	inc	(ix+offsetc+x)		;DD 34 55
+   0D04 FD 34 55           5739 	inc	offsetc+x(iy)		;FD 34 55
+   0D07 FD 34 55           5740 	inc	(iy+offsetc+x)		;FD 34 55
+   0D0A 3C                 5744 	inc	a			;3C
+   0D0B 04                 5745 	inc	b			;04
+   0D0C 03                 5746 	inc	bc			;03
+   0D0D 0C                 5747 	inc	c			;0C
+   0D0E 14                 5748 	inc	d			;14
+   0D0F 13                 5749 	inc	de			;13
+   0D10 1C                 5750 	inc	e			;1C
+   0D11 24                 5751 	inc	h			;24
+   0D12 23                 5752 	inc	hl			;23
+   0D13 DD 23              5753 	inc	ix			;DD 23
+   0D15 FD 23              5754 	inc	iy			;FD 23
+   0D17 2C                 5755 	inc	l			;2C
+   0D18 33                 5756 	inc	sp			;33
+                           5757 
+   0D19 03                 5758 	incw	bc			;03
+   0D1A 13                 5759 	incw	de			;13
+   0D1B 23                 5760 	incw	hl			;23
+   0D1C 33                 5761 	incw	sp			;33
+                           5762 
+                           5763 	;***********************************************************
+                           5764 	; increment operand
+                           5765 	;  p. 5-57
+                           5766 	.z280
+   0D1D DD 24              5767 	inc	ixh			;DD 24
+   0D1F DD 2C              5768 	inc	ixl			;DD 2C
+   0D21 FD 24              5769 	inc	iyh			;FD 24
+   0D23 FD 2C              5770 	inc 	iyl			;FD 2C
+   0D25 DD 3C 44 33        5816 	inc	(daddc+x)			;DD 3C 44 33
+   0D29 FD 0C 55 00        5820 	inc	offsetc+x(ix)		;FD 0C 55 00
+   0D2D FD 0C 55 00        5821 	inc	(ix+offsetc+x)		;FD 0C 55 00
+   0D31 FD 14 55 00        5822 	inc	offsetc+x(iy)		;FD 14 55 00
+   0D35 FD 14 55 00        5823 	inc	(iy+offsetc+x)		;FD 14 55 00
+   0D39 FD 1C 55 00        5834 	inc	offsetc+x(hl)		;FD 1C 55 00
+   0D3D FD 1C 55 00        5835 	inc	(hl+offsetc+x)		;FD 1C 55 00
+   0D41 DD 04 55 00        5836 	inc	offsetc+x(sp)		;DD 04 55 00
+   0D45 DD 04 55 00        5837 	inc	(sp+offsetc+x)		;DD 04 55 00
+   0D49 FD 0C 22 11        5838 	inc	lxofc+x(ix)		;FD 0C 22 11
+   0D4D FD 0C 22 11        5839 	inc	(ix+lxofc+x)		;FD 0C 22 11
+   0D51 FD 14 22 11        5840 	inc	lxofc+x(iy)		;FD 14 22 11
+   0D55 FD 14 22 11        5841 	inc	(iy+lxofc+x)		;FD 14 22 11
+   0D59 FD 1C 22 11        5842 	inc	lxofc+x(hl)		;FD 1C 22 11
+   0D5D FD 1C 22 11        5843 	inc	(hl+lxofc+x)		;FD 1C 22 11
+   0D61 DD 04 22 11        5844 	inc	lxofc+x(sp)		;DD 04 22 11
+   0D65 DD 04 22 11        5845 	inc	(sp+lxofc+x)		;DD 04 22 11
+   0D69 FD 04 55 00        5896 	inc	offsetc+inc01(pc)	;FD 04 55 00
+   0D6D FD 04 55 00        5900 	inc	(pc+offsetc+inc02)	;FD 04 55 00
+   0D71 FD 04 55 00        5904 	inc	[offsetc+inc03]		;FD 04 55 00
+   0D75 FD 04 51 00        5932 	inc	[.+offsetc]		;FD 04 51 00
+   0D79 DD 0C              5933 	inc	(hl+ix)			;DD 0C
+   0D7B DD 14              5934 	inc	(hl+iy)			;DD 14
+   0D7D DD 1C              5935 	inc	(ix+iy)			;DD 1C
+                           5936 
+                           5937 ;*******************************************************************
+                           5938 ;	INCW	
+                           5939 ;		If offset is ommitted 0 is assumed.
+                           5940 ;*******************************************************************
+                           5941 	;***********************************************************
+                           5942 	; increment word operand
+   0D7F 03                 5943 	incw	bc			;03
+   0D80 13                 5944 	incw	de			;13
+   0D81 23                 5945 	incw	hl			;23
+   0D82 33                 5946 	incw	sp			;33
+   0D83 DD 23              5947 	incw	ix			;DD 23
+   0D85 FD 23              5948 	incw	iy			;FD 23
+                           5949 
+   0D87 DD 03              5950 	incw	(hl)			;DD 03
+   0D89 DD 13 44 33        5972 	incw	(daddc+x)			;DD 13 44 33
+   0D8D FD 03 55 00        5973 	incw	offsetc+x(ix)		;FD 03 55 00
+   0D91 FD 03 55 00        5974 	incw	(ix+offsetc+x)		;FD 03 55 00
+   0D95 FD 13 22 11        5975 	incw	lxofc+x(iy)		;FD 13 22 11
+   0D99 FD 13 22 11        5976 	incw	(iy+lxofc+x)		;FD 13 22 11
+   0D9D DD 33 34 12        6027 	incw	raofc+incw01(pc)	;DD 33 34 12
+   0DA1 DD 33 34 12        6031 	incw	(pc+raofc+incw02)	;DD 33 34 12
+   0DA5 DD 33 34 12        6035 	incw	[raofc+incw03]		;DD 33 34 12
+   0DA9 DD 33 30 12        6063 	incw	[.+raofc]		;DD 33 30 12
+                           6064 
+                           6065 ;*******************************************************************
+                           6066 ;	IND	
+                           6067 ;*******************************************************************
+                           6068 	;***********************************************************
+                           6069 	; load location (hl) with input
+                           6070 	; from port (c)
+                           6071 	; decrement 'hl' and 'b'
+                           6072 	.z80
+   0DAD ED AA              6073 	ind				;ED AA
+                           6074 
+                           6075 ;*******************************************************************
+                           6076 ;	INDR	
+                           6077 ;*******************************************************************
+                           6078 	;***********************************************************
+                           6079 	; load location (hl) with input
+                           6080 	; from port (c)
+                           6081 	; decrement 'hl' and 'b'
+                           6082 	; repeat until 'b' = 0
+                           6083 	.z80
+   0DAF ED BA              6084 	indr				;ED BA
+                           6085 
+                           6086 ;*******************************************************************
+                           6087 ;	INI	
+                           6088 ;*******************************************************************
+                           6089 	;***********************************************************
+                           6090 	; load location (hl) with input
+                           6091 	; from port (c)
+                           6092 	; increment 'hl' and decrement 'b'
+                           6093 	.z80
+   0DB1 ED A2              6094 	ini				;ED A2
+                           6095 
+                           6096 ;*******************************************************************
+                           6097 ;	INIR	
+                           6098 ;*******************************************************************
+                           6099 	;***********************************************************
+                           6100 	; load location (hl) with input
+                           6101 	; from port (c)
+                           6102 	; increment 'hl' and decrement 'b'
+                           6103 	; repeat until 'b' = 0
+                           6104 	.z80
+   0DB3 ED B2              6105 	inir				;ED B2
+                           6106 
+                           6107 ;*******************************************************************
+                           6108 ;	INDW, INDR, INIW, and INIRW	
+                           6109 ;*******************************************************************
+                           6110 	;***********************************************************
+                           6111 	.z280
+   0DB5 ED 8A              6112 jmp1:	indw				;ED 8A
+   0DB7 ED 9A              6113 	indrw				;ED 9A
+   0DB9 ED 82              6114 	iniw				;ED 82
+   0DBB ED 92              6115 	inirw				;ED 92
+                           6116 
+                           6117 ;*******************************************************************
+                           6118 ;	JAF	
+                           6119 ;*******************************************************************
+                           6120 	;***********************************************************
+                           6121  	; jump on auxiliary accumulator/flag (AF)
+                           6122 	;  p. 5-66
+   0DBD DD 28 F5           6123 	jaf	jmp1			;DD 28 F5
+                           6124 
+                           6125 ;*******************************************************************
+                           6126 ;	JAR	
+                           6127 ;*******************************************************************
+                           6128 	;***********************************************************
+                           6129 	; jump on auxiliary register set
+                           6130 	;  p. 5-67
+                           6131 	.z280
+   0DC0 DD 20 F2           6132 	jar	jmp1			;DD 20 F2
+                           6133 
+                           6134 ;*******************************************************************
+                           6135 ;	JP	
+                           6136 ;*******************************************************************
+                           6137 	;***********************************************************
+                           6138 	; unconditional jump to location nn
+                           6139 	.z80
+   0DC3 E9                 6140 	jp	(hl)			;E9
+   0DC4 DD E9              6141 	jp	(ix)			;DD E9
+   0DC6 FD E9              6142 	jp	(iy)			;FD E9
+                           6143 	;***********************************************************
+                           6144 	; jump to location if condition is true
+   0DC8 C3 84 05           6174 	jp	nnc+x			;C3 84 05
+   0DCB DA 84 05           6175 	jp	C,nnc+x			;DA 84 05
+   0DCE FA 84 05           6176 	jp	M,nnc+x			;FA 84 05
+   0DD1 D2 84 05           6177 	jp	NC,nnc+x			;D2 84 05
+   0DD4 C2 84 05           6178 	jp	NZ,nnc+x			;C2 84 05
+   0DD7 F2 84 05           6179 	jp	P,nnc+x			;F2 84 05
+   0DDA EA 84 05           6180 	jp	PE,nnc+x			;EA 84 05
+   0DDD E2 84 05           6181 	jp	PO,nnc+x			;E2 84 05
+   0DE0 CA 84 05           6182 	jp	Z,nnc+x			;CA 84 05
+                           6186 	;***********************************************************
+                           6187 	;  p. 5-68
+                           6188 	.z280
+   0DE3 DD C2              6189 	jp	nz,(hl)			;DD C2
+   0DE5 DD CA              6190 	jp	z,(hl)			;DD CA
+   0DE7 DD D2              6191 	jp	nc,(hl)			;DD D2
+   0DE9 DD DA              6192 	jp	c,(hl)			;DD DA
+   0DEB DD E2              6193 	jp	nv,(hl)			;DD E2
+   0DED DD EA              6194 	jp	v,(hl)			;DD EA
+   0DEF DD F2              6195 	jp	ns,(hl)			;DD F2
+   0DF1 DD FA              6196 	jp	s,(hl)			;DD FA
+   0DF3 DD E2              6197 	jp	po,(hl)			;DD E2
+   0DF5 DD EA              6198 	jp	pe,(hl)			;DD EA
+   0DF7 DD F2              6199 	jp	p,(hl)			;DD F2
+   0DF9 DD FA              6200 	jp	m,(hl)			;DD FA
+                           6201 	; long relative jumps
+   0DFB FD C3 B6 FF        6202 	jp	[jmp1]			;FD C3 B6 FF
+   0DFF FD C2 B2 FF        6203 	jp	nz,[jmp1]		;FD C2 B2 FF
+   0E03 FD CA AE FF        6204 	jp	z,[jmp1]		;FD CA AE FF
+   0E07 FD F2 AA FF        6205 	jp	p,[jmp1]		;FD F2 AA FF
+   0E0B FD FA A6 FF        6206 	jp	m,[jmp1]		;FD FA A6 FF
+   0E0F FD C3 55 00        6254 	jp	offsetc+jp01(pc)	;FD C3 55 00
+   0E13 FD C3 55 00        6258 	jp	(pc+offsetc+jp02)	;FD C3 55 00
+   0E17 FD C3 55 00        6262 	jp	[offsetc+jp03]		;FD C3 55 00
+   0E1B FD C3 51 00        6290 	jp	[.+offsetc]		;FD C3 51 00
+                           6291 
+                           6292 ;*******************************************************************
+                           6293 ;	JR	
+                           6294 ;*******************************************************************
+                           6295 	;***********************************************************
+                           6296 	; unconditional jump relative to PC+e
+   0E1F 18 10              6297 	jr	ljr1+0x10		;18 10
+                           6298 	.z80
+                           6299 	;***********************************************************
+                           6300 	; jump relative to PC+e if condition is true
+   0E21 38 10              6301 ljr1:	jr	C,1$+0x10		;38 10
+   0E23 30 10              6302 1$:	jr	NC,2$+0x10		;30 10
+   0E25 20 10              6303 2$:	jr	NZ,3$+0x10		;20 10
+   0E27 28 10              6304 3$:	jr	Z,4$+0x10		;28 10
+   0E29                    6305 4$:	
+   0E29 18 F6              6306 ljr2:	jr	ljr1			;18 F6
+                           6307 
+   0E2B 38 FE              6327 xjr_1::	jr	C, jr_1			;38 FE
+   0E2D 30 FE              6328 xjr_2::	jr	NC,jr_2			;30 FE
+   0E2F 20 FE              6329 xjr_3::	jr	NZ,jr_3			;20 FE
+   0E31 28 FE              6330 xjr_4::	jr	Z, jr_4			;28 FE
+                           6342 
+                           6343 ;*******************************************************************
+                           6344 ;	LD	
+                           6345 ;		Leading 'a' operand is optional.
+                           6346 ;		If offset is ommitted 0 is assumed.
+                           6347 ;*******************************************************************
+                           6348 	;***********************************************************
+                           6349 	; load source to destination
+                           6350 	.z80
+   0E33 7E                 6351 	ld	a,(hl)			;7E
+   0E34 DD 7E 55           6371 	ld	a,offsetc+x(ix)		;DD 7E 55
+   0E37 DD 7E 55           6372 	ld	a,(ix+offsetc+x)		;DD 7E 55
+   0E3A FD 7E 55           6373 	ld	a,offsetc+x(iy)		;FD 7E 55
+   0E3D FD 7E 55           6374 	ld	a,(iy+offsetc+x)		;FD 7E 55
+   0E40 7F                 6378 	ld	a,a			;7F
+   0E41 78                 6379 	ld	a,b			;78
+   0E42 79                 6380 	ld	a,c			;79
+   0E43 7A                 6381 	ld	a,d			;7A
+   0E44 7B                 6382 	ld	a,e			;7B
+   0E45 7C                 6383 	ld	a,h			;7C
+   0E46 7D                 6384 	ld	a,l			;7D
+   0E47 3E 20              6400 	ld	a,#nc+x			;3E 20
+   0E49 3E 20              6401 	ld	a, nc+x			;3E 20
+   0E4B 46                 6405 	ld	b,(hl)			;46
+   0E4C DD 46 55           6425 	ld	b,offsetc+x(ix)		;DD 46 55
+   0E4F DD 46 55           6426 	ld	b,(ix+offsetc+x)		;DD 46 55
+   0E52 FD 46 55           6427 	ld	b,offsetc+x(iy)		;FD 46 55
+   0E55 FD 46 55           6428 	ld	b,(iy+offsetc+x)		;FD 46 55
+   0E58 47                 6432 	ld	b,a			;47
+   0E59 40                 6433 	ld	b,b			;40
+   0E5A 41                 6434 	ld	b,c			;41
+   0E5B 42                 6435 	ld	b,d			;42
+   0E5C 43                 6436 	ld	b,e			;43
+   0E5D 44                 6437 	ld	b,h			;44
+   0E5E 45                 6438 	ld	b,l			;45
+   0E5F 06 20              6454 	ld	b,#nc+x			;06 20
+   0E61 06 20              6455 	ld	b, nc+x			;06 20
+   0E63 4E                 6459 	ld	c,(hl)			;4E
+   0E64 DD 4E 55           6479 	ld	c,offsetc+x(ix)		;DD 4E 55
+   0E67 DD 4E 55           6480 	ld	c,(ix+offsetc+x)		;DD 4E 55
+   0E6A FD 4E 55           6481 	ld	c,offsetc+x(iy)		;FD 4E 55
+   0E6D FD 4E 55           6482 	ld	c,(iy+offsetc+x)		;FD 4E 55
+   0E70 4F                 6486 	ld	c,a			;4F
+   0E71 48                 6487 	ld	c,b			;48
+   0E72 49                 6488 	ld	c,c			;49
+   0E73 4A                 6489 	ld	c,d			;4A
+   0E74 4B                 6490 	ld	c,e			;4B
+   0E75 4C                 6491 	ld	c,h			;4C
+   0E76 4D                 6492 	ld	c,l			;4D
+   0E77 0E 20              6508 	ld	c,#nc+x			;0E 20
+   0E79 0E 20              6509 	ld	c, nc+x			;0E 20
+   0E7B 56                 6513 	ld	d,(hl)			;56
+   0E7C DD 56 55           6533 	ld	d,offsetc+x(ix)		;DD 56 55
+   0E7F DD 56 55           6534 	ld	d,(ix+offsetc+x)		;DD 56 55
+   0E82 FD 56 55           6535 	ld	d,offsetc+x(iy)		;FD 56 55
+   0E85 FD 56 55           6536 	ld	d,(iy+offsetc+x)		;FD 56 55
+   0E88 57                 6540 	ld	d,a			;57
+   0E89 50                 6541 	ld	d,b			;50
+   0E8A 51                 6542 	ld	d,c			;51
+   0E8B 52                 6543 	ld	d,d			;52
+   0E8C 53                 6544 	ld	d,e			;53
+   0E8D 54                 6545 	ld	d,h			;54
+   0E8E 55                 6546 	ld	d,l			;55
+   0E8F 16 20              6562 	ld	d,#nc+x			;16 20
+   0E91 16 20              6563 	ld	d, nc+x			;16 20
+   0E93 5E                 6567 	ld	e,(hl)			;5E
+   0E94 DD 5E 55           6587 	ld	e,offsetc+x(ix)		;DD 5E 55
+   0E97 DD 5E 55           6588 	ld	e,(ix+offsetc+x)		;DD 5E 55
+   0E9A FD 5E 55           6589 	ld	e,offsetc+x(iy)		;FD 5E 55
+   0E9D FD 5E 55           6590 	ld	e,(iy+offsetc+x)		;FD 5E 55
+   0EA0 5F                 6594 	ld	e,a			;5F
+   0EA1 58                 6595 	ld	e,b			;58
+   0EA2 59                 6596 	ld	e,c			;59
+   0EA3 5A                 6597 	ld	e,d			;5A
+   0EA4 5B                 6598 	ld	e,e			;5B
+   0EA5 5C                 6599 	ld	e,h			;5C
+   0EA6 5D                 6600 	ld	e,l			;5D
+   0EA7 1E 20              6616 	ld	e,#nc+x			;1E 20
+   0EA9 1E 20              6617 	ld	e, nc+x			;1E 20
+   0EAB 66                 6621 	ld	h,(hl)			;66
+   0EAC DD 66 55           6641 	ld	h,offsetc+x(ix)		;DD 66 55
+   0EAF DD 66 55           6642 	ld	h,(ix+offsetc+x)		;DD 66 55
+   0EB2 FD 66 55           6643 	ld	h,offsetc+x(iy)		;FD 66 55
+   0EB5 FD 66 55           6644 	ld	h,(iy+offsetc+x)		;FD 66 55
+   0EB8 67                 6648 	ld	h,a			;67
+   0EB9 60                 6649 	ld	h,b			;60
+   0EBA 61                 6650 	ld	h,c			;61
+   0EBB 62                 6651 	ld	h,d			;62
+   0EBC 63                 6652 	ld	h,e			;63
+   0EBD 64                 6653 	ld	h,h			;64
+   0EBE 65                 6654 	ld	h,l			;65
+   0EBF 26 20              6670 	ld	h,#nc+x			;26 20
+   0EC1 26 20              6671 	ld	h, nc+x			;26 20
+   0EC3 6E                 6675 	ld	l,(hl)			;6E
+   0EC4 DD 6E 55           6695 	ld	l,offsetc+x(ix)		;DD 6E 55
+   0EC7 DD 6E 55           6696 	ld	l,(ix+offsetc+x)		;DD 6E 55
+   0ECA FD 6E 55           6697 	ld	l,offsetc+x(iy)		;FD 6E 55
+   0ECD FD 6E 55           6698 	ld	l,(iy+offsetc+x)		;FD 6E 55
+   0ED0 6F                 6702 	ld	l,a			;6F
+   0ED1 68                 6703 	ld	l,b			;68
+   0ED2 69                 6704 	ld	l,c			;69
+   0ED3 6A                 6705 	ld	l,d			;6A
+   0ED4 6B                 6706 	ld	l,e			;6B
+   0ED5 6C                 6707 	ld	l,h			;6C
+   0ED6 6D                 6708 	ld	l,l			;6D
+   0ED7 2E 20              6724 	ld	l,#nc+x			;2E 20
+   0ED9 2E 20              6725 	ld	l, nc+x			;2E 20
+                           6729 	;***********************************************************
+   0EDB ED 47              6730 	ld	i,a			;ED 47
+   0EDD ED 4F              6731 	ld	r,a			;ED 4F
+   0EDF ED 57              6732 	ld	a,i			;ED 57
+   0EE1 ED 5F              6733 	ld	a,r			;ED 5F
+                           6734 	;***********************************************************
+   0EE3 02                 6735 	ld	(bc),a			;02
+   0EE4 12                 6736 	ld	(de),a			;12
+   0EE5 0A                 6737 	ld	a,(bc)			;0A
+   0EE6 1A                 6738 	ld	a,(de)			;1A
+                           6739 	;***********************************************************
+   0EE7 77                 6740 	ld	(hl),a			;77
+   0EE8 70                 6741 	ld	(hl),b			;70
+   0EE9 71                 6742 	ld	(hl),c			;71
+   0EEA 72                 6743 	ld	(hl),d			;72
+   0EEB 73                 6744 	ld	(hl),e			;73
+   0EEC 74                 6745 	ld	(hl),h			;74
+   0EED 75                 6746 	ld	(hl),l			;75
+   0EEE 36 20              6762 	ld	(hl),#nc+x			;36 20
+   0EF0 36 20              6763 	ld	(hl), nc+x			;36 20
+                           6767 	;***********************************************************
+   0EF2 DD 77 55           6941 	ld	offsetc+x(ix),a		;DD 77 55
+   0EF5 DD 70 55           6942 	ld	offsetc+x(ix),b		;DD 70 55
+   0EF8 DD 71 55           6943 	ld	offsetc+x(ix),c		;DD 71 55
+   0EFB DD 72 55           6944 	ld	offsetc+x(ix),d		;DD 72 55
+   0EFE DD 73 55           6945 	ld	offsetc+x(ix),e		;DD 73 55
+   0F01 DD 74 55           6946 	ld	offsetc+x(ix),h		;DD 74 55
+   0F04 DD 75 55           6947 	ld	offsetc+x(ix),l		;DD 75 55
+   0F07 DD 36 55 20        6948 	ld	offsetc+x(ix),#nc+x		;DD 36 55 20
+   0F0B DD 36 55 20        6949 	ld	offsetc+x(ix), nc+x		;DD 36 55 20
+                           6950 	;***********************************************************
+   0F0F DD 77 55           6951 	ld	(ix+offsetc+x),a		;DD 77 55
+   0F12 DD 70 55           6952 	ld	(ix+offsetc+x),b		;DD 70 55
+   0F15 DD 71 55           6953 	ld	(ix+offsetc+x),c		;DD 71 55
+   0F18 DD 72 55           6954 	ld	(ix+offsetc+x),d		;DD 72 55
+   0F1B DD 73 55           6955 	ld	(ix+offsetc+x),e		;DD 73 55
+   0F1E DD 74 55           6956 	ld	(ix+offsetc+x),h		;DD 74 55
+   0F21 DD 75 55           6957 	ld	(ix+offsetc+x),l		;DD 75 55
+   0F24 DD 36 55 20        6958 	ld	(ix+offsetc+x),#nc+x		;DD 36 55 20
+   0F28 DD 36 55 20        6959 	ld	(ix+offsetc+x), nc+x		;DD 36 55 20
+                           6960 	;***********************************************************
+   0F2C FD 77 55           6961 	ld	offsetc+x(iy),a		;FD 77 55
+   0F2F FD 70 55           6962 	ld	offsetc+x(iy),b		;FD 70 55
+   0F32 FD 71 55           6963 	ld	offsetc+x(iy),c		;FD 71 55
+   0F35 FD 72 55           6964 	ld	offsetc+x(iy),d		;FD 72 55
+   0F38 FD 73 55           6965 	ld	offsetc+x(iy),e		;FD 73 55
+   0F3B FD 74 55           6966 	ld	offsetc+x(iy),h		;FD 74 55
+   0F3E FD 75 55           6967 	ld	offsetc+x(iy),l		;FD 75 55
+   0F41 FD 36 55 20        6968 	ld	offsetc+x(iy),#nc+x		;FD 36 55 20
+   0F45 FD 36 55 20        6969 	ld	offsetc+x(iy), nc+x		;FD 36 55 20
+                           6970 	;***********************************************************
+   0F49 FD 77 55           6971 	ld	(iy+offsetc+x),a		;FD 77 55
+   0F4C FD 70 55           6972 	ld	(iy+offsetc+x),b		;FD 70 55
+   0F4F FD 71 55           6973 	ld	(iy+offsetc+x),c		;FD 71 55
+   0F52 FD 72 55           6974 	ld	(iy+offsetc+x),d		;FD 72 55
+   0F55 FD 73 55           6975 	ld	(iy+offsetc+x),e		;FD 73 55
+   0F58 FD 74 55           6976 	ld	(iy+offsetc+x),h		;FD 74 55
+   0F5B FD 75 55           6977 	ld	(iy+offsetc+x),l		;FD 75 55
+   0F5E FD 36 55 20        6978 	ld	(iy+offsetc+x),#nc+x		;FD 36 55 20
+   0F62 FD 36 55 20        6979 	ld	(iy+offsetc+x), nc+x		;FD 36 55 20
+                           6980 	;***********************************************************
+   0F66 32 84 05           6981 	ld	(nnc+x),a			;32 84 05
+   0F69 ED 43 84 05        6982 	ld	(nnc+x),bc			;ED 43 84 05
+   0F6D ED 53 84 05        6983 	ld	(nnc+x),de			;ED 53 84 05
+   0F71 22 84 05           6984 	ld	(nnc+x),hl			;22 84 05
+   0F74 ED 73 84 05        6985 	ld	(nnc+x),sp			;ED 73 84 05
+   0F78 DD 22 84 05        6986 	ld	(nnc+x),ix			;DD 22 84 05
+   0F7C FD 22 84 05        6987 	ld	(nnc+x),iy			;FD 22 84 05
+                           6988 	;***********************************************************
+   0F80 3A 84 05           6989 	ld	a,(nnc+x)			;3A 84 05
+   0F83 ED 4B 84 05        6990 	ld	bc,(nnc+x)			;ED 4B 84 05
+   0F87 ED 5B 84 05        6991 	ld	de,(nnc+x)			;ED 5B 84 05
+   0F8B 2A 84 05           6992 	ld	hl,(nnc+x)			;2A 84 05
+   0F8E ED 7B 84 05        6993 	ld	sp,(nnc+x)			;ED 7B 84 05
+   0F92 DD 2A 84 05        6994 	ld	ix,(nnc+x)			;DD 2A 84 05
+   0F96 FD 2A 84 05        6995 	ld	iy,(nnc+x)			;FD 2A 84 05
+                           6996 	;***********************************************************
+   0F9A 01 20 00           6997 	ld	bc,#nc+x			;01 20 00
+   0F9D 01 20 00           6998 	ld	bc, nc+x			;01 20 00
+   0FA0 11 20 00           6999 	ld	de,#nc+x			;11 20 00
+   0FA3 11 20 00           7000 	ld	de, nc+x			;11 20 00
+   0FA6 21 20 00           7001 	ld	hl,#nc+x			;21 20 00
+   0FA9 21 20 00           7002 	ld	hl, nc+x			;21 20 00
+   0FAC 31 20 00           7003 	ld	sp,#nc+x			;31 20 00
+   0FAF 31 20 00           7004 	ld	sp, nc+x			;31 20 00
+   0FB2 DD 21 20 00        7005 	ld	ix,#nc+x			;DD 21 20 00
+   0FB6 DD 21 20 00        7006 	ld	ix, nc+x			;DD 21 20 00
+   0FBA FD 21 20 00        7007 	ld	iy,#nc+x			;FD 21 20 00
+   0FBE FD 21 20 00        7008 	ld	iy, nc+x			;FD 21 20 00
+                           7009 	;***********************************************************
+   0FC2 01 84 05           7010 	ld	bc,#nnc+x			;01 84 05
+   0FC5 01 84 05           7011 	ld	bc, nnc+x			;01 84 05
+   0FC8 11 84 05           7012 	ld	de,#nnc+x			;11 84 05
+   0FCB 11 84 05           7013 	ld	de, nnc+x			;11 84 05
+   0FCE 21 84 05           7014 	ld	hl,#nnc+x			;21 84 05
+   0FD1 21 84 05           7015 	ld	hl, nnc+x			;21 84 05
+   0FD4 31 84 05           7016 	ld	sp,#nnc+x			;31 84 05
+   0FD7 31 84 05           7017 	ld	sp, nnc+x			;31 84 05
+   0FDA DD 21 84 05        7018 	ld	ix,#nnc+x			;DD 21 84 05
+   0FDE DD 21 84 05        7019 	ld	ix, nnc+x			;DD 21 84 05
+   0FE2 FD 21 84 05        7020 	ld	iy,#nnc+x			;FD 21 84 05
+   0FE6 FD 21 84 05        7021 	ld	iy, nnc+x			;FD 21 84 05
+                           7025 	;***********************************************************
+   0FEA F9                 7026 	ld	sp,hl			;F9
+   0FEB DD F9              7027 	ld	sp,ix			;DD F9
+   0FED FD F9              7028 	ld	sp,iy			;FD F9
+                           7029 
+                           7030 	;***********************************************************
+                           7031 	; p. 5-70
+                           7032 	.z280
+   0FEF DD 7C              7033 	ld	a,ixh			;DD 7C
+   0FF1 DD 7D              7034 	ld	a,ixl			;DD 7D
+   0FF3 FD 7C              7035 	ld	a,iyh			;FD 7C
+   0FF5 FD 7D              7036 	ld	a,iyl			;FD 7D
+   0FF7 3E 20              7084     	ld	a,#nc+x			;3E 20
+   0FF9 3A 44 33           7085 	ld	a,(daddc+x)		;3A 44 33
+   0FFC FD 79 55 00        7089 	ld	a,offsetc+x(ix)		;FD 79 55 00
+   1000 FD 79 55 00        7090 	ld	a,(ix+offsetc+x)		;FD 79 55 00
+   1004 FD 7A 55 00        7091 	ld	a,offsetc+x(iy)		;FD 7A 55 00
+   1008 FD 7A 55 00        7092 	ld	a,(iy+offsetc+x)		;FD 7A 55 00
+   100C FD 7B 55 00        7103 	ld	a,offsetc+x(hl)		;FD 7B 55 00
+   1010 FD 7B 55 00        7104 	ld	a,(hl+offsetc+x)		;FD 7B 55 00
+   1014 DD 78 55 00        7105 	ld	a,offsetc+x(sp)		;DD 78 55 00
+   1018 DD 78 55 00        7106 	ld	a,(sp+offsetc+x)		;DD 78 55 00
+   101C FD 79 22 11        7107 	ld	a,lxofc+x(ix)		;FD 79 22 11
+   1020 FD 79 22 11        7108 	ld	a,(ix+lxofc+x)		;FD 79 22 11
+   1024 FD 7A 22 11        7109 	ld	a,lxofc+x(iy)		;FD 7A 22 11
+   1028 FD 7A 22 11        7110 	ld	a,(iy+lxofc+x)		;FD 7A 22 11
+   102C FD 7B 22 11        7111 	ld	a,lxofc+x(hl)		;FD 7B 22 11
+   1030 FD 7B 22 11        7112 	ld	a,(hl+lxofc+x)		;FD 7B 22 11
+   1034 DD 78 22 11        7113 	ld	a,lxofc+x(sp)		;DD 78 22 11
+   1038 DD 78 22 11        7114 	ld	a,(sp+lxofc+x)		;DD 78 22 11
+   103C DD 7E 00           7118 	ld	a,(ix)			;DD 7E 00
+   103F FD 7E 00           7119 	ld	a,(iy)			;FD 7E 00
+   1042 7E                 7120 	ld	a,(hl)			;7E
+                           7121 ;	ld	a,(hl)			;FD 7B 00 00
+   1043 DD 78 00 00        7122 	ld	a,(sp)			;DD 78 00 00
+   1047 FD 78 22 11        7170 	ld	a,lxofc+ld01(pc)	;FD 78 22 11
+   104B FD 78 22 11        7174 	ld	a,(pc+lxofc+ld02)	;FD 78 22 11
+   104F FD 78 22 11        7178 	ld	a,[lxofc+ld03]		;FD 78 22 11
+   1053 FD 78 1E 11        7206 	ld	a,[.+lxofc]		;FD 78 1E 11
+   1057 DD 79              7207 	ld	a,(hl+ix)		;DD 79
+   1059 DD 7A              7208 	ld	a,(hl+iy)		;DD 7A
+   105B DD 7B              7209 	ld	a,(ix+iy)		;DD 7B
+                           7210 	;***********************************************************
+                           7211 	; p. 5-71
+                           7212 	.z280
+   105D DD 67              7213 	ld	ixh,a			;DD 67
+   105F DD 6F              7214 	ld	ixl,a			;DD 6F
+   1061 FD 67              7215 	ld	iyh,a			;FD 67
+   1063 FD 6F              7216 	ld	iyl,a			;FD 6F
+   1065 32 44 33           7262     	ld	(daddc+x),a		;32 44 33
+   1068 ED 2B 55 00        7266 	ld	offsetc+x(ix),a		;ED 2B 55 00
+   106C ED 2B 55 00        7267 	ld	(ix+offsetc+x),a		;ED 2B 55 00
+   1070 ED 33 55 00        7268 	ld	offsetc+x(iy),a		;ED 33 55 00
+   1074 ED 33 55 00        7269 	ld	(iy+offsetc+x),a		;ED 33 55 00
+   1078 ED 3B 55 00        7280 	ld	offsetc+x(hl),a		;ED 3B 55 00
+   107C ED 3B 55 00        7281 	ld	(hl+offsetc+x),a		;ED 3B 55 00
+   1080 ED 03 55 00        7282 	ld	offsetc+x(sp),a		;ED 03 55 00
+   1084 ED 03 55 00        7283 	ld	(sp+offsetc+x),a		;ED 03 55 00
+   1088 ED 2B 22 11        7284 	ld	lxofc+x(ix),a		;ED 2B 22 11
+   108C ED 2B 22 11        7285 	ld	(ix+lxofc+x),a		;ED 2B 22 11
+   1090 ED 33 22 11        7286 	ld	lxofc+x(iy),a		;ED 33 22 11
+   1094 ED 33 22 11        7287 	ld	(iy+lxofc+x),a		;ED 33 22 11
+   1098 ED 3B 22 11        7288 	ld	lxofc+x(hl),a		;ED 3B 22 11
+   109C ED 3B 22 11        7289 	ld	(hl+lxofc+x),a		;ED 3B 22 11
+   10A0 ED 03 22 11        7290 	ld	lxofc+x(sp),a		;ED 03 22 11
+   10A4 ED 03 22 11        7291 	ld	(sp+lxofc+x),a		;ED 03 22 11
+   10A8 DD 77 00           7295 	ld	(ix),a			;DD 77 00
+   10AB FD 77 00           7296 	ld	(iy),a			;FD 77 00
+   10AE 77                 7297 	ld	(hl),a			;77
+                           7298 ;	ld	(hl),a			;ED 3B 00 00
+   10AF ED 03 00 00        7299 	ld	(sp),a			;ED 03 00 00
+   10B3 ED 23 22 11        7347 	ld	lxofc+ld04(pc),a	;ED 23 22 11
+   10B7 ED 23 22 11        7351 	ld	(pc+lxofc+ld05),a	;ED 23 22 11
+   10BB ED 23 22 11        7355 	ld	[lxofc+ld06],a		;ED 23 22 11
+   10BF ED 23 DC FF        7383 	ld	[.-32],a		;ED 23 DC FF
+   10C3 ED 0B              7384 	ld	(hl+ix),a		;ED 0B
+   10C5 ED 13              7385 	ld	(hl+iy),a		;ED 13
+   10C7 ED 1B              7386 	ld	(iy+ix),a		;ED 1B
+                           7387 	;***********************************************************
+                           7388 	; p. 5-73
+                           7389 	.z280
+   10C9 DD 26 20           7449 	ld	ixh,#nc+x			;DD 26 20
+   10CC DD 2E 20           7450 	ld	ixl,#nc+x			;DD 2E 20
+   10CF FD 26 20           7451 	ld	iyh,#nc+x			;FD 26 20
+   10D2 FD 2E 20           7452 	ld	iyl,#nc+x			;FD 2E 20
+   10D5 DD 3E 44 33 20     7453 	ld	(daddc+x),#nc+x		;DD 3E 44 33 20
+   10DA FD 0E 55 00 20     7457  	ld	offsetc+x(ix),#nc+x		;FD 0E 55 00 20
+   10DF FD 0E 55 00 20     7458 	ld	(ix+offsetc+x),#nc+x		;FD 0E 55 00 20
+   10E4 FD 16 55 00 20     7459 	ld	offsetc+x(iy),#nc+x		;FD 16 55 00 20
+   10E9 FD 16 55 00 20     7460 	ld	(iy+offsetc+x),#nc+x		;FD 16 55 00 20
+   10EE FD 1E 55 00 20     7471 	ld	offsetc+x(hl),#nc+x		;FD 1E 55 00 20
+   10F3 FD 1E 55 00 20     7472 	ld	(hl+offsetc+x),#nc+x		;FD 1E 55 00 20
+   10F8 DD 06 55 00 20     7473 	ld	offsetc+x(sp),#nc+x		;DD 06 55 00 20
+   10FD DD 06 55 00 20     7474 	ld	(sp+offsetc+x),#nc+x		;DD 06 55 00 20
+   1102 FD 0E 22 11 20     7475 	ld	lxofc+x(ix),#nc+x		;FD 0E 22 11 20
+   1107 FD 0E 22 11 20     7476 	ld	(ix+lxofc+x),#nc+x		;FD 0E 22 11 20
+   110C FD 16 22 11 20     7477 	ld	lxofc+x(iy),#nc+x		;FD 16 22 11 20
+   1111 FD 16 22 11 20     7478 	ld	(iy+lxofc+x),#nc+x		;FD 16 22 11 20
+   1116 FD 1E 22 11 20     7479 	ld	lxofc+x(hl),#nc+x		;FD 1E 22 11 20
+   111B FD 1E 22 11 20     7480 	ld	(hl+lxofc+x),#nc+x		;FD 1E 22 11 20
+   1120 DD 06 22 11 20     7481 	ld	lxofc+x(sp),#nc+x		;DD 06 22 11 20
+   1125 DD 06 22 11 20     7482 	ld	(sp+lxofc+x),#nc+x		;DD 06 22 11 20
+   112A DD 0E 20           7483 	ld	(hl+ix),#nc+x		;DD 0E 20
+   112D DD 16 20           7484 	ld	(hl+iy),#nc+x		;DD 16 20
+   1130 DD 1E 20           7485 	ld	(ix+iy),#nc+x		;DD 1E 20
+   1133 FD 06 22 11 20     7536 	ld	lxofc+ld07(pc),#nc+x	;FD 06 22 11 20
+   1138 FD 06 22 11 20     7540 	ld	(pc+lxofc+ld08),#nc+x	;FD 06 22 11 20
+   113D FD 06 22 11 20     7544 	ld	[lxofc+ld09],#nc+x		;FD 06 22 11 20
+   1142 FD 06 1B 00 20     7572 	ld	[.+32],#nc		;FD 06 1B 00 20
+                           7573 
+                           7574 	;***********************************************************
+                           7575 	; p. 5-74
+                           7576 	.z280
+   1147 DD 7C              7577 	ld	a,ixh			;DD 7C
+   1149 FD 7D              7578 	ld	a,iyl			;FD 7D
+   114B DD 44              7579 	ld	b,ixh			;DD 44
+   114D DD 45              7580 	ld	b,ixl			;DD 45
+   114F DD 4C              7581 	ld	c,ixh			;DD 4C
+   1151 DD 4D              7582 	ld	c,ixl			;DD 4D
+   1153 FD 54              7583 	ld	d,iyh			;FD 54
+   1155 FD 55              7584 	ld	d,iyl			;FD 55
+   1157 FD 5C              7585 	ld	e,iyh			;FD 5C
+   1159 FD 5D              7586 	ld	e,iyl			;FD 5D
+   115B DD 64              7587 	ld	ixh,ixh			;DD 64
+   115D DD 65              7588 	ld	ixh,ixl			;DD 65
+   115F DD 6C              7589 	ld	ixl,ixh			;DD 6C
+   1161 DD 6D              7590 	ld	ixl,ixl			;DD 6D
+   1163 FD 64              7591 	ld	iyh,iyh			;FD 64
+   1165 FD 65              7592 	ld	iyh,iyl			;FD 65
+   1167 FD 6C              7593 	ld	iyl,iyh			;FD 6C
+   1169 FD 6D              7594 	ld	iyl,iyl			;FD 6D
+   116B 62                 7595 	ld	h,d			;62
+   116C 6B                 7596 	ld	l,e			;6B
+   116D DD 67              7597 	ld	ixh,a			;DD 67
+   116F DD 6F              7598 	ld	ixl,a			;DD 6F
+   1171 FD 67              7599 	ld	iyh,a			;FD 67
+   1173 FD 6F              7600 	ld	iyl,a			;FD 6F
+   1175 DD 60              7601 	ld	ixh,b			;DD 60
+   1177 DD 69              7602 	ld	ixl,c			;DD 69
+   1179 FD 62              7603 	ld	iyh,d			;FD 62
+   117B FD 6B              7604 	ld	iyl,e			;FD 6B
+                           7605 
+                           7606 ;*******************************************************************
+                           7607 ;	LDB	
+                           7608 ;*******************************************************************
+                           7609 	;***********************************************************
+                           7610 	; p. 5-74
+                           7611 	.z280
+   117D DD 3E 44 33 20     7663 	ldb	(daddc+x),#nc+x		;DD 3E 44 33 20
+   1182 FD 0E 55 00 20     7667  	ldb	offsetc+x(ix),#nc+x		;FD 0E 55 00 20
+   1187 FD 0E 55 00 20     7668 	ldb	(ix+offsetc+x),#nc+x		;FD 0E 55 00 20
+   118C FD 16 55 00 20     7669 	ldb	offsetc+x(iy),#nc+x		;FD 16 55 00 20
+   1191 FD 16 55 00 20     7670 	ldb	(iy+offsetc+x),#nc+x		;FD 16 55 00 20
+   1196 FD 1E 55 00 20     7681 	ldb	offsetc+x(hl),#nc+x		;FD 1E 55 00 20
+   119B FD 1E 55 00 20     7682 	ldb	(hl+offsetc+x),#nc+x		;FD 1E 55 00 20
+   11A0 DD 06 55 00 20     7683 	ldb	offsetc+x(sp),#nc+x		;DD 06 55 00 20
+   11A5 DD 06 55 00 20     7684 	ldb	(sp+offsetc+x),#nc+x		;DD 06 55 00 20
+   11AA FD 0E 22 11 20     7685 	ldb	lxofc+x(ix),#nc+x		;FD 0E 22 11 20
+   11AF FD 0E 22 11 20     7686 	ldb	(ix+lxofc+x),#nc+x		;FD 0E 22 11 20
+   11B4 FD 16 22 11 20     7687 	ldb	lxofc+x(iy),#nc+x		;FD 16 22 11 20
+   11B9 FD 16 22 11 20     7688 	ldb	(iy+lxofc+x),#nc+x		;FD 16 22 11 20
+   11BE FD 1E 22 11 20     7689 	ldb	lxofc+x(hl),#nc+x		;FD 1E 22 11 20
+   11C3 FD 1E 22 11 20     7690 	ldb	(hl+lxofc+x),#nc+x		;FD 1E 22 11 20
+   11C8 DD 06 22 11 20     7691 	ldb	lxofc+x(sp),#nc+x		;DD 06 22 11 20
+   11CD DD 06 22 11 20     7692 	ldb	(sp+lxofc+x),#nc+x		;DD 06 22 11 20
+   11D2 DD 0E 20           7693 	ldb	(hl+ix),#nc+x		;DD 0E 20
+   11D5 DD 16 20           7694 	ldb	(hl+iy),#nc+x		;DD 16 20
+   11D8 DD 1E 20           7695 	ldb	(ix+iy),#nc+x		;DD 1E 20
+   11DB FD 06 22 11 20     7746 	ldb	lxofc+ldb01(pc),#nc+x	;FD 06 22 11 20
+   11E0 FD 06 22 11 20     7750 	ldb	(pc+lxofc+ldb02),#nc+x	;FD 06 22 11 20
+   11E5 FD 06 22 11 20     7754 	ldb	[lxofc+ldb03],#nc+x	;FD 06 22 11 20
+   11EA FD 06 1B 00 20     7782 	ldb	[.+32],#nc		;FD 06 1B 00 20
+                           7783 
+                           7784 ;*******************************************************************
+                           7785 ;	LDA
+                           7786 ;*******************************************************************
+                           7787 	;***********************************************************
+                           7788 	; p. 5-76
+   11EF 21 44 33           7806 	lda	hl,(daddc+x)		;21 44 33
+   11F2 DD 21 44 33        7807 	lda	ix,(daddc+x)		;DD 21 44 33
+   11F6 FD 21 44 33        7808 	lda	iy,(daddc+x)		;FD 21 44 33
+   11FA ED 2A 55 00        7919 	lda	hl,(ix+sxofc+x)		;ED 2A 55 00
+   11FE ED 2A 22 11        7920 	lda	hl,(ix+lxofc+x)		;ED 2A 22 11
+   1202 ED 32 55 00        7921 	lda	hl,(iy+sxofc+x)		;ED 32 55 00
+   1206 ED 32 22 11        7922 	lda	hl,(iy+lxofc+x)		;ED 32 22 11
+   120A ED 3A 55 00        7923 	lda	hl,(hl+sxofc+x)		;ED 3A 55 00
+   120E ED 3A 22 11        7924 	lda	hl,(hl+lxofc+x)		;ED 3A 22 11
+   1212 ED 02 55 00        7925 	lda	hl,(sp+sxofc+x)		;ED 02 55 00
+   1216 ED 02 22 11        7926 	lda	hl,(sp+lxofc+x)		;ED 02 22 11
+   121A DD ED 2A 55 00     7927 	lda	ix,(ix+sxofc+x)		;DD ED 2A 55 00
+   121F DD ED 2A 22 11     7928 	lda	ix,(ix+lxofc+x)		;DD ED 2A 22 11
+   1224 DD ED 32 55 00     7929 	lda	ix,(iy+sxofc+x)		;DD ED 32 55 00
+   1229 DD ED 32 22 11     7930 	lda	ix,(iy+lxofc+x)		;DD ED 32 22 11
+   122E DD ED 3A 55 00     7931 	lda	ix,(hl+sxofc+x)		;DD ED 3A 55 00
+   1233 DD ED 3A 22 11     7932 	lda	ix,(hl+lxofc+x)		;DD ED 3A 22 11
+   1238 DD ED 02 55 00     7933 	lda	ix,(sp+sxofc+x)		;DD ED 02 55 00
+   123D DD ED 02 22 11     7934 	lda	ix,(sp+lxofc+x)		;DD ED 02 22 11
+   1242 FD ED 2A 55 00     7935 	lda	iy,(ix+sxofc+x)		;FD ED 2A 55 00
+   1247 FD ED 2A 22 11     7936 	lda	iy,(ix+lxofc+x)		;FD ED 2A 22 11
+   124C FD ED 32 55 00     7937 	lda	iy,(iy+sxofc+x)		;FD ED 32 55 00
+   1251 FD ED 32 22 11     7938 	lda	iy,(iy+lxofc+x)		;FD ED 32 22 11
+   1256 FD ED 3A 55 00     7939 	lda	iy,(hl+sxofc+x)		;FD ED 3A 55 00
+   125B FD ED 3A 22 11     7940 	lda	iy,(hl+lxofc+x)		;FD ED 3A 22 11
+   1260 FD ED 02 55 00     7941 	lda	iy,(sp+sxofc+x)		;FD ED 02 55 00
+   1265 FD ED 02 22 11     7942 	lda	iy,(sp+lxofc+x)		;FD ED 02 22 11
+   126A ED 2A 55 00        7943 	lda	hl,sxofc+x(ix)		;ED 2A 55 00
+   126E ED 2A 22 11        7944 	lda	hl,lxofc+x(ix)		;ED 2A 22 11
+   1272 ED 32 55 00        7945 	lda	hl,sxofc+x(iy)		;ED 32 55 00
+   1276 ED 32 22 11        7946 	lda	hl,lxofc+x(iy)		;ED 32 22 11
+   127A ED 3A 55 00        7947 	lda	hl,sxofc+x(hl)		;ED 3A 55 00
+   127E ED 3A 22 11        7948 	lda	hl,lxofc+x(hl)		;ED 3A 22 11
+   1282 ED 02 55 00        7949 	lda	hl,sxofc+x(sp)		;ED 02 55 00
+   1286 ED 02 22 11        7950 	lda	hl,lxofc+x(sp)		;ED 02 22 11
+   128A DD ED 2A 55 00     7951 	lda	ix,sxofc+x(ix)		;DD ED 2A 55 00
+   128F DD ED 2A 22 11     7952 	lda	ix,lxofc+x(ix)		;DD ED 2A 22 11
+   1294 DD ED 32 55 00     7953 	lda	ix,sxofc+x(iy)		;DD ED 32 55 00
+   1299 DD ED 32 22 11     7954 	lda	ix,lxofc+x(iy)		;DD ED 32 22 11
+   129E DD ED 3A 55 00     7955 	lda	ix,sxofc+x(hl)		;DD ED 3A 55 00
+   12A3 DD ED 3A 22 11     7956 	lda	ix,lxofc+x(hl)		;DD ED 3A 22 11
+   12A8 DD ED 02 55 00     7957 	lda	ix,sxofc+x(sp)		;DD ED 02 55 00
+   12AD DD ED 02 22 11     7958 	lda	ix,lxofc+x(sp)		;DD ED 02 22 11
+   12B2 FD ED 2A 55 00     7959 	lda	iy,sxofc+x(ix)		;FD ED 2A 55 00
+   12B7 FD ED 2A 22 11     7960 	lda	iy,lxofc+x(ix)		;FD ED 2A 22 11
+   12BC FD ED 32 55 00     7961 	lda	iy,sxofc+x(iy)		;FD ED 32 55 00
+   12C1 FD ED 32 22 11     7962 	lda	iy,lxofc+x(iy)		;FD ED 32 22 11
+   12C6 FD ED 3A 55 00     7963 	lda	iy,sxofc+x(hl)		;FD ED 3A 55 00
+   12CB FD ED 3A 22 11     7964 	lda	iy,lxofc+x(hl)		;FD ED 3A 22 11
+   12D0 FD ED 02 55 00     7965 	lda	iy,sxofc+x(sp)		;FD ED 02 55 00
+   12D5 FD ED 02 22 11     7966 	lda	iy,lxofc+x(sp)		;FD ED 02 22 11
+   12DA ED 2A 00 00        7970 	lda	hl,(ix)			;ED 2A 00 00
+   12DE ED 32 00 00        7971 	lda	hl,(iy)			;ED 32 00 00
+   12E2 ED 3A 00 00        7972 	lda	hl,(hl)			;ED 3A 00 00
+   12E6 ED 02 00 00        7973 	lda	hl,(sp)			;ED 02 00 00
+   12EA DD ED 2A 00 00     7974 	lda	ix,(ix)			;DD ED 2A 00 00
+   12EF DD ED 32 00 00     7975 	lda	ix,(iy)			;DD ED 32 00 00
+   12F4 DD ED 3A 00 00     7976 	lda	ix,(hl)			;DD ED 3A 00 00
+   12F9 DD ED 02 00 00     7977 	lda	ix,(sp)			;DD ED 02 00 00
+   12FE FD ED 2A 00 00     7978 	lda	iy,(ix)			;FD ED 2A 00 00
+   1303 FD ED 32 00 00     7979 	lda	iy,(iy)			;FD ED 32 00 00
+   1308 FD ED 3A 00 00     7980 	lda	iy,(hl)			;FD ED 3A 00 00
+   130D FD ED 02 00 00     7981 	lda	iy,(sp)			;FD ED 02 00 00
+   1312 ED 0A              7982 	lda	hl,(ix+hl)		;ED 0A
+   1314 ED 12              7983 	lda	hl,(hl+iy)		;ED 12
+   1316 ED 1A              7984 	lda	hl,(ix+iy)		;ED 1A
+   1318 DD ED 0A           7985 	lda	ix,(hl+ix)		;DD ED 0A
+   131B DD ED 12           7986 	lda	ix,(hl+iy)		;DD ED 12
+   131E DD ED 1A           7987 	lda	ix,(ix+iy)		;DD ED 1A
+   1321 FD ED 0A           7988 	lda	iy,(hl+ix)		;FD ED 0A
+   1324 FD ED 12           7989 	lda	iy,(hl+iy)		;FD ED 12
+   1327 FD ED 1A           7990 	lda	iy,(ix+iy)		;FD ED 1A
+   132A DD ED 22 22 11     8038 	lda	ix,lxofc+lda01(pc)	;DD ED 22 22 11
+   132F DD ED 22 22 11     8042 	lda	ix,(pc+lxofc+lda02)	;DD ED 22 22 11
+   1334 DD ED 22 22 11     8046 	lda	ix,[lxofc+lda03]	;DD ED 22 22 11
+   1339 DD ED 22 FB FF     8074 	lda	ix,[.]			;DD ED 22 FB FF
+   133E DD ED 22 1B 00     8075 	lda	ix,[.+nc]		;DD ED 22 1B 00
+   1343 FD ED 22 22 11     8123 	lda	iy,lxofc+lda04(pc)	;FD ED 22 22 11
+   1348 FD ED 22 22 11     8127 	lda	iy,(pc+lxofc+lda05)	;FD ED 22 22 11
+   134D FD ED 22 22 11     8131 	lda	iy,[lxofc+lda06]	;FD ED 22 22 11
+   1352 FD ED 22 FB FF     8159 	lda	iy,[.]			;FD ED 22 FB FF
+   1357 FD ED 22 1B 00     8160 	lda	iy,[.+nc]		;FD ED 22 1B 00
+   135C ED 22 22 11        8208 	lda	hl,lxofc+lda07(pc)	;ED 22 22 11
+   1360 ED 22 22 11        8212 	lda	hl,(pc+lxofc+lda08)	;ED 22 22 11
+   1364 ED 22 22 11        8216 	lda	hl,[lxofc+lda09]	;ED 22 22 11
+   1368 ED 22 FC FF        8244 	lda	hl,[.]			;ED 22 FC FF
+   136C ED 22 1C 00        8245 	lda	hl,[.+nc]		;ED 22 1C 00
+                           8246 
+                           8247 ;*******************************************************************
+                           8248 ;	LDCTL	
+                           8249 ;*******************************************************************
+                           8250 	;***********************************************************
+                           8251 	;  p. 5-77
+                           8252 	.z280p
+   1370 ED 66              8253 	ldctl	hl,(c)			;ED 66
+   1372 DD ED 66           8254 	ldctl	ix,(c)			;DD ED 66
+   1375 FD ED 66           8255 	ldctl	iy,(c)			;FD ED 66
+   1378 ED 6E              8256 	ldctl	(c),hl			;ED 6E
+   137A DD ED 6E           8257 	ldctl	(c),ix			;DD ED 6E
+   137D FD ED 6E           8258 	ldctl	(c),iy			;FD ED 6E
+   1380 ED 87              8259 	ldctl	hl,usp			;ED 87
+   1382 DD ED 87           8260 	ldctl	ix,usp			;DD ED 87
+   1385 FD ED 87           8261 	ldctl	iy,usp			;FD ED 87
+   1388 ED 8F              8262 	ldctl	usp,hl			;ED 8F
+   138A DD ED 8F           8263 	ldctl	usp,ix			;DD ED 8F
+   138D FD ED 8F           8264 	ldctl	usp,iy			;FD ED 8F
+                           8265 
+                           8266 ;*******************************************************************
+                           8267 ;	LDUD	
+                           8268 ;		Leading 'a' operand is optional.
+                           8269 ;		If offset is ommitted 0 is assumed.
+                           8270 ;*******************************************************************
+                           8271 	;***********************************************************
+                           8272 	;  p. 5-84
+                           8273 	.z280p
+   1390 ED 86              8315 	ldud	a,(hl)			;ED 86
+   1392 DD ED 86 55        8316 	ldud	a,sxofc+x(ix)		;DD ED 86 55
+   1396 DD ED 86 55        8317 	ldud	a,(ix+sxofc+x)		;DD ED 86 55
+   139A DD ED 86 00        8318 	ldud	a,(ix)			;DD ED 86 00
+   139E FD ED 86 55        8319 	ldud	a,sxofc+x(iy)		;FD ED 86 55
+   13A2 FD ED 86 55        8320 	ldud	a,(iy+sxofc+x)		;FD ED 86 55
+   13A6 FD ED 86 00        8321 	ldud	a,(iy)			;FD ED 86 00
+                           8322 
+   13AA ED 8E              8323 	ldud	(hl),a			;ED 8E
+   13AC DD ED 8E 55        8324 	ldud	sxofc+x(ix),a		;DD ED 8E 55
+   13B0 DD ED 8E 55        8325 	ldud	(ix+sxofc+x),a		;DD ED 8E 55
+   13B4 DD ED 8E 00        8326 	ldud	(ix),a			;DD ED 8E 00
+   13B8 FD ED 8E 55        8327 	ldud	sxofc+x(iy),a		;FD ED 8E 55
+   13BC FD ED 8E 55        8328 	ldud	(iy+sxofc+x),a		;FD ED 8E 55
+   13C0 FD ED 8E 00        8329 	ldud	(iy),a			;FD ED 8E 00
+                           8333 
+                           8334 ;*******************************************************************
+                           8335 ;	LDUP	
+                           8336 ;		Leading 'a' operand is optional.
+                           8337 ;		If offset is ommitted 0 is assumed.
+                           8338 ;*******************************************************************
+                           8339 	;***********************************************************
+                           8340 	;  p. 5-86
+                           8341 	.z280p
+   13C4 ED 96              8383 	ldup	a,(hl)			;ED 96
+   13C6 DD ED 96 55        8384 	ldup	a,sxofc+x(ix)		;DD ED 96 55
+   13CA DD ED 96 55        8385 	ldup	a,(ix+sxofc+x)		;DD ED 96 55
+   13CE DD ED 96 00        8386 	ldup	a,(ix)			;DD ED 96 00
+   13D2 FD ED 96 55        8387 	ldup	a,sxofc+x(iy)		;FD ED 96 55
+   13D6 FD ED 96 55        8388 	ldup	a,(iy+sxofc+x)		;FD ED 96 55
+   13DA FD ED 96 00        8389 	ldup	a,(iy)			;FD ED 96 00
+                           8390 
+   13DE ED 9E              8391 	ldup	(hl),a			;ED 9E
+   13E0 DD ED 9E 55        8392 	ldup	sxofc+x(ix),a		;DD ED 9E 55
+   13E4 DD ED 9E 55        8393 	ldup	(ix+sxofc+x),a		;DD ED 9E 55
+   13E8 DD ED 9E 00        8394 	ldup	(ix),a			;DD ED 9E 00
+   13EC FD ED 9E 55        8395 	ldup	sxofc+x(iy),a		;FD ED 9E 55
+   13F0 FD ED 9E 55        8396 	ldup	(iy+sxofc+x),a		;FD ED 9E 55
+   13F4 FD ED 9E 00        8397 	ldup	(iy),a			;FD ED 9E 00
+                           8401 
+                           8402 ;*******************************************************************
+                           8403 ;	LDW	
+                           8404 ;*******************************************************************
+                           8405 	;***********************************************************
+                           8406 	;  p. 5-88
+                           8407 	.z280
+   13F8 01 20 00           8451 	ldw	bc,#nc+x			;01 20 00
+   13FB 11 20 00           8452 	ldw	de,#nc+x			;11 20 00
+   13FE 21 20 00           8453 	ldw	hl,#nc+x			;21 20 00
+   1401 31 20 00           8454 	ldw	sp,#nc+x			;31 20 00
+   1404 DD 21 20 00        8455 	ldw	ix,#nc+x			;DD 21 20 00
+   1408 FD 21 20 00        8456 	ldw	iy,#nc+x			;FD 21 20 00
+   140C DD 01 20 00        8457 	ldw	(hl),#nc+x			;DD 01 20 00
+   1410 DD 11 44 33 20 00  8458 	ldw	(daddc+x),#nc+x		;DD 11 44 33 20 00
+   1416 01 84 05           8459 	ldw	bc,#nnc+x			;01 84 05
+   1419 11 84 05           8460 	ldw	de,#nnc+x			;11 84 05
+   141C 21 84 05           8461 	ldw	hl,#nnc+x			;21 84 05
+   141F 31 84 05           8462 	ldw	sp,#nnc+x			;31 84 05
+   1422 DD 21 84 05        8463 	ldw	ix,#nnc+x			;DD 21 84 05
+   1426 FD 21 84 05        8464 	ldw	iy,#nnc+x			;FD 21 84 05
+   142A DD 01 84 05        8465 	ldw	(hl),#nnc+x		;DD 01 84 05
+   142E DD 11 44 33 84 05  8466 	ldw	(daddc+x),#nnc+x		;DD 11 44 33 84 05
+   1434 DD 31 22 11 20 00  8516 	ldw	lxofc+ldw01(pc),#nc+x	;DD 31 22 11 20 00
+   143A DD 31 22 11 20 00  8520 	ldw	(pc+lxofc+ldw02),#nc+x	;DD 31 22 11 20 00
+   1440 DD 31 22 11 20 00  8524 	ldw	[lxofc+ldw03],#nc+x	;DD 31 22 11 20 00
+   1446 DD 31 00 00 84 05  8552 	ldw	[.+6],#nnc		;DD 31 00 00 84 05
+                           8553 
+                           8554 	;***********************************************************
+                           8555 	;  p. 5-89     two immediates handled above
+                           8556 	.z280
+   144C 2A 44 33           8672 	ldw	hl,(daddc+x)		;2A 44 33
+   144F DD 2A 44 33        8673 	ldw	ix,(daddc+x)		;DD 2A 44 33
+   1453 FD 2A 44 33        8674 	ldw	iy,(daddc+x)		;FD 2A 44 33
+   1457 ED 2C 55 00        8678 	ldw	hl,sxofc+x(ix)		;ED 2C 55 00
+   145B ED 2C 55 00        8679 	ldw	hl,(ix+sxofc+x)		;ED 2C 55 00
+   145F ED 34 55 00        8680 	ldw	hl,sxofc+x(iy)		;ED 34 55 00
+   1463 ED 34 55 00        8681 	ldw	hl,(iy+sxofc+x)		;ED 34 55 00
+   1467 ED 3C 55 00        8696 	ldw	hl,sxofc+x(hl)		;ED 3C 55 00
+   146B ED 3C 55 00        8697 	ldw	hl,(hl+sxofc+x)		;ED 3C 55 00
+   146F ED 04 55 00        8698 	ldw	hl,sxofc+x(sp)		;ED 04 55 00
+   1473 ED 04 55 00        8699 	ldw	hl,(sp+sxofc+x)		;ED 04 55 00
+   1477 ED 2C 22 11        8700 	ldw	hl,lxofc+x(ix)		;ED 2C 22 11
+   147B ED 2C 22 11        8701 	ldw	hl,(ix+lxofc+x)		;ED 2C 22 11
+   147F ED 34 22 11        8702 	ldw	hl,lxofc+x(iy)		;ED 34 22 11
+   1483 ED 34 22 11        8703 	ldw	hl,(iy+lxofc+x)		;ED 34 22 11
+   1487 ED 3C 22 11        8704 	ldw	hl,lxofc+x(hl)		;ED 3C 22 11
+   148B ED 3C 22 11        8705 	ldw	hl,(hl+lxofc+x)		;ED 3C 22 11
+   148F ED 04 22 11        8706 	ldw	hl,lxofc+x(sp)		;ED 04 22 11
+   1493 ED 04 22 11        8707 	ldw	hl,(sp+lxofc+x)		;ED 04 22 11
+   1497 DD ED 2C 55 00     8708 	ldw	ix,sxofc+x(ix)		;DD ED 2C 55 00
+   149C DD ED 2C 55 00     8709 	ldw	ix,(ix+sxofc+x)		;DD ED 2C 55 00
+   14A1 DD ED 34 55 00     8710 	ldw	ix,sxofc+x(iy)		;DD ED 34 55 00
+   14A6 DD ED 34 55 00     8711 	ldw	ix,(iy+sxofc+x)		;DD ED 34 55 00
+   14AB DD ED 3C 55 00     8712 	ldw	ix,sxofc+x(hl)		;DD ED 3C 55 00
+   14B0 DD ED 3C 55 00     8713 	ldw	ix,(hl+sxofc+x)		;DD ED 3C 55 00
+   14B5 DD ED 04 55 00     8714 	ldw	ix,sxofc+x(sp)		;DD ED 04 55 00
+   14BA DD ED 04 55 00     8715 	ldw	ix,(sp+sxofc+x)		;DD ED 04 55 00
+   14BF DD ED 2C 22 11     8716 	ldw	ix,lxofc+x(ix)		;DD ED 2C 22 11
+   14C4 DD ED 2C 22 11     8717 	ldw	ix,(ix+lxofc+x)		;DD ED 2C 22 11
+   14C9 DD ED 34 22 11     8718 	ldw	ix,lxofc+x(iy)		;DD ED 34 22 11
+   14CE DD ED 34 22 11     8719 	ldw	ix,(iy+lxofc+x)		;DD ED 34 22 11
+   14D3 DD ED 3C 22 11     8720 	ldw	ix,lxofc+x(hl)		;DD ED 3C 22 11
+   14D8 DD ED 3C 22 11     8721 	ldw	ix,(hl+lxofc+x)		;DD ED 3C 22 11
+   14DD DD ED 04 22 11     8722 	ldw	ix,lxofc+x(sp)		;DD ED 04 22 11
+   14E2 DD ED 04 22 11     8723 	ldw	ix,lxofc+x(sp)		;DD ED 04 22 11
+   14E7 DD ED 04 22 11     8724 	ldw	ix,(sp+lxofc+x)		;DD ED 04 22 11
+   14EC FD ED 2C 55 00     8725 	ldw	iy,sxofc+x(ix)		;FD ED 2C 55 00
+   14F1 FD ED 2C 55 00     8726 	ldw	iy,(ix+sxofc+x)		;FD ED 2C 55 00
+   14F6 FD ED 34 55 00     8727 	ldw	iy,sxofc+x(iy)		;FD ED 34 55 00
+   14FB FD ED 34 55 00     8728 	ldw	iy,(iy+sxofc+x)		;FD ED 34 55 00
+   1500 FD ED 3C 55 00     8729 	ldw	iy,sxofc+x(hl)		;FD ED 3C 55 00
+   1505 FD ED 3C 55 00     8730 	ldw	iy,(hl+sxofc+x)		;FD ED 3C 55 00
+   150A FD ED 04 55 00     8731 	ldw	iy,sxofc+x(sp)		;FD ED 04 55 00
+   150F FD ED 04 55 00     8732 	ldw	iy,(sp+sxofc+x)		;FD ED 04 55 00
+   1514 FD ED 2C 22 11     8733 	ldw	iy,lxofc+x(ix)		;FD ED 2C 22 11
+   1519 FD ED 2C 22 11     8734 	ldw	iy,(ix+lxofc+x)		;FD ED 2C 22 11
+   151E FD ED 34 22 11     8735 	ldw	iy,lxofc+x(iy)		;FD ED 34 22 11
+   1523 FD ED 34 22 11     8736 	ldw	iy,(iy+lxofc+x)		;FD ED 34 22 11
+   1528 FD ED 3C 22 11     8737 	ldw	iy,lxofc+x(hl)		;FD ED 3C 22 11
+   152D FD ED 3C 22 11     8738 	ldw	iy,(hl+lxofc+x)		;FD ED 3C 22 11
+   1532 FD ED 04 22 11     8739 	ldw	iy,lxofc+x(sp)		;FD ED 04 22 11
+   1537 FD ED 04 22 11     8740 	ldw	iy,(sp+lxofc+x)		;FD ED 04 22 11
+   153C ED 04 00 00        8744 	ldw	hl,(sp)			;ED 04 00 00
+   1540 DD ED 04 00 00     8745 	ldw	ix,(sp)			;DD ED 04 00 00
+   1545 FD ED 04 00 00     8746 	ldw	iy,(sp)			;FD ED 04 00 00
+   154A ED 0C              8747 	ldw	hl,(hl+ix)		;ED 0C
+   154C ED 14              8748 	ldw	hl,(hl+iy)		;ED 14
+   154E ED 1C              8749 	ldw	hl,(ix+iy)		;ED 1C
+   1550 DD ED 0C           8750 	ldw	ix,(hl+ix)		;DD ED 0C
+   1553 DD ED 14           8751 	ldw	ix,(hl+iy)		;DD ED 14
+   1556 DD ED 1C           8752 	ldw	ix,(ix+iy)		;DD ED 1C
+   1559 FD ED 0C           8753 	ldw	iy,(hl+ix)		;FD ED 0C
+   155C FD ED 14           8754 	ldw	iy,(hl+iy)		;FD ED 14
+   155F FD ED 1C           8755 	ldw	iy,(ix+iy)		;FD ED 1C
+                           8756 
+   1562 ED 24 22 11        8804 	ldw	hl,lxofc+ldw04(pc)	;ED 24 22 11
+   1566 ED 24 22 11        8808 	ldw	hl,(pc+lxofc+ldw05)	;ED 24 22 11
+   156A ED 24 22 11        8812 	ldw	hl,[lxofc+ldw06]	;ED 24 22 11
+   156E ED 24 1C 00        8840 	ldw	hl,[.+32]		;ED 24 1C 00
+   1572 DD ED 24 22 11     8888 	ldw	ix,lxofc+ldw07(pc)	;DD ED 24 22 11
+   1577 DD ED 24 22 11     8892 	ldw	ix,(pc+lxofc+ldw08)	;DD ED 24 22 11
+   157C DD ED 24 22 11     8896 	ldw	ix,[lxofc+ldw09]	;DD ED 24 22 11
+   1581 DD ED 24 1B 00     8924 	ldw	ix,[.+32]		;DD ED 24 1B 00
+   1586 FD ED 24 22 11     8972 	ldw	iy,lxofc+ldw11(pc)	;FD ED 24 22 11
+   158B FD ED 24 22 11     8976 	ldw	iy,(pc+lxofc+ldw12)	;FD ED 24 22 11
+   1590 FD ED 24 22 11     8980 	ldw	iy,[lxofc+ldw13]	;FD ED 24 22 11
+   1595 FD ED 24 1B 00     9008 	ldw	iy,[.+32]		;FD ED 24 1B 00
+                           9009 	;***********************************************************
+                           9010 	;  p. 5-90
+                           9011 	.z280
+   159A 22 44 33           9125 	ldw	(daddc+x),hl		;22 44 33
+   159D DD 22 44 33        9126 	ldw	(daddc+x),ix		;DD 22 44 33
+   15A1 FD 22 44 33        9127 	ldw	(daddc+x),iy		;FD 22 44 33
+   15A5 ED 2D 55 00        9131 	ldw	sxofc+x(ix),hl		;ED 2D 55 00
+   15A9 ED 2D 55 00        9132 	ldw	(ix+sxofc+x),hl		;ED 2D 55 00
+   15AD ED 35 55 00        9133 	ldw	sxofc+x(iy),hl		;ED 35 55 00
+   15B1 ED 35 55 00        9134 	ldw	(iy+sxofc+x),hl		;ED 35 55 00
+   15B5 ED 3D 55 00        9149 	ldw	sxofc+x(hl),hl		;ED 3D 55 00
+   15B9 ED 3D 55 00        9150 	ldw	(hl+sxofc+x),hl		;ED 3D 55 00
+   15BD ED 05 55 00        9151 	ldw	sxofc+x(sp),hl		;ED 05 55 00
+   15C1 ED 05 55 00        9152 	ldw	(sp+sxofc+x),hl		;ED 05 55 00
+   15C5 ED 2D 22 11        9153 	ldw	lxofc+x(ix),hl		;ED 2D 22 11
+   15C9 ED 2D 22 11        9154 	ldw	(ix+lxofc+x),hl		;ED 2D 22 11
+   15CD ED 35 22 11        9155 	ldw	lxofc+x(iy),hl		;ED 35 22 11
+   15D1 ED 35 22 11        9156 	ldw	(iy+lxofc+x),hl		;ED 35 22 11
+   15D5 ED 3D 22 11        9157 	ldw	lxofc+x(hl),hl		;ED 3D 22 11
+   15D9 ED 3D 22 11        9158 	ldw	(hl+lxofc+x),hl		;ED 3D 22 11
+   15DD ED 05 22 11        9159 	ldw	lxofc+x(sp),hl		;ED 05 22 11
+   15E1 ED 05 22 11        9160 	ldw	(sp+lxofc+x),hl		;ED 05 22 11
+   15E5 DD ED 2D 55 00     9161 	ldw	sxofc+x(ix),ix		;DD ED 2D 55 00
+   15EA DD ED 2D 55 00     9162 	ldw	(ix+sxofc+x),ix		;DD ED 2D 55 00
+   15EF DD ED 35 55 00     9163 	ldw	sxofc+x(iy),ix		;DD ED 35 55 00
+   15F4 DD ED 35 55 00     9164 	ldw	(iy+sxofc+x),ix		;DD ED 35 55 00
+   15F9 DD ED 3D 55 00     9165 	ldw	sxofc+x(hl),ix		;DD ED 3D 55 00
+   15FE DD ED 3D 55 00     9166 	ldw	(hl+sxofc+x),ix		;DD ED 3D 55 00
+   1603 DD ED 05 55 00     9167 	ldw	sxofc+x(sp),ix		;DD ED 05 55 00
+   1608 DD ED 05 55 00     9168 	ldw	(sp+sxofc+x),ix		;DD ED 05 55 00
+   160D DD ED 2D 22 11     9169 	ldw	lxofc+x(ix),ix		;DD ED 2D 22 11
+   1612 DD ED 2D 22 11     9170 	ldw	(ix+lxofc+x),ix		;DD ED 2D 22 11
+   1617 DD ED 35 22 11     9171 	ldw	lxofc+x(iy),ix		;DD ED 35 22 11
+   161C DD ED 35 22 11     9172 	ldw	(iy+lxofc+x),ix		;DD ED 35 22 11
+   1621 DD ED 3D 22 11     9173 	ldw	lxofc+x(hl),ix		;DD ED 3D 22 11
+   1626 DD ED 3D 22 11     9174 	ldw	(hl+lxofc+x),ix		;DD ED 3D 22 11
+   162B DD ED 05 22 11     9175 	ldw	lxofc+x(sp),ix		;DD ED 05 22 11
+   1630 DD ED 05 22 11     9176 	ldw	(sp+lxofc+x),ix		;DD ED 05 22 11
+   1635 FD ED 2D 55 00     9177 	ldw	sxofc+x(ix),iy		;FD ED 2D 55 00
+   163A FD ED 2D 55 00     9178 	ldw	(ix+sxofc+x),iy		;FD ED 2D 55 00
+   163F FD ED 35 55 00     9179 	ldw	sxofc+x(iy),iy		;FD ED 35 55 00
+   1644 FD ED 35 55 00     9180 	ldw	(iy+sxofc+x),iy		;FD ED 35 55 00
+   1649 FD ED 3D 55 00     9181 	ldw	sxofc+x(hl),iy		;FD ED 3D 55 00
+   164E FD ED 3D 55 00     9182 	ldw	(hl+sxofc+x),iy		;FD ED 3D 55 00
+   1653 FD ED 05 55 00     9183 	ldw	sxofc+x(sp),iy		;FD ED 05 55 00
+   1658 FD ED 05 55 00     9184 	ldw	(sp+sxofc+x),iy		;FD ED 05 55 00
+   165D FD ED 2D 22 11     9185 	ldw	lxofc+x(ix),iy		;FD ED 2D 22 11
+   1662 FD ED 2D 22 11     9186 	ldw	(ix+lxofc+x),iy		;FD ED 2D 22 11
+   1667 FD ED 35 22 11     9187 	ldw	lxofc+x(iy),iy		;FD ED 35 22 11
+   166C FD ED 35 22 11     9188 	ldw	(iy+lxofc+x),iy		;FD ED 35 22 11
+   1671 FD ED 3D 22 11     9189 	ldw	lxofc+x(hl),iy		;FD ED 3D 22 11
+   1676 FD ED 3D 22 11     9190 	ldw	(hl+lxofc+x),iy		;FD ED 3D 22 11
+   167B FD ED 05 22 11     9191 	ldw	lxofc+x(sp),iy		;FD ED 05 22 11
+   1680 FD ED 05 22 11     9192 	ldw	(sp+lxofc+x),iy		;FD ED 05 22 11
+                           9196 
+   1685 ED 05 00 00        9197 	ldw	(sp),hl			;ED 05 00 00
+   1689 DD ED 05 00 00     9198 	ldw	(sp),ix			;DD ED 05 00 00
+   168E FD ED 05 00 00     9199 	ldw	(sp),iy			;FD ED 05 00 00
+   1693 FD ED 0D           9200 	ldw	(hl+ix),iy		;FD ED 0D
+   1696 FD ED 15           9201 	ldw	(hl+iy),iy		;FD ED 15
+   1699 FD ED 1D           9202 	ldw	(ix+iy),iy		;FD ED 1D
+   169C DD ED 0D           9203 	ldw	(hl+ix),ix		;DD ED 0D
+   169F DD ED 15           9204 	ldw	(hl+iy),ix		;DD ED 15
+   16A2 DD ED 1D           9205 	ldw	(ix+iy),ix		;DD ED 1D
+   16A5 ED 0D              9206 	ldw	(hl+ix),hl		;ED 0D
+   16A7 ED 15              9207 	ldw	(hl+iy),hl		;ED 15
+   16A9 ED 1D              9208 	ldw	(ix+iy),hl		;ED 1D
+                           9209 
+   16AB ED 25 22 11        9257 	ldw	lxofc+ldw14(pc),hl	;ED 25 22 11
+   16AF ED 25 22 11        9261 	ldw	(pc+lxofc+ldw15),hl	;ED 25 22 11
+   16B3 ED 25 22 11        9265 	ldw	[lxofc+ldw16],hl	;ED 25 22 11
+   16B7 ED 25 1C 00        9293 	ldw	[.+32],hl		;ED 25 1C 00
+   16BB DD ED 25 22 11     9341 	ldw	lxofc+ldw17(pc),ix	;DD ED 25 22 11
+   16C0 DD ED 25 22 11     9345 	ldw	(pc+lxofc+ldw18),ix	;DD ED 25 22 11
+   16C5 DD ED 25 22 11     9349 	ldw	[lxofc+ldw19],ix	;DD ED 25 22 11
+   16CA DD ED 25 1B 00     9377 	ldw	[.+32],ix		;DD ED 25 1B 00
+   16CF FD ED 25 22 11     9425 	ldw	lxofc+ldw21(pc),iy	;FD ED 25 22 11
+   16D4 FD ED 25 22 11     9429 	ldw	(pc+lxofc+ldw22),iy	;FD ED 25 22 11
+   16D9 FD ED 25 22 11     9433 	ldw	[lxofc+ldw23],iy	;FD ED 25 22 11
+   16DE FD ED 25 1B 00     9461 	ldw	[.+32],iy		;FD ED 25 1B 00
+                           9462 	;***********************************************************
+                           9463 	;  p. 5-91
+                           9464 	.z280
+   16E3 01 84 05           9484 	ldw	bc,#nnc+x			;01 84 05
+   16E6 11 84 05           9485 	ldw	de,#nnc+x			;11 84 05
+   16E9 21 84 05           9486 	ldw	hl,#nnc+x			;21 84 05
+   16EC 31 84 05           9487 	ldw	sp,#nnc+x			;31 84 05
+   16EF ED 06              9491 	ldw	bc,(hl)			;ED 06
+   16F1 ED 16              9492 	ldw	de,(hl)			;ED 16
+   16F3 ED 26              9493 	ldw	hl,(hl)			;ED 26
+   16F5 ED 36              9494 	ldw	sp,(hl)			;ED 36
+   16F7 DD ED 06 00        9495 	ldw	bc,(ix)			;DD ED 06 00
+   16FB DD ED 16 00        9496 	ldw	de,(ix)			;DD ED 16 00
+   16FF DD ED 26 00        9497 	ldw	hl,(ix)			;DD ED 26 00
+   1703 DD ED 36 00        9498 	ldw	sp,(ix)			;DD ED 36 00
+   1707 FD ED 06 00        9499 	ldw	bc,(iy)			;FD ED 06 00
+   170B FD ED 16 00        9500 	ldw	de,(iy)			;FD ED 16 00
+   170F FD ED 26 00        9501 	ldw	hl,(iy)			;FD ED 26 00
+   1713 FD ED 36 00        9502 	ldw	sp,(iy)			;FD ED 36 00
+   1717 ED 4B 44 33        9554 	ldw	bc,(daddc+x)		;ED 4B 44 33
+   171B ED 5B 44 33        9555 	ldw	de,(daddc+x)		;ED 5B 44 33
+   171F 2A 44 33           9556 	ldw	hl,(daddc+x)		;2A 44 33
+   1722 ED 7B 44 33        9557 	ldw	sp,(daddc+x)		;ED 7B 44 33
+   1726 DD ED 06 55        9558 	ldw	bc,sxofc+x(ix)		;DD ED 06 55
+   172A DD ED 06 55        9559 	ldw	bc,(ix+sxofc+x)		;DD ED 06 55
+   172E FD ED 06 55        9560 	ldw	bc,sxofc+x(iy)		;FD ED 06 55
+   1732 FD ED 06 55        9561 	ldw	bc,(iy+sxofc+x)		;FD ED 06 55
+   1736 DD ED 16 55        9562 	ldw	de,sxofc+x(ix)		;DD ED 16 55
+   173A DD ED 16 55        9563 	ldw	de,(ix+sxofc+x)		;DD ED 16 55
+   173E FD ED 16 55        9564 	ldw	de,sxofc+x(iy)		;FD ED 16 55
+   1742 FD ED 16 55        9565 	ldw	de,(iy+sxofc+x)		;FD ED 16 55
+   1746 ED 2C 55 00        9569 	ldw	hl,sxofc+x(ix)		;ED 2C 55 00
+   174A ED 2C 55 00        9570 	ldw	hl,(ix+sxofc+x)		;ED 2C 55 00
+   174E ED 34 55 00        9571 	ldw	hl,sxofc+x(iy)		;ED 34 55 00
+   1752 ED 34 55 00        9572 	ldw	hl,(iy+sxofc+x)		;ED 34 55 00
+   1756 DD ED 36 55        9583 	ldw	sp,sxofc+x(ix)		;DD ED 36 55
+   175A DD ED 36 55        9584 	ldw	sp,(ix+sxofc+x)		;DD ED 36 55
+   175E FD ED 36 55        9585 	ldw	sp,sxofc+x(iy)		;FD ED 36 55
+   1762 FD ED 36 55        9586 	ldw	sp,(iy+sxofc+x)		;FD ED 36 55
+   1766 ED 0E              9590 	ldw	(hl),bc			;ED 0E
+   1768 ED 1E              9591 	ldw	(hl),de			;ED 1E
+   176A ED 2E              9592 	ldw	(hl),hl			;ED 2E
+   176C ED 3E              9593 	ldw	(hl),sp			;ED 3E
+   176E ED 43 44 33        9645 	ldw	(daddc+x),bc		;ED 43 44 33
+   1772 ED 53 44 33        9646 	ldw	(daddc+x),de		;ED 53 44 33
+   1776 ED 73 44 33        9647 	ldw	(daddc+x),sp		;ED 73 44 33
+   177A 22 44 33           9648 	ldw	(daddc+x),hl		;22 44 33
+   177D DD ED 0E 55        9649 	ldw	sxofc+x(ix),bc		;DD ED 0E 55
+   1781 DD ED 0E 55        9650 	ldw	(ix+sxofc+x),bc		;DD ED 0E 55
+   1785 FD ED 0E 55        9651 	ldw	sxofc+x(iy),bc		;FD ED 0E 55
+   1789 FD ED 0E 55        9652 	ldw	(iy+sxofc+x),bc		;FD ED 0E 55
+   178D DD ED 1E 55        9653 	ldw	sxofc+x(ix),de		;DD ED 1E 55
+   1791 DD ED 1E 55        9654 	ldw	(ix+sxofc+x),de		;DD ED 1E 55
+   1795 FD ED 1E 55        9655 	ldw	sxofc+x(iy),de		;FD ED 1E 55
+   1799 FD ED 1E 55        9656 	ldw	(iy+sxofc+x),de		;FD ED 1E 55
+   179D ED 2D 55 00        9660 	ldw	sxofc+x(ix),hl		;ED 2D 55 00
+   17A1 ED 2D 55 00        9661 	ldw	(ix+sxofc+x),hl		;ED 2D 55 00
+   17A5 ED 35 55 00        9662 	ldw	sxofc+x(iy),hl		;ED 35 55 00
+   17A9 ED 35 55 00        9663 	ldw	(iy+sxofc+x),hl		;ED 35 55 00
+   17AD DD ED 3E 55        9674 	ldw	sxofc+x(ix),sp		;DD ED 3E 55
+   17B1 DD ED 3E 55        9675 	ldw	(ix+sxofc+x),sp		;DD ED 3E 55
+   17B5 FD ED 3E 55        9676 	ldw	sxofc+x(iy),sp		;FD ED 3E 55
+   17B9 FD ED 3E 55        9677 	ldw	(iy+sxofc+x),sp		;FD ED 3E 55
+   17BD DD ED 0E 00        9681 	ldw	(ix),bc			;DD ED 0E 00
+   17C1 DD ED 1E 00        9682 	ldw	(ix),de			;DD ED 1E 00
+   17C5 DD ED 2E 00        9683 	ldw	(ix),hl			;DD ED 2E 00
+   17C9 DD ED 3E 00        9684 	ldw	(ix),sp			;DD ED 3E 00
+   17CD FD ED 0E 00        9685 	ldw	(iy),bc			;FD ED 0E 00
+   17D1 FD ED 1E 00        9686 	ldw	(iy),de			;FD ED 1E 00
+   17D5 FD ED 2E 00        9687 	ldw	(iy),hl			;FD ED 2E 00
+   17D9 FD ED 3E 00        9688 	ldw	(iy),sp			;FD ED 3E 00
+                           9689 	;***********************************************************
+                           9690 	;  p. 5-92
+   17DD F9                 9691 	ldw	sp,hl			;F9
+   17DE DD F9              9692 	ldw	sp,ix			;DD F9
+   17E0 FD F9              9693 	ldw	sp,iy			;FD F9
+   17E2 F9                 9694 	ld	sp,hl			;F9
+   17E3 DD F9              9695 	ld	sp,ix			;DD F9
+   17E5 FD F9              9696 	ld	sp,iy			;FD F9
+   17E7 31 84 05           9712 	ldw	sp,#nnc+x			;31 84 05
+   17EA 31 84 05           9713 	ld	sp,#nnc+x			;31 84 05
+   17ED ED 36              9717 	ldw	sp,(hl)			;ED 36
+   17EF ED 36              9718 	ld	sp,(hl)			;ED 36
+   17F1 ED 3E              9719 	ldw	(hl),sp			;ED 3E
+   17F3 ED 3E              9720 	ld	(hl),sp			;ED 3E
+   17F5 ED 7B 44 33        9752 	ldw	sp,(daddc+x)		;ED 7B 44 33
+   17F9 ED 7B 44 33        9753 	ld	sp,(daddc+x)		;ED 7B 44 33
+   17FD DD ED 36 55        9754 	ldw	sp,(ix+sxofc+x)		;DD ED 36 55
+   1801 DD ED 36 55        9755 	ld	sp,(ix+sxofc+x)		;DD ED 36 55
+   1805 DD ED 36 55        9756 	ldw	sp,sxofc+x(ix)		;DD ED 36 55
+   1809 DD ED 36 55        9757 	ld	sp,sxofc+x(ix)		;DD ED 36 55
+   180D FD ED 36 55        9758 	ldw	sp,(iy+sxofc+x)		;FD ED 36 55
+   1811 FD ED 36 55        9759 	ld	sp,(iy+sxofc+x)		;FD ED 36 55
+   1815 FD ED 36 55        9760 	ldw	sp,sxofc+x(iy)		;FD ED 36 55
+   1819 FD ED 36 55        9761 	ld	sp,sxofc+x(iy)		;FD ED 36 55
+   181D ED 73 44 33        9796 	ldw	(daddc+x),sp		;ED 73 44 33
+   1821 ED 73 44 33        9797 	ld	(daddc+x),sp		;ED 73 44 33
+   1825 DD ED 3E 55        9798 	ldw	(ix+sxofc+x),sp		;DD ED 3E 55
+   1829 DD ED 3E 55        9799 	ld	(ix+sxofc+x),sp		;DD ED 3E 55
+   182D DD ED 3E 55        9800 	ldw	sxofc+x(ix),sp		;DD ED 3E 55
+   1831 DD ED 3E 55        9801 	ld	sxofc+x(ix),sp		;DD ED 3E 55
+   1835 FD ED 3E 55        9802 	ldw	(iy+sxofc+x),sp		;FD ED 3E 55
+   1839 FD ED 3E 55        9803 	ld	(iy+sxofc+x),sp		;FD ED 3E 55
+   183D FD ED 3E 55        9804 	ldw	sxofc+x(iy),sp		;FD ED 3E 55
+   1841 FD ED 3E 55        9805 	ld	sxofc+x(iy),sp		;FD ED 3E 55
+                           9809 
+                           9810 ;*******************************************************************
+                           9811 ;	LDD	
+                           9812 ;*******************************************************************
+                           9813 	;***********************************************************
+                           9814 	; load location (hl)
+                           9815 	; with location (de)
+                           9816 	; decrement de, hl
+                           9817 	; decrement bc
+                           9818 	.z80
+   1845 ED A8              9819 	ldd				;ED A8
+                           9820 
+                           9821 ;*******************************************************************
+                           9822 ;	LDDR	
+                           9823 ;*******************************************************************
+                           9824 	;***********************************************************
+                           9825 	; load location (hl)
+                           9826 	; with location (de)
+                           9827 	; decrement de, hl
+                           9828 	; decrement bc
+                           9829 	; repeat until bc = 0
+                           9830 	.z80
+   1847 ED B8              9831 	lddr				;ED B8
+                           9832 
+                           9833 ;*******************************************************************
+                           9834 ;	LDI	
+                           9835 ;*******************************************************************
+                           9836 	;***********************************************************
+                           9837 	; load location (hl)
+                           9838 	; with location (de)
+                           9839 	; increment de, hl
+                           9840 	; decrement bc
+                           9841 	.z80
+   1849 ED A0              9842 	ldi				;ED A0
+                           9843 
+                           9844 ;*******************************************************************
+                           9845 ;	LDIR	
+                           9846 ;*******************************************************************
+                           9847 	;***********************************************************
+                           9848 	; load location (hl)
+                           9849 	; with location (de)
+                           9850 	; increment de, hl
+                           9851 	; decrement bc
+                           9852 	; repeat until bc = 0
+                           9853 	.z80
+   184B ED B0              9854 	ldir				;ED B0
+                           9855 
+                           9856 ;*******************************************************************
+                           9857 ;	MULT
+                           9858 ;		Leading 'a' operand is optional.
+                           9859 ;		If offset is ommitted 0 is assumed.
+                           9860 ;*******************************************************************
+                           9861 	;***********************************************************
+                           9862 	; multiplication with 'a'
+                           9863 	;  p. 5-93
+                           9864 	.z280
+   184D ED C0              9865 	mult	a,b			;ED C0
+   184F ED C8              9866 	mult	a,c			;ED C8
+   1851 ED D0              9867 	mult	a,d			;ED D0
+   1853 ED D8              9868 	mult	a,e			;ED D8
+   1855 ED E0              9869 	mult	a,h			;ED E0
+   1857 ED E8              9870 	mult	a,l			;ED E8
+   1859 ED F8              9871 	mult	a,a			;ED F8
+   185B DD ED E0           9872 	mult	a,ixh			;DD ED E0
+   185E DD ED E8           9873 	mult	a,ixl			;DD ED E8
+   1861 FD ED E0           9874 	mult	a,iyh			;FD ED E0
+   1864 FD ED E8           9875 	mult	a,iyl			;FD ED E8
+   1867 FD ED F8 20        9923 	mult	a,#nc+x			;FD ED F8 20
+   186B DD ED F8 44 33     9924 	mult	a,(daddc+x)		;DD ED F8 44 33
+   1870 FD ED C8 55 00     9928 	mult	a,sxofc+x(ix)		;FD ED C8 55 00
+   1875 FD ED C8 55 00     9929 	mult	a,(ix+sxofc+x)		;FD ED C8 55 00
+   187A FD ED D0 55 00     9930 	mult	a,sxofc+x(iy)		;FD ED D0 55 00
+   187F FD ED D0 55 00     9931 	mult	a,(iy+sxofc+x)		;FD ED D0 55 00
+   1884 FD ED D8 55 00     9942 	mult	a,sxofc+x(hl)		;FD ED D8 55 00
+   1889 FD ED D8 55 00     9943 	mult	a,(hl+sxofc+x)		;FD ED D8 55 00
+   188E DD ED C0 55 00     9944 	mult	a,sxofc+x(sp)		;DD ED C0 55 00
+   1893 DD ED C0 55 00     9945 	mult	a,(sp+sxofc+x)		;DD ED C0 55 00
+   1898 FD ED C8 22 11     9946 	mult	a,lxofc+x(ix)		;FD ED C8 22 11
+   189D FD ED C8 22 11     9947 	mult	a,(ix+lxofc+x)		;FD ED C8 22 11
+   18A2 FD ED D0 22 11     9948 	mult	a,lxofc+x(iy)		;FD ED D0 22 11
+   18A7 FD ED D0 22 11     9949 	mult	a,(iy+lxofc+x)		;FD ED D0 22 11
+   18AC FD ED D8 22 11     9950 	mult	a,lxofc+x(hl)		;FD ED D8 22 11
+   18B1 FD ED D8 22 11     9951 	mult	a,(hl+lxofc+x)		;FD ED D8 22 11
+   18B6 DD ED C0 22 11     9952 	mult	a,lxofc+x(sp)		;DD ED C0 22 11
+   18BB DD ED C0 22 11     9953 	mult	a,(sp+lxofc+x)		;DD ED C0 22 11
+   18C0 DD ED F0 00        9957 	mult	a,(ix)			;DD ED F0 00
+   18C4 FD ED F0 00        9958 	mult	a,(iy)			;FD ED F0 00
+   18C8 ED F0              9959 	mult	a,(hl)			;ED F0
+   18CA FD ED C0 22 11    10007 	mult	a,lxofc+mult01(pc)	;FD ED C0 22 11
+   18CF FD ED C0 22 11    10011 	mult	a,(pc+lxofc+mult02)	;FD ED C0 22 11
+   18D4 FD ED C0 22 11    10015 	mult	a,[lxofc+mult03]	;FD ED C0 22 11
+   18D9 FD ED C0 F6 FF    10043 	mult	a,[.-5]			;FD ED C0 F6 FF
+   18DE DD ED C8          10044 	mult	a,(hl+ix)		;DD ED C8
+   18E1 DD ED D0          10045 	mult	a,(hl+iy)		;DD ED D0
+   18E4 DD ED D8          10046 	mult	a,(ix+iy)		;DD ED D8
+                          10047 
+                          10048 	;***********************************************************
+                          10049 	; multiplication without 'a'
+                          10050 	;  p. 5-93
+   18E7 ED C0             10051 	mult	b			;ED C0
+   18E9 ED C8             10052 	mult	c			;ED C8
+   18EB ED D0             10053 	mult	d			;ED D0
+   18ED ED D8             10054 	mult	e			;ED D8
+   18EF ED E0             10055 	mult	h			;ED E0
+   18F1 ED E8             10056 	mult	l			;ED E8
+   18F3 ED F8             10057 	mult	a			;ED F8
+   18F5 DD ED E0          10058 	mult	ixh			;DD ED E0
+   18F8 DD ED E8          10059 	mult	ixl			;DD ED E8
+   18FB FD ED E0          10060 	mult	iyh			;FD ED E0
+   18FE FD ED E8          10061 	mult	iyl			;FD ED E8
+   1901 FD ED F8 20       10109 	mult	#nc+x			;FD ED F8 20
+   1905 DD ED F8 44 33    10110 	mult	(daddc+x)			;DD ED F8 44 33
+   190A FD ED C8 55 00    10114 	mult	sxofc+x(ix)		;FD ED C8 55 00
+   190F FD ED C8 55 00    10115 	mult	(ix+sxofc+x)		;FD ED C8 55 00
+   1914 FD ED D0 55 00    10116 	mult	sxofc+x(iy)		;FD ED D0 55 00
+   1919 FD ED D0 55 00    10117 	mult	(iy+sxofc+x)		;FD ED D0 55 00
+   191E FD ED D8 55 00    10128 	mult	sxofc+x(hl)		;FD ED D8 55 00
+   1923 FD ED D8 55 00    10129 	mult	(hl+sxofc+x)		;FD ED D8 55 00
+   1928 DD ED C0 55 00    10130 	mult	sxofc+x(sp)		;DD ED C0 55 00
+   192D DD ED C0 55 00    10131 	mult	(sp+sxofc+x)		;DD ED C0 55 00
+   1932 FD ED C8 22 11    10132 	mult	lxofc+x(ix)		;FD ED C8 22 11
+   1937 FD ED C8 22 11    10133 	mult	(ix+lxofc+x)		;FD ED C8 22 11
+   193C FD ED D0 22 11    10134 	mult	lxofc+x(iy)		;FD ED D0 22 11
+   1941 FD ED D0 22 11    10135 	mult	(iy+lxofc+x)		;FD ED D0 22 11
+   1946 FD ED D8 22 11    10136 	mult	lxofc+x(hl)		;FD ED D8 22 11
+   194B FD ED D8 22 11    10137 	mult	(hl+lxofc+x)		;FD ED D8 22 11
+   1950 DD ED C0 22 11    10138 	mult	lxofc+x(sp)		;DD ED C0 22 11
+   1955 DD ED C0 22 11    10139 	mult	(sp+lxofc+x)		;DD ED C0 22 11
+   195A DD ED F0 00       10143 	mult	(ix)			;DD ED F0 00
+   195E FD ED F0 00       10144 	mult	(iy)			;FD ED F0 00
+   1962 ED F0             10145 	mult	(hl)			;ED F0
+   1964 FD ED C0 22 11    10193 	mult	lxofc+mult04(pc)	;FD ED C0 22 11
+   1969 FD ED C0 22 11    10197 	mult	(pc+lxofc+mult05)	;FD ED C0 22 11
+   196E FD ED C0 22 11    10201 	mult	[lxofc+mult06]		;FD ED C0 22 11
+   1973 FD ED C0 F6 FF    10229 	mult	[.-5]			;FD ED C0 F6 FF
+   1978 DD ED C8          10230 	mult	(hl+ix)		;DD ED C8
+   197B DD ED D0          10231 	mult	(hl+iy)		;DD ED D0
+   197E DD ED D8          10232 	mult	(ix+iy)		;DD ED D8
+                          10233 
+                          10234 ;*******************************************************************
+                          10235 ;	MULTU	
+                          10236 ;		Leading 'a' operand is optional.
+                          10237 ;		If offset is ommitted 0 is assumed.
+                          10238 ;*******************************************************************
+                          10239 	; unsigned multiplication with 'a'
+                          10240 	;  p. 5-93
+                          10241 	.z280
+   1981 ED C1             10242 	multu	a,b			;ED C1
+   1983 ED C9             10243 	multu	a,c			;ED C9
+   1985 ED D1             10244 	multu	a,d			;ED D1
+   1987 ED D9             10245 	multu	a,e			;ED D9
+   1989 ED E1             10246 	multu	a,h			;ED E1
+   198B ED E9             10247 	multu	a,l			;ED E9
+   198D ED F9             10248 	multu	a,a			;ED F9
+   198F DD ED E1          10249 	multu	a,ixh			;DD ED E1
+   1992 DD ED E9          10250 	multu	a,ixl			;DD ED E9
+   1995 FD ED E1          10251 	multu	a,iyh			;FD ED E1
+   1998 FD ED E9          10252 	multu	a,iyl			;FD ED E9
+   199B FD ED F9 20       10300 	multu	a,#nc+x			;FD ED F9 20
+   199F DD ED F9 44 33    10301 	multu	a,(daddc+x)		;DD ED F9 44 33
+   19A4 FD ED C9 55 00    10305 	multu	a,sxofc+x(ix)		;FD ED C9 55 00
+   19A9 FD ED C9 55 00    10306 	multu	a,(ix+sxofc+x)		;FD ED C9 55 00
+   19AE FD ED D1 55 00    10307 	multu	a,sxofc+x(iy)		;FD ED D1 55 00
+   19B3 FD ED D1 55 00    10308 	multu	a,(iy+sxofc+x)		;FD ED D1 55 00
+   19B8 FD ED D9 55 00    10319 	multu	a,sxofc+x(hl)		;FD ED D9 55 00
+   19BD FD ED D9 55 00    10320 	multu	a,(hl+sxofc+x)		;FD ED D9 55 00
+   19C2 DD ED C1 55 00    10321 	multu	a,sxofc+x(sp)		;DD ED C1 55 00
+   19C7 DD ED C1 55 00    10322 	multu	a,(sp+sxofc+x)		;DD ED C1 55 00
+   19CC FD ED C9 22 11    10323 	multu	a,lxofc+x(ix)		;FD ED C9 22 11
+   19D1 FD ED C9 22 11    10324 	multu	a,(ix+lxofc+x)		;FD ED C9 22 11
+   19D6 FD ED D1 22 11    10325 	multu	a,lxofc+x(iy)		;FD ED D1 22 11
+   19DB FD ED D1 22 11    10326 	multu	a,(iy+lxofc+x)		;FD ED D1 22 11
+   19E0 FD ED D9 22 11    10327 	multu	a,lxofc+x(hl)		;FD ED D9 22 11
+   19E5 FD ED D9 22 11    10328 	multu	a,(hl+lxofc+x)		;FD ED D9 22 11
+   19EA DD ED C1 22 11    10329 	multu	a,lxofc+x(sp)		;DD ED C1 22 11
+   19EF DD ED C1 22 11    10330 	multu	a,(sp+lxofc+x)		;DD ED C1 22 11
+   19F4 DD ED F1 00       10334 	multu	a,(ix)			;DD ED F1 00
+   19F8 FD ED F1 00       10335 	multu	a,(iy)			;FD ED F1 00
+   19FC ED F1             10336 	multu	a,(hl)			;ED F1
+   19FE DD ED C1 00 00    10337 	multu	a,(sp)			;DD ED C1 00 00
+   1A03 FD ED C1 22 11    10385 	multu	a,lxofc+multu01(pc)	;FD ED C1 22 11
+   1A08 FD ED C1 22 11    10389 	multu	a,(pc+lxofc+multu02)	;FD ED C1 22 11
+   1A0D FD ED C1 22 11    10393 	multu	a,[lxofc+multu03]	;FD ED C1 22 11
+   1A12 FD ED C1 F6 FF    10421 	multu	a,[.-5]			;FD ED C1 F6 FF
+   1A17 DD ED C9          10422 	multu	a,(hl+ix)		;DD ED C9
+   1A1A DD ED D1          10423 	multu	a,(hl+iy)		;DD ED D1
+   1A1D DD ED D9          10424 	multu	a,(ix+iy)		;DD ED D9
+                          10425 
+                          10426 	; unsigned multiplication without 'a'
+                          10427 	;  p. 5-93
+                          10428 	.z280
+   1A20 ED C1             10429 	multu	b			;ED C1
+   1A22 ED C9             10430 	multu	c			;ED C9
+   1A24 ED D1             10431 	multu	d			;ED D1
+   1A26 ED D9             10432 	multu	e			;ED D9
+   1A28 ED E1             10433 	multu	h			;ED E1
+   1A2A ED E9             10434 	multu	l			;ED E9
+   1A2C ED F9             10435 	multu	a			;ED F9
+   1A2E DD ED E1          10436 	multu	ixh			;DD ED E1
+   1A31 DD ED E9          10437 	multu	ixl			;DD ED E9
+   1A34 FD ED E1          10438 	multu	iyh			;FD ED E1
+   1A37 FD ED E9          10439 	multu	iyl			;FD ED E9
+   1A3A FD ED F9 20       10487 	multu	#nc+x			;FD ED F9 20
+   1A3E DD ED F9 44 33    10488 	multu	(daddc+x)			;DD ED F9 44 33
+   1A43 FD ED C9 55 00    10492 	multu	sxofc+x(ix)		;FD ED C9 55 00
+   1A48 FD ED C9 55 00    10493 	multu	(ix+sxofc+x)		;FD ED C9 55 00
+   1A4D FD ED D1 55 00    10494 	multu	sxofc+x(iy)		;FD ED D1 55 00
+   1A52 FD ED D1 55 00    10495 	multu	(iy+sxofc+x)		;FD ED D1 55 00
+   1A57 FD ED D9 55 00    10506 	multu	sxofc+x(hl)		;FD ED D9 55 00
+   1A5C FD ED D9 55 00    10507 	multu	(hl+sxofc+x)		;FD ED D9 55 00
+   1A61 DD ED C1 55 00    10508 	multu	sxofc+x(sp)		;DD ED C1 55 00
+   1A66 DD ED C1 55 00    10509 	multu	(sp+sxofc+x)		;DD ED C1 55 00
+   1A6B FD ED C9 22 11    10510 	multu	lxofc+x(ix)		;FD ED C9 22 11
+   1A70 FD ED C9 22 11    10511 	multu	(ix+lxofc+x)		;FD ED C9 22 11
+   1A75 FD ED D1 22 11    10512 	multu	lxofc+x(iy)		;FD ED D1 22 11
+   1A7A FD ED D1 22 11    10513 	multu	(iy+lxofc+x)		;FD ED D1 22 11
+   1A7F FD ED D9 22 11    10514 	multu	lxofc+x(hl)		;FD ED D9 22 11
+   1A84 FD ED D9 22 11    10515 	multu	(hl+lxofc+x)		;FD ED D9 22 11
+   1A89 DD ED C1 22 11    10516 	multu	lxofc+x(sp)		;DD ED C1 22 11
+   1A8E DD ED C1 22 11    10517 	multu	(sp+lxofc+x)		;DD ED C1 22 11
+   1A93 DD ED F1 00       10521 	multu	(ix)			;DD ED F1 00
+   1A97 FD ED F1 00       10522 	multu	(iy)			;FD ED F1 00
+   1A9B ED F1             10523 	multu	(hl)			;ED F1
+   1A9D DD ED C1 00 00    10524 	multu	(sp)			;DD ED C1 00 00
+   1AA2 FD ED C1 22 11    10572 	multu	lxofc+multu04(pc)	;FD ED C1 22 11
+   1AA7 FD ED C1 22 11    10576 	multu	(pc+lxofc+multu05)	;FD ED C1 22 11
+   1AAC FD ED C1 22 11    10580 	multu	[lxofc+multu06]		;FD ED C1 22 11
+   1AB1 FD ED C1 F6 FF    10608 	multu	[.-5]			;FD ED C1 F6 FF
+   1AB6 DD ED C9          10609 	multu	(hl+ix)			;DD ED C9
+   1AB9 DD ED D1          10610 	multu	(hl+iy)			;DD ED D1
+   1ABC DD ED D9          10611 	multu	(ix+iy)			;DD ED D9
+                          10612 
+                          10613 ;*******************************************************************
+                          10614 ;	MULTUW	
+                          10615 ;*******************************************************************
+                          10616 	; unsigned word multiplication
+                          10617 	;  p. 5-93
+                          10618 	.z280
+   1ABF ED C3             10619 	multuw	hl,bc			;ED C3
+   1AC1 ED D3             10620 	multuw	hl,de			;ED D3
+   1AC3 ED E3             10621 	multuw	hl,hl			;ED E3
+   1AC5 ED F3             10622 	multuw	hl,sp			;ED F3
+   1AC7 DD ED E3          10623 	multuw	hl,ix			;DD ED E3
+   1ACA FD ED E3          10624 	multuw	hl,iy			;FD ED E3
+   1ACD FD ED F3 20 00    10656 	multuw	hl,#nc+x			;FD ED F3 20 00
+   1AD2 FD ED F3 84 05    10657 	multuw	hl,#nnc+x			;FD ED F3 84 05
+   1AD7 FD ED C3 55 00    10658 	multuw	hl,sxofc+x(ix)		;FD ED C3 55 00
+   1ADC FD ED C3 55 00    10659 	multuw	hl,(ix+sxofc+x)		;FD ED C3 55 00
+   1AE1 FD ED D3 55 00    10660 	multuw	hl,sxofc+x(iy)		;FD ED D3 55 00
+   1AE6 FD ED D3 55 00    10661 	multuw	hl,(iy+sxofc+x)		;FD ED D3 55 00
+   1AEB FD ED C3 22 11    10662 	multuw	hl,lxofc+x(ix)		;FD ED C3 22 11
+   1AF0 FD ED C3 22 11    10663 	multuw	hl,(ix+lxofc+x)		;FD ED C3 22 11
+   1AF5 FD ED D3 22 11    10664 	multuw	hl,lxofc+x(iy)		;FD ED D3 22 11
+   1AFA FD ED D3 22 11    10665 	multuw	hl,(iy+lxofc+x)		;FD ED D3 22 11
+   1AFF DD ED C3          10669 	multuw	hl,(hl)			;DD ED C3
+   1B02 FD ED C3 00 00    10670 	multuw	hl,(ix)			;FD ED C3 00 00
+   1B07 FD ED D3 00 00    10671 	multuw	hl,(iy)			;FD ED D3 00 00
+   1B0C DD ED F3 22 11    10719 	multuw	hl,lxofc+multuw01(pc)	;DD ED F3 22 11
+   1B11 DD ED F3 22 11    10723 	multuw	hl,(pc+lxofc+multuw02)	;DD ED F3 22 11
+   1B16 DD ED F3 22 11    10727 	multuw	hl,[lxofc+multuw03]	;DD ED F3 22 11
+   1B1B DD ED F3 1B 00    10755 	multuw	hl,[.+nc]		;DD ED F3 1B 00
+                          10756 
+                          10757 ;*******************************************************************
+                          10758 ;	MULTW	
+                          10759 ;*******************************************************************
+                          10760 	; word multiplication
+                          10761 	;  p. 5-93
+                          10762 	.z280
+   1B20 ED C2             10763 	multw	hl,bc			;ED C2
+   1B22 ED D2             10764 	multw	hl,de			;ED D2
+   1B24 ED E2             10765 	multw	hl,hl			;ED E2
+   1B26 ED F2             10766 	multw	hl,sp			;ED F2
+   1B28 DD ED E2          10767 	multw	hl,ix			;DD ED E2
+   1B2B FD ED E2          10768 	multw	hl,iy			;FD ED E2
+   1B2E FD ED F2 20 00    10802 	multw	hl,#nc+x			;FD ED F2 20 00
+   1B33 FD ED F2 84 05    10803 	multw	hl,#nnc+x			;FD ED F2 84 05
+   1B38 DD ED D2 44 33    10804 	multw	hl,(daddc+x)		;DD ED D2 44 33
+   1B3D FD ED C2 55 00    10805 	multw	hl,sxofc+x(ix)		;FD ED C2 55 00
+   1B42 FD ED C2 55 00    10806 	multw	hl,(ix+sxofc+x)		;FD ED C2 55 00
+   1B47 FD ED D2 55 00    10807 	multw	hl,sxofc+x(iy)		;FD ED D2 55 00
+   1B4C FD ED D2 55 00    10808 	multw	hl,(iy+sxofc+x)		;FD ED D2 55 00
+   1B51 FD ED C2 22 11    10809 	multw	hl,lxofc+x(ix)		;FD ED C2 22 11
+   1B56 FD ED C2 22 11    10810 	multw	hl,(ix+lxofc+x)		;FD ED C2 22 11
+   1B5B FD ED D2 22 11    10811 	multw	hl,lxofc+x(iy)		;FD ED D2 22 11
+   1B60 FD ED D2 22 11    10812 	multw	hl,(iy+lxofc+x)		;FD ED D2 22 11
+   1B65 DD ED C2          10816 	multw	hl,(hl)			;DD ED C2
+   1B68 FD ED C2 00 00    10817 	multw	hl,(ix)			;FD ED C2 00 00
+   1B6D FD ED D2 00 00    10818 	multw	hl,(iy)			;FD ED D2 00 00
+   1B72 DD ED F2 22 11    10866 	multw	hl,lxofc+multw01(pc)	;DD ED F2 22 11
+   1B77 DD ED F2 22 11    10870 	multw	hl,(pc+lxofc+multw02)	;DD ED F2 22 11
+   1B7C DD ED F2 22 11    10874 	multw	hl,[lxofc+multw03]	;DD ED F2 22 11
+   1B81 DD ED F2 1B 00    10902 	multw	hl,[.+nc]		;DD ED F2 1B 00
+                          10903 
+                          10904 ;*******************************************************************
+                          10905 ;	NEG	
+                          10906 ;*******************************************************************
+                          10907 	;***********************************************************
+                          10908 	; 2's complement of 'a'
+                          10909 	.z80
+   1B86 ED 44             10910 	neg				;ED 44
+   1B88 ED 44             10911 	neg	a			;ED 44
+                          10912 	.z280
+   1B8A ED 4C             10913 	neg	hl			;ED 4C
+                          10914 
+                          10915 ;*******************************************************************
+                          10916 ;	NOP	
+                          10917 ;*******************************************************************
+                          10918 	;***********************************************************
+                          10919 	; no operation
+                          10920 	.z80
+   1B8C 00                10921 	nop				;00
+                          10922 
+                          10923 ;*******************************************************************
+                          10924 ;	OR	
+                          10925 ;		Leading 'a' operand is optional.
+                          10926 ;		If offset is ommitted 0 is assumed.
+                          10927 ;*******************************************************************
+                          10928 	;***********************************************************
+                          10929 	; logical 'or' operand with 'a'
+                          10930 	.z80
+   1B8D B6                10931 	or	a,(hl)			;B6
+   1B8E F6 20             10955 	or	a,#nc+x			;F6 20
+   1B90 F6 20             10956 	or	a, nc+x			;F6 20
+   1B92 DD B6 55          10957 	or	a,offsetc+x(ix)		;DD B6 55
+   1B95 FD B6 55          10958 	or	a,offsetc+x(iy)		;FD B6 55
+   1B98 DD B6 55          10959 	or	a,(ix+offsetc+x)		;DD B6 55
+   1B9B FD B6 55          10960 	or	a,(iy+offsetc+x)		;FD B6 55
+   1B9E B7                10964 	or	a,a			;B7
+   1B9F B0                10965 	or	a,b			;B0
+   1BA0 B1                10966 	or	a,c			;B1
+   1BA1 B2                10967 	or	a,d			;B2
+   1BA2 B3                10968 	or	a,e			;B3
+   1BA3 B4                10969 	or	a,h			;B4
+   1BA4 B5                10970 	or	a,l			;B5
+                          10971 	;***********************************************************
+                          10972 	;  p. 5-100
+                          10973 	.z280
+   1BA5 DD B1             10974 	or	a,(hl+ix)		;DD B1
+   1BA7 DD B2             10975 	or	a,(hl+iy)		;DD B2
+   1BA9 DD B3             10976 	or	a,(ix+iy)		;DD B3
+   1BAB DD B7 44 33       11022 	or	a,(daddc+x)		;DD B7 44 33
+   1BAF FD B1 55 00       11026 	or	a,sxofc+x(ix)		;FD B1 55 00
+   1BB3 FD B1 55 00       11027 	or	a,(ix+sxofc+x)		;FD B1 55 00
+   1BB7 FD B2 55 00       11028 	or	a,sxofc+x(iy)		;FD B2 55 00
+   1BBB FD B2 55 00       11029 	or	a,(iy+sxofc+x)		;FD B2 55 00
+   1BBF FD B1 22 11       11040 	or	a,lxofc+x(ix)		;FD B1 22 11
+   1BC3 FD B1 22 11       11041 	or	a,(ix+lxofc+x)		;FD B1 22 11
+   1BC7 FD B2 22 11       11042 	or	a,lxofc+x(iy)		;FD B2 22 11
+   1BCB FD B2 22 11       11043 	or	a,(iy+lxofc+x)		;FD B2 22 11
+   1BCF FD B3 22 11       11044 	or	a,lxofc+x(hl)		;FD B3 22 11
+   1BD3 FD B3 22 11       11045 	or	a,(hl+lxofc+x)		;FD B3 22 11
+   1BD7 DD B0 22 11       11046 	or	a,lxofc+x(sp)		;DD B0 22 11
+   1BDB DD B0 22 11       11047 	or	a,(sp+lxofc+x)		;DD B0 22 11
+   1BDF FD B0 22 11       11098 	or	a,lxofc+or01(pc)	;FD B0 22 11
+   1BE3 FD B0 22 11       11102 	or	a,(pc+lxofc+or02)	;FD B0 22 11
+   1BE7 FD B0 22 11       11106 	or	a,[lxofc+or03]		;FD B0 22 11
+   1BEB FD B0 1E 11       11134 	or	a,[.+lxofc]		;FD B0 1E 11
+   1BEF DD B4             11135 	or	a,ixh			;DD B4
+   1BF1 DD B5             11136 	or	a,ixl			;DD B5
+   1BF3 FD B4             11137 	or	a,iyh			;FD B4
+   1BF5 FD B5             11138 	or	a,iyl			;FD B5
+                          11139 
+                          11140 	;***********************************************************
+                          11141 	; logical 'or' operand without 'a'
+                          11142 	.z80
+   1BF7 B6                11143 	or	a,(hl)			;B6
+   1BF8 F6 20             11167 	or	#nc+x			;F6 20
+   1BFA F6 20             11168 	or	 nc+x			;F6 20
+   1BFC DD B6 55          11169 	or	offsetc+x(ix)		;DD B6 55
+   1BFF FD B6 55          11170 	or	offsetc+x(iy)		;FD B6 55
+   1C02 DD B6 55          11171 	or	(ix+offsetc+x)		;DD B6 55
+   1C05 FD B6 55          11172 	or	(iy+offsetc+x)		;FD B6 55
+   1C08 B7                11176 	or	a			;B7
+   1C09 B0                11177 	or	b			;B0
+   1C0A B1                11178 	or	c			;B1
+   1C0B B2                11179 	or	d			;B2
+   1C0C B3                11180 	or	e			;B3
+   1C0D B4                11181 	or	h			;B4
+   1C0E B5                11182 	or	l			;B5
+                          11183 	;***********************************************************
+                          11184 	;  p. 5-100
+                          11185 	.z280
+   1C0F DD B1             11186 	or	(hl+ix)		;DD B1
+   1C11 DD B2             11187 	or	(hl+iy)		;DD B2
+   1C13 DD B3             11188 	or	(ix+iy)		;DD B3
+   1C15 DD B7 44 33       11234 	or	(daddc+x)			;DD B7 44 33
+   1C19 FD B1 55 00       11238 	or	sxofc+x(ix)		;FD B1 55 00
+   1C1D FD B1 55 00       11239 	or	(ix+sxofc+x)		;FD B1 55 00
+   1C21 FD B2 55 00       11240 	or	sxofc+x(iy)		;FD B2 55 00
+   1C25 FD B2 55 00       11241 	or	(iy+sxofc+x)		;FD B2 55 00
+   1C29 FD B3 55 00       11252 	or	sxofc+x(hl)		;FD B3 55 00
+   1C2D FD B3 55 00       11253 	or	(hl+sxofc+x)		;FD B3 55 00
+   1C31 DD B0 55 00       11254 	or	sxofc+x(sp)		;DD B0 55 00
+   1C35 DD B0 55 00       11255 	or	(sp+sxofc+x)		;DD B0 55 00
+   1C39 FD B1 22 11       11256 	or	lxofc+x(ix)		;FD B1 22 11
+   1C3D FD B1 22 11       11257 	or	(ix+lxofc+x)		;FD B1 22 11
+   1C41 FD B2 22 11       11258 	or	lxofc+x(iy)		;FD B2 22 11
+   1C45 FD B2 22 11       11259 	or	(iy+lxofc+x)		;FD B2 22 11
+   1C49 FD B3 22 11       11260 	or	lxofc+x(hl)		;FD B3 22 11
+   1C4D FD B3 22 11       11261 	or	(hl+lxofc+x)		;FD B3 22 11
+   1C51 DD B0 22 11       11262 	or	lxofc+x(sp)		;DD B0 22 11
+   1C55 DD B0 22 11       11263 	or	(sp+lxofc+x)		;DD B0 22 11
+   1C59 FD B0 22 11       11314 	or	lxofc+or04(pc)		;FD B0 22 11
+   1C5D FD B0 22 11       11318 	or	(pc+lxofc+or05)		;FD B0 22 11
+   1C61 FD B0 22 11       11322 	or	[lxofc+or06]		;FD B0 22 11
+   1C65 FD B0 1E 11       11350 	or	[.+lxofc]		;FD B0 1E 11
+   1C69 DD B4             11351 	or	ixh			;DD B4
+   1C6B DD B5             11352 	or	ixl			;DD B5
+   1C6D FD B4             11353 	or	iyh			;FD B4
+   1C6F FD B5             11354 	or	iyl			;FD B5
+                          11355 
+                          11356 ;*******************************************************************
+                          11357 ;	OTDR	
+                          11358 ;*******************************************************************
+                          11359 	;***********************************************************
+                          11360 	; load output port (c)
+                          11361 	; with location (hl)
+                          11362 	; decrement hl and decrement b
+                          11363 	; repeat until b = 0
+                          11364 	.z80
+   1C71 ED BB             11365 	otdr				;ED BB
+                          11366 
+                          11367 ;*******************************************************************
+                          11368 ;	OTIR	
+                          11369 ;*******************************************************************
+                          11370 	;***********************************************************
+                          11371 	; load output port (c)
+                          11372 	; with location (hl)
+                          11373 	; increment hl and decrement b
+                          11374 	; repeat until b = 0
+                          11375 	.z80
+   1C73 ED B3             11376 	otir				;ED B3
+                          11377 
+                          11378 ;*******************************************************************
+                          11379 ;	OUT	
+                          11380 ;*******************************************************************
+                          11381 	;***********************************************************
+                          11382 	; load output port (c) with reg
+                          11383 	.z80
+   1C75 ED 79             11384 	out	(c),a			;ED 79
+   1C77 ED 41             11385 	out	(c),b			;ED 41
+   1C79 ED 49             11386 	out	(c),c			;ED 49
+   1C7B ED 51             11387 	out	(c),d			;ED 51
+   1C7D ED 59             11388 	out	(c),e			;ED 59
+   1C7F ED 61             11389 	out	(c),h			;ED 61
+   1C81 ED 69             11390 	out	(c),l			;ED 69
+                          11391 	;***********************************************************
+                          11392 	;  p. 5-105
+                          11393 	.z280
+   1C83 DD ED 69          11394 	out	(c),ixl			;DD ED 69
+   1C86 DD ED 61          11395 	out	(c),ixh			;DD ED 61
+   1C89 FD ED 69          11396 	out	(c),iyl			;FD ED 69
+   1C8C FD ED 61          11397 	out	(c),iyh			;FD ED 61
+   1C8F DD ED 79 44 33    11443 	out	(c),(daddc+x)		;DD ED 79 44 33
+   1C94 FD ED 59 55 00    11444 	out	(c),sxofc+x(hl)		;FD ED 59 55 00
+   1C99 FD ED 59 55 00    11445 	out	(c),(hl+sxofc+x)		;FD ED 59 55 00
+   1C9E FD ED 59 22 11    11446 	out	(c),lxofc+x(hl)		;FD ED 59 22 11
+   1CA3 FD ED 59 22 11    11447 	out	(c),(hl+lxofc+x)		;FD ED 59 22 11
+   1CA8 FD ED 49 55 00    11448 	out	(c),sxofc+x(ix)		;FD ED 49 55 00
+   1CAD FD ED 49 55 00    11449 	out	(c),(ix+sxofc+x)		;FD ED 49 55 00
+   1CB2 FD ED 49 22 11    11450 	out	(c),lxofc+x(ix)		;FD ED 49 22 11
+   1CB7 FD ED 49 22 11    11451 	out	(c),(ix+lxofc+x)		;FD ED 49 22 11
+   1CBC FD ED 51 55 00    11452 	out	(c),sxofc+x(iy)		;FD ED 51 55 00
+   1CC1 FD ED 51 55 00    11453 	out	(c),(iy+sxofc+x)		;FD ED 51 55 00
+   1CC6 FD ED 51 22 11    11454 	out	(c),lxofc+x(iy)		;FD ED 51 22 11
+   1CCB FD ED 51 22 11    11455 	out	(c),(iy+lxofc+x)		;FD ED 51 22 11
+   1CD0 DD ED 41 55 00    11456 	out	(c),offsetc+x(sp)		;DD ED 41 55 00
+   1CD5 DD ED 41 55 00    11457 	out	(c),(sp+offsetc+x)		;DD ED 41 55 00
+   1CDA DD ED 41 22 11    11458 	out	(c),lxofc+x(sp)		;DD ED 41 22 11
+   1CDF DD ED 41 22 11    11459 	out	(c),(sp+lxofc+x)		;DD ED 41 22 11
+   1CE4 FD ED 41 22 11    11510 	out	(c),lxofc+out01(pc)	;FD ED 41 22 11
+   1CE9 FD ED 41 22 11    11514 	out	(c),(pc+lxofc+out02)	;FD ED 41 22 11
+   1CEE FD ED 41 22 11    11518 	out	(c),[lxofc+out03]	;FD ED 41 22 11
+   1CF3 FD ED 41 50 00    11546 	out	(c),[.+offsetc]		;FD ED 41 50 00
+   1CF8 DD ED 49          11547 	out	(c),(hl+ix)		;DD ED 49
+   1CFB DD ED 51          11548 	out	(c),(hl+iy)		;DD ED 51
+   1CFE DD ED 59          11549 	out	(c),(ix+iy)		;DD ED 59
+                          11550 	;***********************************************************
+                          11551 	; load output port (n) with 'a'
+                          11552 	.z80
+   1D01 D3 20             11568 	out	(nc+x),a			;D3 20
+   1D03 D3 20             11569 	out	nc+x,a			;D3 20
+                          11573 
+                          11574 ;*******************************************************************
+                          11575 ;	OUTD	
+                          11576 ;*******************************************************************
+                          11577 	;***********************************************************
+                          11578 	; load output port (c)
+                          11579 	; with location (hl)
+                          11580 	; decrement hl and decrement b
+                          11581 	.z80
+   1D05 ED AB             11582 	outd				;ED AB
+                          11583 
+                          11584 ;*******************************************************************
+                          11585 ;	OUTI	
+                          11586 ;*******************************************************************
+                          11587 	;***********************************************************
+                          11588 	; load output port (c)
+                          11589 	; with location (hl)
+                          11590 	; increment hl and decrement b
+                          11591 	.z80
+   1D07 ED A3             11592 	outi				;ED A3
+                          11593 
+                          11594 ;*******************************************************************
+                          11595 ;	OUTDW	
+                          11596 ;*******************************************************************
+                          11597 	;***********************************************************
+                          11598 	.z280
+   1D09 ED 8B             11599 	outdw				;ED 8B
+   1D0B ED 83             11600 	outiw				;ED 83
+   1D0D ED 9B             11601 	otdrw				;ED 9B
+   1D0F ED 93             11602 	otirw				;ED 93
+                          11603 
+                          11604 ;*******************************************************************
+                          11605 ;	OUTW	
+                          11606 ;*******************************************************************
+                          11607 	;***********************************************************
+                          11608 	;  p. 5-110	output to word port
+                          11609 	.z280
+   1D11 ED BF             11610 	out	(c),hl			;ED BF
+   1D13 ED BF             11611 	outw	(c),hl			;ED BF
+                          11612 
+                          11613 ;*******************************************************************
+                          11614 ;	PCACHE	
+                          11615 ;*******************************************************************
+                          11616 	;***********************************************************
+                          11617 	;  p. 5-111    NOT privileged
+                          11618 	.z280
+   1D15 ED 65             11619 	pcache				;ED 65
+                          11620 
+                          11621 ;*******************************************************************
+                          11622 ;	POP	
+                          11623 ;*******************************************************************
+                          11624 	;***********************************************************
+                          11625 	; load destination with top of stack
+                          11626 	.z80
+   1D17 F1                11627 	pop	af			;F1
+   1D18 C1                11628 	pop	bc			;C1
+   1D19 D1                11629 	pop	de			;D1
+   1D1A E1                11630 	pop	hl			;E1
+   1D1B DD E1             11631 	pop	ix			;DD E1
+   1D1D FD E1             11632 	pop	iy			;FD E1
+                          11633 	.z280
+   1D1F DD D1 44 33       11647 	pop	(daddc+x)			;DD D1 44 33
+   1D23 DD F1 22 11       11698 	pop	lxofc+pop01(pc)		;DD F1 22 11
+   1D27 DD F1 22 11       11702 	pop	(pc+lxofc+pop02)	;DD F1 22 11
+   1D2B DD F1 22 11       11706 	pop	[lxofc+pop03]		;DD F1 22 11
+   1D2F DD F1 1E 11       11734 	pop	[.+lxofc]		;DD F1 1E 11
+   1D33 DD C1             11735 	pop	(hl)			;DD C1
+                          11736 
+                          11737 ;*******************************************************************
+                          11738 ;	PUSH	
+                          11739 ;*******************************************************************
+                          11740 	;***********************************************************
+                          11741 	; put source on stack
+                          11742 	.z80
+   1D35 F5                11743 	push	af			;F5
+   1D36 C5                11744 	push	bc			;C5
+   1D37 D5                11745 	push	de			;D5
+   1D38 E5                11746 	push	hl			;E5
+   1D39 DD E5             11747 	push	ix			;DD E5
+   1D3B FD E5             11748 	push	iy			;FD E5
+                          11749 	.z280
+   1D3D DD D5 44 33       11765 	push	(daddc+x)			;DD D5 44 33
+   1D41 FD F5 84 05       11766 	push	#nnc+x			;FD F5 84 05
+   1D45 DD F5 22 11       11817 	push	lxofc+push01(pc)	;DD F5 22 11
+   1D49 DD F5 22 11       11821 	push	(pc+lxofc+push02)	;DD F5 22 11
+   1D4D DD F5 22 11       11825 	push	[lxofc+push03]		;DD F5 22 11
+   1D51 DD F5 1E 11       11853 	push	[.+lxofc]		;DD F5 1E 11
+   1D55 DD C5             11854 	push	(hl)			;DD C5
+                          11855 
+                          11856 ;*******************************************************************
+                          11857 ;	RES	
+                          11858 ;*******************************************************************
+                          11859 	;***********************************************************
+                          11860 	; reset bit of location or register
+                          11861 	.z80
+   1D57 CB 86             11862 	res	0,(hl)			;CB 86
+   1D59 DD CB 55 86       11882 	res	0,offsetc+x(ix)		;DD CB 55 86
+   1D5D FD CB 55 86       11883 	res	0,offsetc+x(iy)		;FD CB 55 86
+   1D61 DD CB 55 86       11884 	res	0,(ix+offsetc+x)		;DD CB 55 86
+   1D65 FD CB 55 86       11885 	res	0,(iy+offsetc+x)		;FD CB 55 86
+   1D69 CB 87             11889 	res	0,a			;CB 87
+   1D6B CB 80             11890 	res	0,b			;CB 80
+   1D6D CB 81             11891 	res	0,c			;CB 81
+   1D6F CB 82             11892 	res	0,d			;CB 82
+   1D71 CB 83             11893 	res	0,e			;CB 83
+   1D73 CB 84             11894 	res	0,h			;CB 84
+   1D75 CB 85             11895 	res	0,l			;CB 85
+   1D77 CB 8E             11896 	res	1,(hl)			;CB 8E
+   1D79 DD CB 55 8E       11916 	res	1,offsetc+x(ix)		;DD CB 55 8E
+   1D7D FD CB 55 8E       11917 	res	1,offsetc+x(iy)		;FD CB 55 8E
+   1D81 DD CB 55 8E       11918 	res	1,(ix+offsetc+x)		;DD CB 55 8E
+   1D85 FD CB 55 8E       11919 	res	1,(iy+offsetc+x)		;FD CB 55 8E
+   1D89 CB 8F             11923 	res	1,a			;CB 8F
+   1D8B CB 88             11924 	res	1,b			;CB 88
+   1D8D CB 89             11925 	res	1,c			;CB 89
+   1D8F CB 8A             11926 	res	1,d			;CB 8A
+   1D91 CB 8B             11927 	res	1,e			;CB 8B
+   1D93 CB 8C             11928 	res	1,h			;CB 8C
+   1D95 CB 8D             11929 	res	1,l			;CB 8D
+   1D97 CB 96             11930 	res	2,(hl)			;CB 96
+   1D99 DD CB 55 96       11950 	res	2,offsetc+x(ix)		;DD CB 55 96
+   1D9D FD CB 55 96       11951 	res	2,offsetc+x(iy)		;FD CB 55 96
+   1DA1 DD CB 55 96       11952 	res	2,(ix+offsetc+x)		;DD CB 55 96
+   1DA5 FD CB 55 96       11953 	res	2,(iy+offsetc+x)		;FD CB 55 96
+   1DA9 CB 97             11957 	res	2,a			;CB 97
+   1DAB CB 90             11958 	res	2,b			;CB 90
+   1DAD CB 91             11959 	res	2,c			;CB 91
+   1DAF CB 92             11960 	res	2,d			;CB 92
+   1DB1 CB 93             11961 	res	2,e			;CB 93
+   1DB3 CB 94             11962 	res	2,h			;CB 94
+   1DB5 CB 95             11963 	res	2,l			;CB 95
+   1DB7 CB 9E             11964 	res	3,(hl)			;CB 9E
+   1DB9 DD CB 55 9E       11984 	res	3,offsetc+x(ix)		;DD CB 55 9E
+   1DBD FD CB 55 9E       11985 	res	3,offsetc+x(iy)		;FD CB 55 9E
+   1DC1 DD CB 55 9E       11986 	res	3,(ix+offsetc+x)		;DD CB 55 9E
+   1DC5 FD CB 55 9E       11987 	res	3,(iy+offsetc+x)		;FD CB 55 9E
+   1DC9 CB 9F             11991 	res	3,a			;CB 9F
+   1DCB CB 98             11992 	res	3,b			;CB 98
+   1DCD CB 99             11993 	res	3,c			;CB 99
+   1DCF CB 9A             11994 	res	3,d			;CB 9A
+   1DD1 CB 9B             11995 	res	3,e			;CB 9B
+   1DD3 CB 9C             11996 	res	3,h			;CB 9C
+   1DD5 CB 9D             11997 	res	3,l			;CB 9D
+   1DD7 CB A6             11998 	res	4,(hl)			;CB A6
+   1DD9 DD CB 55 A6       12018 	res	4,offsetc+x(ix)		;DD CB 55 A6
+   1DDD FD CB 55 A6       12019 	res	4,offsetc+x(iy)		;FD CB 55 A6
+   1DE1 DD CB 55 A6       12020 	res	4,(ix+offsetc+x)		;DD CB 55 A6
+   1DE5 FD CB 55 A6       12021 	res	4,(iy+offsetc+x)		;FD CB 55 A6
+   1DE9 CB A7             12025 	res	4,a			;CB A7
+   1DEB CB A0             12026 	res	4,b			;CB A0
+   1DED CB A1             12027 	res	4,c			;CB A1
+   1DEF CB A2             12028 	res	4,d			;CB A2
+   1DF1 CB A3             12029 	res	4,e			;CB A3
+   1DF3 CB A4             12030 	res	4,h			;CB A4
+   1DF5 CB A5             12031 	res	4,l			;CB A5
+   1DF7 CB AE             12032 	res	5,(hl)			;CB AE
+   1DF9 DD CB 55 AE       12052 	res	5,offsetc+x(ix)		;DD CB 55 AE
+   1DFD FD CB 55 AE       12053 	res	5,offsetc+x(iy)		;FD CB 55 AE
+   1E01 DD CB 55 AE       12054 	res	5,(ix+offsetc+x)		;DD CB 55 AE
+   1E05 FD CB 55 AE       12055 	res	5,(iy+offsetc+x)		;FD CB 55 AE
+   1E09 CB AF             12059 	res	5,a			;CB AF
+   1E0B CB A8             12060 	res	5,b			;CB A8
+   1E0D CB A9             12061 	res	5,c			;CB A9
+   1E0F CB AA             12062 	res	5,d			;CB AA
+   1E11 CB AB             12063 	res	5,e			;CB AB
+   1E13 CB AC             12064 	res	5,h			;CB AC
+   1E15 CB AD             12065 	res	5,l			;CB AD
+   1E17 CB B6             12066 	res	6,(hl)			;CB B6
+   1E19 DD CB 55 B6       12086 	res	6,offsetc+x(ix)		;DD CB 55 B6
+   1E1D FD CB 55 B6       12087 	res	6,offsetc+x(iy)		;FD CB 55 B6
+   1E21 DD CB 55 B6       12088 	res	6,(ix+offsetc+x)		;DD CB 55 B6
+   1E25 FD CB 55 B6       12089 	res	6,(iy+offsetc+x)		;FD CB 55 B6
+   1E29 CB B7             12093 	res	6,a			;CB B7
+   1E2B CB B0             12094 	res	6,b			;CB B0
+   1E2D CB B1             12095 	res	6,c			;CB B1
+   1E2F CB B2             12096 	res	6,d			;CB B2
+   1E31 CB B3             12097 	res	6,e			;CB B3
+   1E33 CB B4             12098 	res	6,h			;CB B4
+   1E35 CB B5             12099 	res	6,l			;CB B5
+   1E37 CB BE             12100 	res	7,(hl)			;CB BE
+   1E39 DD CB 55 BE       12120 	res	7,offsetc+x(ix)		;DD CB 55 BE
+   1E3D FD CB 55 BE       12121 	res	7,offsetc+x(iy)		;FD CB 55 BE
+   1E41 DD CB 55 BE       12122 	res	7,(ix+offsetc+x)		;DD CB 55 BE
+   1E45 FD CB 55 BE       12123 	res	7,(iy+offsetc+x)		;FD CB 55 BE
+   1E49 CB BF             12127 	res	7,a			;CB BF
+   1E4B CB B8             12128 	res	7,b			;CB B8
+   1E4D CB B9             12129 	res	7,c			;CB B9
+   1E4F CB BA             12130 	res	7,d			;CB BA
+   1E51 CB BB             12131 	res	7,e			;CB BB
+   1E53 CB BC             12132 	res	7,h			;CB BC
+   1E55 CB BD             12133 	res	7,l			;CB BD
+                          12134 
+                          12135 ;*******************************************************************
+                          12136 ;	RET	
+                          12137 ;*******************************************************************
+                          12138 	;***********************************************************
+                          12139 	; return from subroutine
+                          12140 	.z80
+   1E57 C9                12141 	ret				;C9
+                          12142 	;***********************************************************
+                          12143 	; return from subroutine if condition is true
+   1E58 D8                12144 	ret	C			;D8
+   1E59 F8                12145 	ret	M			;F8
+   1E5A D0                12146 	ret	NC			;D0
+   1E5B C0                12147 	ret	NZ			;C0
+   1E5C F0                12148 	ret	P			;F0
+   1E5D E8                12149 	ret	PE			;E8
+   1E5E E0                12150 	ret	PO			;E0
+   1E5F C8                12151 	ret	Z			;C8
+                          12152 
+                          12153 ;*******************************************************************
+                          12154 ;	RETI	
+                          12155 ;*******************************************************************
+                          12156 	;***********************************************************
+                          12157 	; return from interrupt (privileged)
+                          12158 	.z80
+   1E60 ED 4D             12159 	reti				;ED 4D
+                          12160 
+                          12161 ;*******************************************************************
+                          12162 ;	RETN	
+                          12163 ;*******************************************************************
+                          12164 	;***********************************************************
+                          12165 	; return from non-maskable interrupt (privileged)
+                          12166 	.z80
+   1E62 ED 45             12167 	retn				;ED 45
+                          12168 
+                          12169 ;*******************************************************************
+                          12170 ;	RETIL	
+                          12171 ;*******************************************************************
+                          12172 	;***********************************************************
+                          12173 	; return from interrupt (long)
+                          12174 	.z280p
+   1E64 ED 55             12175 	retil				;ED 55
+                          12176 
+                          12177 ;*******************************************************************
+                          12178 ;	RL	
+                          12179 ;*******************************************************************
+                          12224 	;***********************************************************
+                          12225 	; rotate left through carry
+                          12226 	.z80
+   1E66 CB 16             12227 	rl	(hl)			;CB 16
+   1E68 DD CB 55 16       12247 	rl	offsetc+x(ix)		;DD CB 55 16
+   1E6C FD CB 55 16       12248 	rl	offsetc+x(iy)		;FD CB 55 16
+   1E70 DD CB 55 16       12249 	rl	(ix+offsetc+x)		;DD CB 55 16
+   1E74 FD CB 55 16       12250 	rl	(iy+offsetc+x)		;FD CB 55 16
+   1E78 CB 17             12254 	rl	a			;CB 17
+   1E7A CB 10             12255 	rl	b			;CB 10
+   1E7C CB 11             12256 	rl	c			;CB 11
+   1E7E CB 12             12257 	rl	d			;CB 12
+   1E80 CB 13             12258 	rl	e			;CB 13
+   1E82 CB 14             12259 	rl	h			;CB 14
+   1E84 CB 15             12260 	rl	l			;CB 15
+                          12261 
+                          12262 ;*******************************************************************
+                          12263 ;	RLA	
+                          12264 ;*******************************************************************
+                          12265 	;***********************************************************
+                          12266 	; rotate left 'a' with carry
+                          12267 	.z80
+   1E86 17                12268 	rla				;17
+                          12269 
+                          12270 ;*******************************************************************
+                          12271 ;	RLC	
+                          12272 ;*******************************************************************
+                          12317 	;***********************************************************
+                          12318 	; rotate left circular
+                          12319 	.z80
+   1E87 CB 06             12320 	rlc	(hl)			;CB 06
+   1E89 DD CB 55 06       12340 	rlc	offsetc+x(ix)		;DD CB 55 06
+   1E8D FD CB 55 06       12341 	rlc	offsetc+x(iy)		;FD CB 55 06
+   1E91 DD CB 55 06       12342 	rlc	(ix+offsetc+x)		;DD CB 55 06
+   1E95 FD CB 55 06       12343 	rlc	(iy+offsetc+x)		;FD CB 55 06
+   1E99 CB 07             12347 	rlc	a			;CB 07
+   1E9B CB 00             12348 	rlc	b			;CB 00
+   1E9D CB 01             12349 	rlc	c			;CB 01
+   1E9F CB 02             12350 	rlc	d			;CB 02
+   1EA1 CB 03             12351 	rlc	e			;CB 03
+   1EA3 CB 04             12352 	rlc	h			;CB 04
+   1EA5 CB 05             12353 	rlc	l			;CB 05
+                          12354 
+                          12355 ;*******************************************************************
+                          12356 ;	RLCA	
+                          12357 ;*******************************************************************
+                          12358 	;***********************************************************
+                          12359 	; rotate left 'a' circular
+                          12360 	.z80
+   1EA7 07                12361 	rlca				;07
+                          12362 
+                          12363 ;*******************************************************************
+                          12364 ;	RLD	
+                          12365 ;*******************************************************************
+                          12366 	;***********************************************************
+                          12367 	; rotate digit left and right
+                          12368 	; between 'a' and location (hl)
+                          12369 	.z80
+   1EA8 ED 6F             12370 	rld				;ED 6F
+                          12371 
+                          12372 ;*******************************************************************
+                          12373 ;	RR	
+                          12374 ;*******************************************************************
+                          12419 	;***********************************************************
+                          12420 	; rotate right through carry
+                          12421 	.z80
+   1EAA CB 1E             12422 	rr	(hl)			;CB 1E
+   1EAC DD CB 55 1E       12442 	rr	offsetc+x(ix)		;DD CB 55 1E
+   1EB0 FD CB 55 1E       12443 	rr	offsetc+x(iy)		;FD CB 55 1E
+   1EB4 DD CB 55 1E       12444 	rr	(ix+offsetc+x)		;DD CB 55 1E
+   1EB8 FD CB 55 1E       12445 	rr	(iy+offsetc+x)		;FD CB 55 1E
+   1EBC CB 1F             12449 	rr	a			;CB 1F
+   1EBE CB 18             12450 	rr	b			;CB 18
+   1EC0 CB 19             12451 	rr	c			;CB 19
+   1EC2 CB 1A             12452 	rr	d			;CB 1A
+   1EC4 CB 1B             12453 	rr	e			;CB 1B
+   1EC6 CB 1C             12454 	rr	h			;CB 1C
+   1EC8 CB 1D             12455 	rr	l			;CB 1D
+                          12456 
+                          12457 ;*******************************************************************
+                          12458 ;	RRA	
+                          12459 ;*******************************************************************
+                          12460 	;***********************************************************
+                          12461 	; rotate 'a' right with carry
+                          12462 	.z80
+   1ECA 1F                12463 	rra				;1F
+                          12464 
+                          12465 ;*******************************************************************
+                          12466 ;	RRC	
+                          12467 ;*******************************************************************
+                          12512 	;***********************************************************
+                          12513 	; rotate right circular
+                          12514 	.z80
+   1ECB CB 0E             12515 	rrc	(hl)			;CB 0E
+   1ECD DD CB 55 0E       12535 	rrc	offsetc+x(ix)		;DD CB 55 0E
+   1ED1 FD CB 55 0E       12536 	rrc	offsetc+x(iy)		;FD CB 55 0E
+   1ED5 DD CB 55 0E       12537 	rrc	(ix+offsetc+x)		;DD CB 55 0E
+   1ED9 FD CB 55 0E       12538 	rrc	(iy+offsetc+x)		;FD CB 55 0E
+   1EDD CB 0F             12542 	rrc	a			;CB 0F
+   1EDF CB 08             12543 	rrc	b			;CB 08
+   1EE1 CB 09             12544 	rrc	c			;CB 09
+   1EE3 CB 0A             12545 	rrc	d			;CB 0A
+   1EE5 CB 0B             12546 	rrc	e			;CB 0B
+   1EE7 CB 0C             12547 	rrc	h			;CB 0C
+   1EE9 CB 0D             12548 	rrc	l			;CB 0D
+                          12549 
+                          12550 ;*******************************************************************
+                          12551 ;	RRCA	
+                          12552 ;*******************************************************************
+                          12553 	.z80
+                          12554 	;***********************************************************
+                          12555 	; rotate 'a' right circular
+   1EEB 0F                12556 	rrca				;0F
+                          12557 
+                          12558 ;*******************************************************************
+                          12559 ;	RRD	
+                          12560 ;*******************************************************************
+                          12561 	;***********************************************************
+                          12562 	; rotate digit right and left
+                          12563 	; between 'a' and location (hl)
+                          12564 	.z80
+   1EEC ED 67             12565 	rrd				;ED 67
+                          12566 
+                          12567 ;*******************************************************************
+                          12568 ;	RST	
+                          12569 ;*******************************************************************
+                          12570 	;***********************************************************
+                          12571 	; restart location
+                          12572 	.z80
+   1EEE C7                12573 	rst	0x00			;C7
+   1EEF CF                12574 	rst	0x08			;CF
+   1EF0 D7                12575 	rst	0x10			;D7
+   1EF1 DF                12576 	rst	0x18			;DF
+   1EF2 E7                12577 	rst	0x20			;E7
+   1EF3 EF                12578 	rst	0x28			;EF
+   1EF4 F7                12579 	rst	0x30			;F7
+   1EF5 FF                12580 	rst	0x38			;FF
+                          12581 
+                          12582 ;*******************************************************************
+                          12583 ;	SBC	
+                          12584 ;		Leading 'a' operand is optional.
+                          12585 ;		If offset is ommitted 0 is assumed.
+                          12586 ;*******************************************************************
+                          12587 	;***********************************************************
+                          12588 	; subtract with carry to 'a'
+                          12589 	.z80
+   1EF6 9E                12590 	sbc	a,(hl)			;9E
+   1EF7 DD 9E 55          12610 	sbc	a,offsetc+x(ix)		;DD 9E 55
+   1EFA FD 9E 55          12611 	sbc	a,offsetc+x(iy)		;FD 9E 55
+   1EFD DD 9E 55          12612 	sbc	a,(ix+offsetc+x)		;DD 9E 55
+   1F00 FD 9E 55          12613 	sbc	a,(iy+offsetc+x)		;FD 9E 55
+   1F03 9F                12617 	sbc	a,a			;9F
+   1F04 98                12618 	sbc	a,b			;98
+   1F05 99                12619 	sbc	a,c			;99
+   1F06 9A                12620 	sbc	a,d			;9A
+   1F07 9B                12621 	sbc	a,e			;9B
+   1F08 9C                12622 	sbc	a,h			;9C
+   1F09 9D                12623 	sbc	a,l			;9D
+   1F0A DE 20             12639 	sbc	a,#nc+x			;DE 20
+   1F0C DE 20             12640 	sbc	a, nc+x			;DE 20
+                          12644 	;***********************************************************
+                          12645 	; subtract with carry to 'a'
+                          12646 	.z80
+   1F0E 9E                12647 	sbc	(hl)			;9E
+   1F0F DD 9E 55          12667 	sbc	offsetc+x(ix)		;DD 9E 55
+   1F12 FD 9E 55          12668 	sbc	offsetc+x(iy)		;FD 9E 55
+   1F15 DD 9E 55          12669 	sbc	(ix+offsetc+x)		;DD 9E 55
+   1F18 FD 9E 55          12670 	sbc	(iy+offsetc+x)		;FD 9E 55
+   1F1B 9F                12674 	sbc	a			;9F
+   1F1C 98                12675 	sbc	b			;98
+   1F1D 99                12676 	sbc	c			;99
+   1F1E 9A                12677 	sbc	d			;9A
+   1F1F 9B                12678 	sbc	e			;9B
+   1F20 9C                12679 	sbc	h			;9C
+   1F21 9D                12680 	sbc	l			;9D
+   1F22 DE 20             12696 	sbc	#nc+x			;DE 20
+   1F24 DE 20             12697 	sbc	 nc+x			;DE 20
+                          12701 	;***********************************************************
+                          12702 	; add with carry register pair to 'hl'
+   1F26 ED 42             12703 	sbc	hl,bc			;ED 42
+   1F28 ED 52             12704 	sbc	hl,de			;ED 52
+   1F2A ED 62             12705 	sbc	hl,hl			;ED 62
+   1F2C ED 72             12706 	sbc	hl,sp			;ED 72
+                          12707 	;***********************************************************
+                          12708 	;  p. 5-130
+                          12709 	.z280
+   1F2E DD 9C             12710 	sbc	a,ixh			;DD 9C
+   1F30 DD 9D             12711 	sbc	a,ixl			;DD 9D
+   1F32 FD 9C             12712 	sbc	a,iyh			;FD 9C
+   1F34 FD 9D             12713 	sbc	a,iyl			;FD 9D
+   1F36 DE 20             12761 	sbc	a,#nc+x			;DE 20
+   1F38 DD 9F 44 33       12762 	sbc	a,(daddc+x)		;DD 9F 44 33
+   1F3C FD 99 55 00       12766 	sbc	a,sxofc+x(ix)		;FD 99 55 00
+   1F40 FD 99 55 00       12767 	sbc	a,(ix+sxofc+x)		;FD 99 55 00
+   1F44 FD 9A 55 00       12768 	sbc	a,sxofc+x(iy)		;FD 9A 55 00
+   1F48 FD 9A 55 00       12769 	sbc	a,(iy+sxofc+x)		;FD 9A 55 00
+   1F4C FD 9B 55 00       12780 	sbc	a,sxofc+x(hl)		;FD 9B 55 00
+   1F50 FD 9B 55 00       12781 	sbc	a,(hl+sxofc+x)		;FD 9B 55 00
+   1F54 DD 98 55 00       12782 	sbc	a,sxofc+x(sp)		;DD 98 55 00
+   1F58 DD 98 55 00       12783 	sbc	a,(sp+sxofc+x)		;DD 98 55 00
+   1F5C FD 99 22 11       12784 	sbc	a,lxofc+x(ix)		;FD 99 22 11
+   1F60 FD 99 22 11       12785 	sbc	a,(ix+lxofc+x)		;FD 99 22 11
+   1F64 FD 9A 22 11       12786 	sbc	a,lxofc+x(iy)		;FD 9A 22 11
+   1F68 FD 9A 22 11       12787 	sbc	a,(iy+lxofc+x)		;FD 9A 22 11
+   1F6C FD 9B 22 11       12788 	sbc	a,lxofc+x(hl)		;FD 9B 22 11
+   1F70 FD 9B 22 11       12789 	sbc	a,(hl+lxofc+x)		;FD 9B 22 11
+   1F74 DD 98 22 11       12790 	sbc	a,lxofc+x(sp)		;DD 98 22 11
+   1F78 DD 98 22 11       12791 	sbc	a,(sp+lxofc+x)		;DD 98 22 11
+   1F7C DD 9E 00          12795 	sbc	a,(ix)			;DD 9E 00
+   1F7F FD 9E 00          12796 	sbc	a,(iy)			;FD 9E 00
+   1F82 9E                12797 	sbc	a,(hl)			;9E
+   1F83 DD 98 00 00       12798 	sbc	a,(sp)			;DD 98 00 00
+   1F87 FD 98 34 12       12846 	sbc	a,raofc+sbc01(pc)	;FD 98 34 12
+   1F8B FD 98 34 12       12850 	sbc	a,(pc+raofc+sbc02)	;FD 98 34 12
+   1F8F FD 98 34 12       12854 	sbc	a,[raofc+sbc03]		;FD 98 34 12
+   1F93 FD 98 1C 00       12882 	sbc	a,[.+nc]		;FD 98 1C 00
+   1F97 DD 99             12883 	sbc	a,(hl+ix)		;DD 99
+   1F99 DD 9A             12884 	sbc	a,(hl+iy)		;DD 9A
+   1F9B DD 9B             12885 	sbc	a,(ix+iy)		;DD 9B
+                          12886 	;***********************************************************
+                          12887 	;  p. 5-130
+                          12888 	.z280
+   1F9D DD 9C             12889 	sbc	ixh			;DD 9C
+   1F9F DD 9D             12890 	sbc	ixl			;DD 9D
+   1FA1 FD 9C             12891 	sbc	iyh			;FD 9C
+   1FA3 FD 9D             12892 	sbc	iyl			;FD 9D
+   1FA5 DE 20             12940 	sbc	a,#nc+x			;DE 20
+   1FA7 DD 9F 44 33       12941 	sbc	(daddc+x)			;DD 9F 44 33
+   1FAB FD 99 55 00       12945 	sbc	sxofc+x(ix)		;FD 99 55 00
+   1FAF FD 99 55 00       12946 	sbc	(ix+sxofc+x)		;FD 99 55 00
+   1FB3 FD 9A 55 00       12947 	sbc	sxofc+x(iy)		;FD 9A 55 00
+   1FB7 FD 9A 55 00       12948 	sbc	(iy+sxofc+x)		;FD 9A 55 00
+   1FBB FD 9B 55 00       12959 	sbc	sxofc+x(hl)		;FD 9B 55 00
+   1FBF FD 9B 55 00       12960 	sbc	(hl+sxofc+x)		;FD 9B 55 00
+   1FC3 DD 98 55 00       12961 	sbc	sxofc+x(sp)		;DD 98 55 00
+   1FC7 DD 98 55 00       12962 	sbc	(sp+sxofc+x)		;DD 98 55 00
+   1FCB FD 99 22 11       12963 	sbc	lxofc+x(ix)		;FD 99 22 11
+   1FCF FD 99 22 11       12964 	sbc	(ix+lxofc+x)		;FD 99 22 11
+   1FD3 FD 9A 22 11       12965 	sbc	lxofc+x(iy)		;FD 9A 22 11
+   1FD7 FD 9A 22 11       12966 	sbc	(iy+lxofc+x)		;FD 9A 22 11
+   1FDB FD 9B 22 11       12967 	sbc	lxofc+x(hl)		;FD 9B 22 11
+   1FDF FD 9B 22 11       12968 	sbc	(hl+lxofc+x)		;FD 9B 22 11
+   1FE3 DD 98 22 11       12969 	sbc	lxofc+x(sp)		;DD 98 22 11
+   1FE7 DD 98 22 11       12970 	sbc	(sp+lxofc+x)		;DD 98 22 11
+   1FEB 9E                12974 	sbc	(hl)			;9E
+   1FEC DD 9E 00          12975 	sbc	(ix)			;DD 9E 00
+   1FEF FD 9E 00          12976 	sbc	(iy)			;FD 9E 00
+   1FF2 DD 98 00 00       12977 	sbc	(sp)			;DD 98 00 00
+   1FF6 FD 98 34 12       13025 	sbc	raofc+sbc04(pc)		;FD 98 34 12
+   1FFA FD 98 34 12       13029 	sbc	(pc+raofc+sbc05)	;FD 98 34 12
+   1FFE FD 98 34 12       13033 	sbc	[raofc+sbc06]		;FD 98 34 12
+   2002 FD 98 1C 00       13061 	sbc	[.+nc]			;FD 98 1C 00
+   2006 DD 99             13062 	sbc	(hl+ix)			;DD 99
+   2008 DD 9A             13063 	sbc	(hl+iy)			;DD 9A
+   200A DD 9B             13064 	sbc	(ix+iy)			;DD 9B
+                          13065 	;***********************************************************
+                          13066 	;  p. 5-131
+   200C DD ED 42          13067 	sbc	ix,bc			;DD ED 42
+   200F DD ED 52          13068 	sbc	ix,de			;DD ED 52
+   2012 DD ED 62          13069 	sbc	ix,ix			;DD ED 62
+   2015 DD ED 72          13070 	sbc	ix,sp			;DD ED 72
+   2018 FD ED 42          13071 	sbc	iy,bc			;FD ED 42
+   201B FD ED 52          13072 	sbc	iy,de			;FD ED 52
+   201E FD ED 62          13073 	sbc	iy,iy			;FD ED 62
+   2021 FD ED 72          13074 	sbc	iy,sp			;FD ED 72
+                          13075 
+                          13076 ;*******************************************************************
+                          13077 ;	SC	
+                          13078 ;*******************************************************************
+                          13079 	;***********************************************************
+                          13080 	; Z280 system call
+                          13081 	.z280
+   2024 ED 71 20 00       13099 	sc	nc+x			;ED 71 20 00
+   2028 ED 71 20 00       13100 	sc	#nc+x			;ED 71 20 00
+   202C ED 71 20 00       13101 	sc	(nc+x)			;ED 71 20 00
+                          13105 
+                          13106 ;*******************************************************************
+                          13107 ;	SCF	
+                          13108 ;*******************************************************************
+                          13109 	;***********************************************************
+                          13110 	; set carry flag (C=1)
+                          13111 	.z80
+   2030 37                13112 	scf				;37
+                          13113 
+                          13114 ;*******************************************************************
+                          13115 ;	SET	
+                          13116 ;*******************************************************************
+                          13117 	;***********************************************************
+                          13118 	; set bit of location or register
+                          13119 	.z80
+   2031 CB C6             13120 	set	0,(hl)			;CB C6
+   2033 DD CB 55 C6       13140 	set	0,offsetc+x(ix)		;DD CB 55 C6
+   2037 FD CB 55 C6       13141 	set	0,offsetc+x(iy)		;FD CB 55 C6
+   203B DD CB 55 C6       13142 	set	0,(ix+offsetc+x)		;DD CB 55 C6
+   203F FD CB 55 C6       13143 	set	0,(iy+offsetc+x)		;FD CB 55 C6
+   2043 CB C7             13147 	set	0,a			;CB C7
+   2045 CB C0             13148 	set	0,b			;CB C0
+   2047 CB C1             13149 	set	0,c			;CB C1
+   2049 CB C2             13150 	set	0,d			;CB C2
+   204B CB C3             13151 	set	0,e			;CB C3
+   204D CB C4             13152 	set	0,h			;CB C4
+   204F CB C5             13153 	set	0,l			;CB C5
+   2051 CB CE             13154 	set	1,(hl)			;CB CE
+   2053 DD CB 55 CE       13174 	set	1,offsetc+x(ix)		;DD CB 55 CE
+   2057 FD CB 55 CE       13175 	set	1,offsetc+x(iy)		;FD CB 55 CE
+   205B DD CB 55 CE       13176 	set	1,(ix+offsetc+x)		;DD CB 55 CE
+   205F FD CB 55 CE       13177 	set	1,(iy+offsetc+x)		;FD CB 55 CE
+   2063 CB CF             13181 	set	1,a			;CB CF
+   2065 CB C8             13182 	set	1,b			;CB C8
+   2067 CB C9             13183 	set	1,c			;CB C9
+   2069 CB CA             13184 	set	1,d			;CB CA
+   206B CB CB             13185 	set	1,e			;CB CB
+   206D CB CC             13186 	set	1,h			;CB CC
+   206F CB CD             13187 	set	1,l			;CB CD
+   2071 CB D6             13188 	set	2,(hl)			;CB D6
+   2073 DD CB 55 D6       13208 	set	2,offsetc+x(ix)		;DD CB 55 D6
+   2077 FD CB 55 D6       13209 	set	2,offsetc+x(iy)		;FD CB 55 D6
+   207B DD CB 55 D6       13210 	set	2,(ix+offsetc+x)		;DD CB 55 D6
+   207F FD CB 55 D6       13211 	set	2,(iy+offsetc+x)		;FD CB 55 D6
+   2083 CB D7             13215 	set	2,a			;CB D7
+   2085 CB D0             13216 	set	2,b			;CB D0
+   2087 CB D1             13217 	set	2,c			;CB D1
+   2089 CB D2             13218 	set	2,d			;CB D2
+   208B CB D3             13219 	set	2,e			;CB D3
+   208D CB D4             13220 	set	2,h			;CB D4
+   208F CB D5             13221 	set	2,l			;CB D5
+   2091 CB DE             13222 	set	3,(hl)			;CB DE
+   2093 DD CB 55 DE       13242 	set	3,offsetc+x(ix)		;DD CB 55 DE
+   2097 FD CB 55 DE       13243 	set	3,offsetc+x(iy)		;FD CB 55 DE
+   209B DD CB 55 DE       13244 	set	3,(ix+offsetc+x)		;DD CB 55 DE
+   209F FD CB 55 DE       13245 	set	3,(iy+offsetc+x)		;FD CB 55 DE
+   20A3 CB DF             13249 	set	3,a			;CB DF
+   20A5 CB D8             13250 	set	3,b			;CB D8
+   20A7 CB D9             13251 	set	3,c			;CB D9
+   20A9 CB DA             13252 	set	3,d			;CB DA
+   20AB CB DB             13253 	set	3,e			;CB DB
+   20AD CB DC             13254 	set	3,h			;CB DC
+   20AF CB DD             13255 	set	3,l			;CB DD
+   20B1 CB E6             13256 	set	4,(hl)			;CB E6
+   20B3 DD CB 55 E6       13276 	set	4,offsetc+x(ix)		;DD CB 55 E6
+   20B7 FD CB 55 E6       13277 	set	4,offsetc+x(iy)		;FD CB 55 E6
+   20BB DD CB 55 E6       13278 	set	4,(ix+offsetc+x)		;DD CB 55 E6
+   20BF FD CB 55 E6       13279 	set	4,(iy+offsetc+x)		;FD CB 55 E6
+   20C3 CB E7             13283 	set	4,a			;CB E7
+   20C5 CB E0             13284 	set	4,b			;CB E0
+   20C7 CB E1             13285 	set	4,c			;CB E1
+   20C9 CB E2             13286 	set	4,d			;CB E2
+   20CB CB E3             13287 	set	4,e			;CB E3
+   20CD CB E4             13288 	set	4,h			;CB E4
+   20CF CB E5             13289 	set	4,l			;CB E5
+   20D1 CB EE             13290 	set	5,(hl)			;CB EE
+   20D3 DD CB 55 EE       13310 	set	5,offsetc+x(ix)		;DD CB 55 EE
+   20D7 FD CB 55 EE       13311 	set	5,offsetc+x(iy)		;FD CB 55 EE
+   20DB DD CB 55 EE       13312 	set	5,(ix+offsetc+x)		;DD CB 55 EE
+   20DF FD CB 55 EE       13313 	set	5,(iy+offsetc+x)		;FD CB 55 EE
+   20E3 CB EF             13317 	set	5,a			;CB EF
+   20E5 CB E8             13318 	set	5,b			;CB E8
+   20E7 CB E9             13319 	set	5,c			;CB E9
+   20E9 CB EA             13320 	set	5,d			;CB EA
+   20EB CB EB             13321 	set	5,e			;CB EB
+   20ED CB EC             13322 	set	5,h			;CB EC
+   20EF CB ED             13323 	set	5,l			;CB ED
+   20F1 CB F6             13324 	set	6,(hl)			;CB F6
+   20F3 DD CB 55 F6       13344 	set	6,offsetc+x(ix)		;DD CB 55 F6
+   20F7 FD CB 55 F6       13345 	set	6,offsetc+x(iy)		;FD CB 55 F6
+   20FB DD CB 55 F6       13346 	set	6,(ix+offsetc+x)		;DD CB 55 F6
+   20FF FD CB 55 F6       13347 	set	6,(iy+offsetc+x)		;FD CB 55 F6
+   2103 CB F7             13351 	set	6,a			;CB F7
+   2105 CB F0             13352 	set	6,b			;CB F0
+   2107 CB F1             13353 	set	6,c			;CB F1
+   2109 CB F2             13354 	set	6,d			;CB F2
+   210B CB F3             13355 	set	6,e			;CB F3
+   210D CB F4             13356 	set	6,h			;CB F4
+   210F CB F5             13357 	set	6,l			;CB F5
+   2111 CB FE             13358 	set	7,(hl)			;CB FE
+   2113 DD CB 55 FE       13378 	set	7,offsetc+x(ix)		;DD CB 55 FE
+   2117 FD CB 55 FE       13379 	set	7,offsetc+x(iy)		;FD CB 55 FE
+   211B DD CB 55 FE       13380 	set	7,(ix+offsetc+x)		;DD CB 55 FE
+   211F FD CB 55 FE       13381 	set	7,(iy+offsetc+x)		;FD CB 55 FE
+   2123 CB FF             13385 	set	7,a			;CB FF
+   2125 CB F8             13386 	set	7,b			;CB F8
+   2127 CB F9             13387 	set	7,c			;CB F9
+   2129 CB FA             13388 	set	7,d			;CB FA
+   212B CB FB             13389 	set	7,e			;CB FB
+   212D CB FC             13390 	set	7,h			;CB FC
+   212F CB FD             13391 	set	7,l			;CB FD
+                          13392 
+                          13393 ;*******************************************************************
+                          13394 ;	SLA	
+                          13395 ;*******************************************************************
+                          13440 	;***********************************************************
+                          13441 	; shift operand left arithmetic
+                          13442 	.z80
+   2131 CB 26             13443 	sla	(hl)			;CB 26
+   2133 DD CB 55 26       13463 	sla	offsetc+x(ix)		;DD CB 55 26
+   2137 FD CB 55 26       13464 	sla	offsetc+x(iy)		;FD CB 55 26
+   213B DD CB 55 26       13465 	sla	(ix+offsetc+x)		;DD CB 55 26
+   213F FD CB 55 26       13466 	sla	(iy+offsetc+x)		;FD CB 55 26
+   2143 CB 27             13470 	sla	a			;CB 27
+   2145 CB 20             13471 	sla	b			;CB 20
+   2147 CB 21             13472 	sla	c			;CB 21
+   2149 CB 22             13473 	sla	d			;CB 22
+   214B CB 23             13474 	sla	e			;CB 23
+   214D CB 24             13475 	sla	h			;CB 24
+   214F CB 25             13476 	sla	l			;CB 25
+                          13477 
+                          13478 ;*******************************************************************
+                          13479 ;	SRA	
+                          13480 ;*******************************************************************
+                          13525 	;***********************************************************
+                          13526 	; shift operand right arithmetic
+                          13527 	.z80
+   2151 CB 2E             13528 	sra	(hl)			;CB 2E
+   2153 DD CB 55 2E       13548 	sra	offsetc+x(ix)		;DD CB 55 2E
+   2157 FD CB 55 2E       13549 	sra	offsetc+x(iy)		;FD CB 55 2E
+   215B DD CB 55 2E       13550 	sra	(ix+offsetc+x)		;DD CB 55 2E
+   215F FD CB 55 2E       13551 	sra	(iy+offsetc+x)		;FD CB 55 2E
+   2163 CB 2F             13555 	sra	a			;CB 2F
+   2165 CB 28             13556 	sra	b			;CB 28
+   2167 CB 29             13557 	sra	c			;CB 29
+   2169 CB 2A             13558 	sra	d			;CB 2A
+   216B CB 2B             13559 	sra	e			;CB 2B
+   216D CB 2C             13560 	sra	h			;CB 2C
+   216F CB 2D             13561 	sra	l			;CB 2D
+                          13562 
+                          13563 ;*******************************************************************
+                          13564 ;	SRL	
+                          13565 ;*******************************************************************
+                          13610 	;***********************************************************
+                          13611 	; shift operand right logical
+                          13612 	.z80
+   2171 CB 3E             13613 	srl	(hl)			;CB 3E
+   2173 DD CB 55 3E       13633 	srl	offsetc+x(ix)		;DD CB 55 3E
+   2177 FD CB 55 3E       13634 	srl	offsetc+x(iy)		;FD CB 55 3E
+   217B DD CB 55 3E       13635 	srl	(ix+offsetc+x)		;DD CB 55 3E
+   217F FD CB 55 3E       13636 	srl	(iy+offsetc+x)		;FD CB 55 3E
+   2183 CB 3F             13640 	srl	a			;CB 3F
+   2185 CB 38             13641 	srl	b			;CB 38
+   2187 CB 39             13642 	srl	c			;CB 39
+   2189 CB 3A             13643 	srl	d			;CB 3A
+   218B CB 3B             13644 	srl	e			;CB 3B
+   218D CB 3C             13645 	srl	h			;CB 3C
+   218F CB 3D             13646 	srl	l			;CB 3D
+                          13647 
+                          13648 ;*******************************************************************
+                          13649 ;	SUB	
+                          13650 ;		Leading 'a' operand is optional.
+                          13651 ;		If offset is ommitted 0 is assumed.
+                          13652 ;*******************************************************************
+                          13653 	;***********************************************************
+                          13654 	; subtract operand from 'a'
+                          13655 	.z80
+   2191 96                13656 	sub	a,(hl)			;96
+   2192 DD 96 55          13676 	sub	a,offsetc+x(ix)		;DD 96 55
+   2195 FD 96 55          13677 	sub	a,offsetc+x(iy)		;FD 96 55
+   2198 DD 96 55          13678 	sub	a,(ix+offsetc+x)		;DD 96 55
+   219B FD 96 55          13679 	sub	a,(iy+offsetc+x)		;FD 96 55
+   219E 97                13683 	sub	a,a			;97
+   219F 90                13684 	sub	a,b			;90
+   21A0 91                13685 	sub	a,c			;91
+   21A1 92                13686 	sub	a,d			;92
+   21A2 93                13687 	sub	a,e			;93
+   21A3 94                13688 	sub	a,h			;94
+   21A4 95                13689 	sub	a,l			;95
+   21A5 D6 20             13705 	sub	a,#nc+x			;D6 20
+   21A7 D6 20             13706 	sub	a, nc+x			;D6 20
+                          13710 	;***********************************************************
+                          13711 	; subtract operand from 'a'
+                          13712 	.z80
+   21A9 96                13713 	sub	(hl)			;96
+   21AA DD 96 55          13733 	sub	offsetc+x(ix)		;DD 96 55
+   21AD FD 96 55          13734 	sub	offsetc+x(iy)		;FD 96 55
+   21B0 DD 96 55          13735 	sub	(ix+offsetc+x)		;DD 96 55
+   21B3 FD 96 55          13736 	sub	(iy+offsetc+x)		;FD 96 55
+   21B6 97                13740 	sub	a			;97
+   21B7 90                13741 	sub	b			;90
+   21B8 91                13742 	sub	c			;91
+   21B9 92                13743 	sub	d			;92
+   21BA 93                13744 	sub	e			;93
+   21BB 94                13745 	sub	h			;94
+   21BC 95                13746 	sub	l			;95
+   21BD D6 20             13762 	sub	#nc+x			;D6 20
+   21BF D6 20             13763 	sub	 nc+x			;D6 20
+                          13767 	;***********************************************************
+                          13768 	;  p. 5-139
+                          13769 	.z280
+   21C1 DD 94             13770 	sub	a,ixh			;DD 94
+   21C3 DD 95             13771 	sub	a,ixl			;DD 95
+   21C5 FD 94             13772 	sub	a,iyh			;FD 94
+   21C7 FD 95             13773 	sub	a,iyl			;FD 95
+   21C9 D6 20             13821 	sub	a,#nc+x			;D6 20
+   21CB DD 97 44 33       13822 	sub	a,(daddc+x)		;DD 97 44 33
+   21CF FD 91 55 00       13826 	sub	a,sxofc+x(ix)		;FD 91 55 00
+   21D3 FD 91 55 00       13827 	sub	a,(ix+sxofc+x)		;FD 91 55 00
+   21D7 FD 92 55 00       13828 	sub	a,sxofc+x(iy)		;FD 92 55 00
+   21DB FD 92 55 00       13829 	sub	a,(iy+sxofc+x)		;FD 92 55 00
+   21DF FD 93 55 00       13840 	sub	a,sxofc+x(hl)		;FD 93 55 00
+   21E3 FD 93 55 00       13841 	sub	a,(hl+sxofc+x)		;FD 93 55 00
+   21E7 DD 90 55 00       13842 	sub	a,sxofc+x(sp)		;DD 90 55 00
+   21EB DD 90 55 00       13843 	sub	a,(sp+sxofc+x)		;DD 90 55 00
+   21EF FD 91 22 11       13844 	sub	a,lxofc+x(ix)		;FD 91 22 11
+   21F3 FD 91 22 11       13845 	sub	a,(ix+lxofc+x)		;FD 91 22 11
+   21F7 FD 92 22 11       13846 	sub	a,lxofc+x(iy)		;FD 92 22 11
+   21FB FD 92 22 11       13847 	sub	a,(iy+lxofc+x)		;FD 92 22 11
+   21FF FD 93 22 11       13848 	sub	a,lxofc+x(hl)		;FD 93 22 11
+   2203 FD 93 22 11       13849 	sub	a,(hl+lxofc+x)		;FD 93 22 11
+   2207 DD 90 22 11       13850 	sub	a,lxofc+x(sp)		;DD 90 22 11
+   220B DD 90 22 11       13851 	sub	a,(sp+lxofc+x)		;DD 90 22 11
+   220F 96                13855 	sub	a,(hl)			;96
+   2210 DD 96 00          13856 	sub	a,(ix)			;DD 96 00
+   2213 FD 96 00          13857 	sub	a,(iy)			;FD 96 00
+   2216 DD 90 00 00       13858 	sub	a,(sp)			;DD 90 00 00
+   221A FD 90 34 12       13906 	sub	a,raofc+sub01(pc)	;FD 90 34 12
+   221E FD 90 34 12       13910 	sub	a,(pc+raofc+sub02)	;FD 90 34 12
+   2222 FD 90 34 12       13914 	sub	a,[raofc+sub03]		;FD 90 34 12
+   2226 FD 90 80 05       13942 	sub	a,[.+nnc]		;FD 90 80 05
+   222A DD 91             13943 	sub	a,(hl+ix)		;DD 91
+   222C DD 92             13944 	sub	a,(hl+iy)		;DD 92
+   222E DD 93             13945 	sub	a,(ix+iy)		;DD 93
+                          13946 	;***********************************************************
+                          13947 	;  p. 5-139
+                          13948 	.z280
+   2230 DD 94             13949 	sub	ixh			;DD 94
+   2232 DD 95             13950 	sub	ixl			;DD 95
+   2234 FD 94             13951 	sub	iyh			;FD 94
+   2236 FD 95             13952 	sub	iyl			;FD 95
+   2238 D6 20             14000 	sub	#nc+x			;D6 20
+   223A DD 97 44 33       14001 	sub	(daddc+x)			;DD 97 44 33
+   223E FD 91 55 00       14005 	sub	sxofc+x(ix)		;FD 91 55 00
+   2242 FD 91 55 00       14006 	sub	(ix+sxofc+x)		;FD 91 55 00
+   2246 FD 92 55 00       14007 	sub	sxofc+x(iy)		;FD 92 55 00
+   224A FD 92 55 00       14008 	sub	(iy+sxofc+x)		;FD 92 55 00
+   224E FD 93 55 00       14019 	sub	sxofc+x(hl)		;FD 93 55 00
+   2252 FD 93 55 00       14020 	sub	(hl+sxofc+x)		;FD 93 55 00
+   2256 DD 90 55 00       14021 	sub	sxofc+x(sp)		;DD 90 55 00
+   225A DD 90 55 00       14022 	sub	(sp+sxofc+x)		;DD 90 55 00
+   225E FD 91 22 11       14023 	sub	lxofc+x(ix)		;FD 91 22 11
+   2262 FD 91 22 11       14024 	sub	(ix+lxofc+x)		;FD 91 22 11
+   2266 FD 92 22 11       14025 	sub	lxofc+x(iy)		;FD 92 22 11
+   226A FD 92 22 11       14026 	sub	(iy+lxofc+x)		;FD 92 22 11
+   226E FD 93 22 11       14027 	sub	lxofc+x(hl)		;FD 93 22 11
+   2272 FD 93 22 11       14028 	sub	(hl+lxofc+x)		;FD 93 22 11
+   2276 DD 90 22 11       14029 	sub	lxofc+x(sp)		;DD 90 22 11
+   227A DD 90 22 11       14030 	sub	(sp+lxofc+x)		;DD 90 22 11
+   227E DD 96 00          14034 	sub	(ix)			;DD 96 00
+   2281 FD 96 00          14035 	sub	(iy)			;FD 96 00
+   2284 96                14036 	sub	(hl)			;96
+   2285 DD 90 00 00       14037 	sub	(sp)			;DD 90 00 00
+   2289 FD 90 34 12       14085 	sub	raofc+sub04(pc)		;FD 90 34 12
+   228D FD 90 34 12       14089 	sub	(pc+raofc+sub05)	;FD 90 34 12
+   2291 FD 90 34 12       14093 	sub	[raofc+sub06]		;FD 90 34 12
+   2295 FD 90 80 05       14121 	sub	[.+nnc]			;FD 90 80 05
+   2299 DD 91             14122 	sub	a,(hl+ix)		;DD 91
+   229B DD 92             14123 	sub	a,(hl+iy)		;DD 92
+   229D DD 93             14124 	sub	a,(ix+iy)		;DD 93
+                          14125 	;***********************************************************
+                          14126 	;  p. 5-140
+                          14127 	.z280
+   229F DD ED CE          14128 	sub	hl,(hl)			;DD ED CE
+   22A2 FD ED CE 00 00    14129 	sub	hl,(ix)			;FD ED CE 00 00
+   22A7 FD ED DE 00 00    14130 	sub	hl,(iy)			;FD ED DE 00 00
+   22AC FD ED FE 84 05    14162 	sub	hl,#nnc+x			;FD ED FE 84 05
+   22B1 DD ED DE 44 33    14163 	sub	hl,(daddc+x)		;DD ED DE 44 33
+   22B6 FD ED CE 55 00    14164 	sub	hl,sxofc+x(ix)		;FD ED CE 55 00
+   22BB FD ED CE 55 00    14165 	sub	hl,(ix+sxofc+x)		;FD ED CE 55 00
+   22C0 FD ED CE 22 11    14166 	sub	hl,lxofc+x(ix)		;FD ED CE 22 11
+   22C5 FD ED CE 22 11    14167 	sub	hl,(ix+lxofc+x)		;FD ED CE 22 11
+   22CA FD ED DE 55 00    14168 	sub	hl,sxofc+x(iy)		;FD ED DE 55 00
+   22CF FD ED DE 55 00    14169 	sub	hl,(iy+sxofc+x)		;FD ED DE 55 00
+   22D4 FD ED DE 22 11    14170 	sub	hl,lxofc+x(iy)		;FD ED DE 22 11
+   22D9 FD ED DE 22 11    14171 	sub	hl,(iy+lxofc+x)		;FD ED DE 22 11
+   22DE DD ED FE 34 12    14222 	sub	hl,raofc+sub07(pc)	;DD ED FE 34 12
+   22E3 DD ED FE 34 12    14226 	sub	hl,(pc+raofc+sub08)	;DD ED FE 34 12
+   22E8 DD ED FE 34 12    14230 	sub	hl,[raofc+sub09]	;DD ED FE 34 12
+   22ED DD ED FE 1B 00    14258 	sub	hl,[.+nc]		;DD ED FE 1B 00
+   22F2 ED CE             14259 	sub	hl,bc			;ED CE
+   22F4 ED DE             14260 	sub	hl,de			;ED DE
+   22F6 ED EE             14261 	sub	hl,hl			;ED EE
+   22F8 DD ED EE          14262 	sub	hl,ix			;DD ED EE
+   22FB FD ED EE          14263 	sub	hl,iy			;FD ED EE
+   22FE ED FE             14264 	sub	hl,sp			;ED FE
+                          14265 ;*******************************************************************
+                          14266 ;	SUBW	
+                          14267 ;*******************************************************************
+                          14268 	;***********************************************************
+                          14269 	; subtract operand from 'hl'
+                          14270 	.z280
+   2300 ED CE             14271 	subw	hl,bc			;ED CE
+   2302 ED DE             14272 	subw	hl,de			;ED DE
+   2304 ED EE             14273 	subw	hl,hl			;ED EE
+   2306 DD ED EE          14274 	subw	hl,ix			;DD ED EE
+   2309 FD ED EE          14275 	subw	hl,iy			;FD ED EE
+   230C ED FE             14276 	subw	hl,sp			;ED FE
+   230E FD ED FE 84 05    14308 	subw	hl,#nnc+x			;FD ED FE 84 05
+   2313 DD ED DE 44 33    14309 	subw	hl,(daddc+x)		;DD ED DE 44 33
+   2318 FD ED CE 55 00    14310 	subw	hl,sxofc+x(ix)		;FD ED CE 55 00
+   231D FD ED CE 55 00    14311 	subw	hl,(ix+sxofc+x)		;FD ED CE 55 00
+   2322 FD ED DE 55 00    14312 	subw	hl,sxofc+x(iy)		;FD ED DE 55 00
+   2327 FD ED DE 55 00    14313 	subw	hl,(iy+sxofc+x)		;FD ED DE 55 00
+   232C FD ED CE 22 11    14314 	subw	hl,lxofc+x(ix)		;FD ED CE 22 11
+   2331 FD ED CE 22 11    14315 	subw	hl,(ix+lxofc+x)		;FD ED CE 22 11
+   2336 FD ED DE 22 11    14316 	subw	hl,lxofc+x(iy)		;FD ED DE 22 11
+   233B FD ED DE 22 11    14317 	subw	hl,(iy+lxofc+x)		;FD ED DE 22 11
+   2340 DD ED CE          14321 	subw	hl,(hl)			;DD ED CE
+   2343 FD ED CE 00 00    14322 	subw	hl,(ix)			;FD ED CE 00 00
+   2348 FD ED DE 00 00    14323 	subw	hl,(iy)			;FD ED DE 00 00
+   234D DD ED FE 34 12    14371 	subw	hl,raofc+subw01(pc)	;DD ED FE 34 12
+   2352 DD ED FE 34 12    14375 	subw	hl,(pc+raofc+subw02)	;DD ED FE 34 12
+   2357 DD ED FE 34 12    14379 	subw	hl,[raofc+subw03]	;DD ED FE 34 12
+   235C DD ED FE 1B 00    14407 	subw	hl,[.+nc]		;DD ED FE 1B 00
+                          14408 
+                          14409 ;*******************************************************************
+                          14410 ;	TSET	
+                          14411 ;*******************************************************************
+                          14412 	;***********************************************************
+                          14413 	; Z280 test and set
+                          14414 	;  p. 5-141
+                          14415 	.z280
+   2361 CB 30             14416 	tset	b			;CB 30
+   2363 CB 31             14417 	tset	c			;CB 31
+   2365 CB 32             14418 	tset	d			;CB 32
+   2367 CB 33             14419 	tset	e			;CB 33
+   2369 CB 34             14420 	tset	h			;CB 34
+   236B CB 35             14421 	tset	l			;CB 35
+   236D CB 36             14422 	tset	(hl)			;CB 36
+   236F CB 37             14423 	tset	a			;CB 37
+   2371 DD CB 55 36       14443 	tset	sxofc+x(ix)		;DD CB 55 36
+   2375 DD CB 55 36       14444 	tset	(ix+sxofc+x)		;DD CB 55 36
+   2379 FD CB 55 36       14445 	tset	sxofc+x(iy)		;FD CB 55 36
+   237D FD CB 55 36       14446 	tset	(iy+sxofc+x)		;FD CB 55 36
+                          14450 
+                          14451 ;*******************************************************************
+                          14452 ;	TSTI	
+                          14453 ;*******************************************************************
+                          14454 	;***********************************************************
+                          14455 	; Z280 test input
+                          14456 	.z280
+   2381 ED 70             14457 	tsti	(c)			;ED 70
+                          14458 
+                          14459 ;*******************************************************************
+                          14460 ;	XOR	
+                          14461 ;		Leading 'a' operand is optional.
+                          14462 ;		If offset is ommitted 0 is assumed.
+                          14463 ;*******************************************************************
+                          14464 	;***********************************************************
+                          14465 	; logical 'xor' operand with 'a'
+                          14466 	.z80
+   2383 AE                14467 	xor	a,(hl)			;AE
+   2384 DD AE 55          14487 	xor	a,offsetc+x(ix)		;DD AE 55
+   2387 FD AE 55          14488 	xor	a,offsetc+x(iy)		;FD AE 55
+   238A DD AE 55          14489 	xor	a,(ix+offsetc+x)		;DD AE 55
+   238D FD AE 55          14490 	xor	a,(iy+offsetc+x)		;FD AE 55
+   2390 AF                14494 	xor	a,a			;AF
+   2391 A8                14495 	xor	a,b			;A8
+   2392 A9                14496 	xor	a,c			;A9
+   2393 AA                14497 	xor	a,d			;AA
+   2394 AB                14498 	xor	a,e			;AB
+   2395 AC                14499 	xor	a,h			;AC
+   2396 AD                14500 	xor	a,l			;AD
+   2397 EE 20             14516 	xor	a,#nc+x			;EE 20
+   2399 EE 20             14517 	xor	a, nc+x			;EE 20
+                          14521 	;***********************************************************
+                          14522 	; logical 'xor' operand without 'a'
+                          14523 	.z80
+   239B AE                14524 	xor	(hl)			;AE
+   239C DD AE 55          14544 	xor	offsetc+x(ix)		;DD AE 55
+   239F FD AE 55          14545 	xor	offsetc+x(iy)		;FD AE 55
+   23A2 DD AE 55          14546 	xor	(ix+offsetc+x)		;DD AE 55
+   23A5 FD AE 55          14547 	xor	(iy+offsetc+x)		;FD AE 55
+   23A8 AF                14551 	xor	a			;AF
+   23A9 A8                14552 	xor	b			;A8
+   23AA A9                14553 	xor	c			;A9
+   23AB AA                14554 	xor	d			;AA
+   23AC AB                14555 	xor	e			;AB
+   23AD AC                14556 	xor	h			;AC
+   23AE AD                14557 	xor	l			;AD
+   23AF EE 20             14573 	xor	#nc+x			;EE 20
+   23B1 EE 20             14574 	xor	 nc+x			;EE 20
+                          14578 	;***********************************************************
+                          14579 	;  p. 5-143
+                          14580 	.z280
+   23B3 DD AC             14581 	xor	a,ixh			;DD AC
+   23B5 DD AD             14582 	xor	a,ixl			;DD AD
+   23B7 FD AC             14583 	xor	a,iyh			;FD AC
+   23B9 FD AD             14584 	xor	a,iyl			;FD AD
+   23BB EE 20             14632 	xor	a,#nc+x			;EE 20
+   23BD DD AF 44 33       14633 	xor	a,(daddc+x)		;DD AF 44 33
+   23C1 FD A9 55 00       14637 	xor	a,sxofc+x(ix)		;FD A9 55 00
+   23C5 FD A9 55 00       14638 	xor	a,(ix+sxofc+x)		;FD A9 55 00
+   23C9 FD AA 55 00       14639 	xor	a,sxofc+x(iy)		;FD AA 55 00
+   23CD FD AA 55 00       14640 	xor	a,(iy+sxofc+x)		;FD AA 55 00
+   23D1 FD AB 55 00       14651 	xor	a,sxofc+x(hl)		;FD AB 55 00
+   23D5 FD AB 55 00       14652 	xor	a,(hl+sxofc+x)		;FD AB 55 00
+   23D9 DD A8 55 00       14653 	xor	a,sxofc+x(sp)		;DD A8 55 00
+   23DD DD A8 55 00       14654 	xor	a,(sp+sxofc+x)		;DD A8 55 00
+   23E1 FD A9 22 11       14655 	xor	a,lxofc+x(ix)		;FD A9 22 11
+   23E5 FD A9 22 11       14656 	xor	a,(ix+lxofc+x)		;FD A9 22 11
+   23E9 FD AA 22 11       14657 	xor	a,lxofc+x(iy)		;FD AA 22 11
+   23ED FD AA 22 11       14658 	xor	a,(iy+lxofc+x)		;FD AA 22 11
+   23F1 FD AB 22 11       14659 	xor	a,lxofc+x(hl)		;FD AB 22 11
+   23F5 FD AB 22 11       14660 	xor	a,(hl+lxofc+x)		;FD AB 22 11
+   23F9 DD A8 22 11       14661 	xor	a,lxofc+x(sp)		;DD A8 22 11
+   23FD DD A8 22 11       14662 	xor	a,(sp+lxofc+x)		;DD A8 22 11
+   2401 AE                14666 	xor	a,(hl)			;AE
+   2402 DD AE 00          14667 	xor	a,(ix)			;DD AE 00
+   2405 FD AE 00          14668 	xor	a,(iy)			;FD AE 00
+   2408 DD A8 00 00       14669 	xor	a,(sp)			;DD A8 00 00
+   240C FD A8 34 12       14717 	xor	a,raofc+zor01(pc)	;FD A8 34 12
+   2410 FD A8 34 12       14721 	xor	a,(pc+raofc+zor02)	;FD A8 34 12
+   2414 FD A8 34 12       14725 	xor	a,[raofc+zor03]		;FD A8 34 12
+   2418 FD A8 1C 00       14753 	xor	a,[.+nc]		;FD A8 1C 00
+   241C DD A9             14754 	xor	a,(hl+ix)		;DD A9
+   241E DD AA             14755 	xor	a,(hl+iy)		;DD AA
+   2420 DD AB             14756 	xor	a,(ix+iy)		;DD AB
+                          14757 	;***********************************************************
+                          14758 	;  p. 5-143
+                          14759 	.z280
+   2422 DD AC             14760 	xor	ixh			;DD AC
+   2424 DD AD             14761 	xor	ixl			;DD AD
+   2426 FD AC             14762 	xor	iyh			;FD AC
+   2428 FD AD             14763 	xor	iyl			;FD AD
+   242A EE 20             14811 	xor	#nc+x			;EE 20
+   242C DD AF 44 33       14812 	xor	(daddc+x)			;DD AF 44 33
+   2430 FD A9 55 00       14816 	xor	sxofc+x(ix)		;FD A9 55 00
+   2434 FD A9 55 00       14817 	xor	(ix+sxofc+x)		;FD A9 55 00
+   2438 FD AA 55 00       14818 	xor	sxofc+x(iy)		;FD AA 55 00
+   243C FD AA 55 00       14819 	xor	(iy+sxofc+x)		;FD AA 55 00
+   2440 FD AB 55 00       14830 	xor	sxofc+x(hl)		;FD AB 55 00
+   2444 FD AB 55 00       14831 	xor	(hl+sxofc+x)		;FD AB 55 00
+   2448 DD A8 55 00       14832 	xor	sxofc+x(sp)		;DD A8 55 00
+   244C DD A8 55 00       14833 	xor	(sp+sxofc+x)		;DD A8 55 00
+   2450 FD A9 22 11       14834 	xor	lxofc+x(ix)		;FD A9 22 11
+   2454 FD A9 22 11       14835 	xor	(ix+lxofc+x)		;FD A9 22 11
+   2458 FD AA 22 11       14836 	xor	lxofc+x(iy)		;FD AA 22 11
+   245C FD AA 22 11       14837 	xor	(iy+lxofc+x)		;FD AA 22 11
+   2460 FD AB 22 11       14838 	xor	lxofc+x(hl)		;FD AB 22 11
+   2464 FD AB 22 11       14839 	xor	(hl+lxofc+x)		;FD AB 22 11
+   2468 DD A8 22 11       14840 	xor	lxofc+x(sp)		;DD A8 22 11
+   246C DD A8 22 11       14841 	xor	(sp+lxofc+x)		;DD A8 22 11
+   2470 AE                14845 	xor	(hl)			;AE
+   2471 DD AE 00          14846 	xor	(ix)			;DD AE 00
+   2474 FD AE 00          14847 	xor	(iy)			;FD AE 00
+   2477 DD A8 00 00       14848 	xor	(sp)			;DD A8 00 00
+   247B FD A8 34 12       14896 	xor	raofc+zor04(pc)		;FD A8 34 12
+   247F FD A8 34 12       14900 	xor	(pc+raofc+zor05)	;FD A8 34 12
+   2483 FD A8 34 12       14904 	xor	[raofc+zor06]		;FD A8 34 12
+   2487 FD A8 1C 00       14932 	xor	[.+nc]			;FD A8 1C 00
+   248B DD A9             14933 	xor	(hl+ix)			;DD A9
+   248D DD AA             14934 	xor	(hl+iy)			;DD AA
+   248F DD AB             14935 	xor	(ix+iy)			;DD AB
+                          14936 
+                          14937 	;***********************************************************
+                          14938 	; Hitachi HD64180 Codes
+                          14939 	;***********************************************************
+                          14940 
+                          14941 	.hd64
+                          14942 
+                          14943 	;***********************************************************
+                          14944 	; start of the Z180 section
+                          14945 	;***********************************************************
+                          14946 	
+                          14947 
+                          14948 ;*******************************************************************
+                          14949 ;	IN0	
+                          14950 ;*******************************************************************
+                          14951 	;***********************************************************
+                          14952 	; load register with input from port (n)
+   2491 ED 38 20          14978 	in0	a,(nc+x)			;ED 38 20
+   2494 ED 00 20          14979 	in0	b,(nc+x)			;ED 00 20
+   2497 ED 08 20          14980 	in0	c,(nc+x)			;ED 08 20
+   249A ED 10 20          14981 	in0	d,(nc+x)			;ED 10 20
+   249D ED 18 20          14982 	in0	e,(nc+x)			;ED 18 20
+   24A0 ED 20 20          14983 	in0	h,(nc+x)			;ED 20 20
+   24A3 ED 28 20          14984 	in0	l,(nc+x)			;ED 28 20
+                          14988 
+                          14989 ;*******************************************************************
+                          14990 ;	mlt	
+                          14991 ;*******************************************************************
+                          14992 	;***********************************************************
+                          14993 	; multiplication of each half
+                          14994 	; of the specified register pair
+                          14995 	; with the 16-bit result going to
+                          14996 	; the specified register pair
+   24A6 ED 4C             14997 	mlt	bc			;ED 4C
+   24A8 ED 5C             14998 	mlt	de			;ED 5C
+   24AA ED 6C             14999 	mlt	hl			;ED 6C
+   24AC ED 7C             15000 	mlt	sp			;ED 7C
+                          15001 
+                          15002 ;*******************************************************************
+                          15003 ;	OTDM	
+                          15004 ;*******************************************************************
+                          15005 	;***********************************************************
+                          15006 	; load output port (c) with
+                          15007 	; location (hl),
+                          15008 	; decrement hl and b
+                          15009 	; decrement c
+   24AE ED 8B             15010 	otdm				;ED 8B
+                          15011 
+                          15012 ;*******************************************************************
+                          15013 ;	OTDMR	
+                          15014 ;*******************************************************************
+                          15015 	;***********************************************************
+                          15016 	; load output port (c) with
+                          15017 	; location (hl),
+                          15018 	; decrement hl and c
+                          15019 	; decrement b
+                          15020 	; repeat until b = 0
+   24B0 ED 9B             15021 	otdmr				;ED 9B
+                          15022 
+                          15023 ;*******************************************************************
+                          15024 ;	OTIM	
+                          15025 ;*******************************************************************
+                          15026 	;***********************************************************
+                          15027 	; load output port (c) with
+                          15028 	; location (hl),
+                          15029 	; increment hl and b
+                          15030 	; decrement c
+   24B2 ED 83             15031 	otim				;ED 83
+                          15032 
+                          15033 ;*******************************************************************
+                          15034 ;	OTIMR	
+                          15035 ;*******************************************************************
+                          15036 	;***********************************************************
+                          15037 	; load output port (c) with
+                          15038 	; location (hl),
+                          15039 	; increment hl and c
+                          15040 	; decrement b
+                          15041 	; repeat until b = 0
+   24B4 ED 93             15042 	otimr				;ED 93
+                          15043 
+                          15044 ;*******************************************************************
+                          15045 ;	OUT0	
+                          15046 ;*******************************************************************
+                          15047 	;***********************************************************
+                          15048 	; load output port (n) from register
+   24B6 ED 39 20          15074 	out0	(nc+x),a			;ED 39 20
+   24B9 ED 01 20          15075 	out0	(nc+x),b			;ED 01 20
+   24BC ED 09 20          15076 	out0	(nc+x),c			;ED 09 20
+   24BF ED 11 20          15077 	out0	(nc+x),d			;ED 11 20
+   24C2 ED 19 20          15078 	out0	(nc+x),e			;ED 19 20
+   24C5 ED 21 20          15079 	out0	(nc+x),h			;ED 21 20
+   24C8 ED 29 20          15080 	out0	(nc+x),l			;ED 29 20
+                          15084 
+                          15085 ;*******************************************************************
+                          15086 ;	SLP	
+                          15087 ;*******************************************************************
+                          15088 	;***********************************************************
+                          15089 	; enter sleep mode
+   24CB ED 76             15090 	slp				;ED 76
+                          15091 
+                          15092 ;*******************************************************************
+                          15093 ;	TST	
+                          15094 ;*******************************************************************
+                          15095 	;***********************************************************
+                          15096 	; non-destructive'and' with accumulator and specified operand
+   24CD ED 3C             15097 	tst	a,a			;ED 3C
+   24CF ED 04             15098 	tst	a,b			;ED 04
+   24D1 ED 0C             15099 	tst	a,c			;ED 0C
+   24D3 ED 14             15100 	tst	a,d			;ED 14
+   24D5 ED 1C             15101 	tst	a,e			;ED 1C
+   24D7 ED 24             15102 	tst	a,h			;ED 24
+   24D9 ED 2C             15103 	tst	a,l			;ED 2C
+   24DB ED 64 20          15119 	tst	a,#nc+x			;ED 64 20
+   24DE ED 64 20          15120 	tst	a, nc+x			;ED 64 20
+   24E1 ED 34             15124 	tst	a,(hl)			;ED 34
+                          15125 	;***********************************************************
+   24E3 ED 3C             15126 	tst	a			;ED 3C
+   24E5 ED 04             15127 	tst	b			;ED 04
+   24E7 ED 0C             15128 	tst	c			;ED 0C
+   24E9 ED 14             15129 	tst	d			;ED 14
+   24EB ED 1C             15130 	tst	e			;ED 1C
+   24ED ED 24             15131 	tst	h			;ED 24
+   24EF ED 2C             15132 	tst	l			;ED 2C
+   24F1 ED 64 20          15148 	tst	#nc+x			;ED 64 20
+   24F4 ED 64 20          15149 	tst	 nc+x			;ED 64 20
+   24F7 ED 34             15153 	tst	(hl)			;ED 34
+                          15154 
+                          15155 ;*******************************************************************
+                          15156 ;	TSTIO	
+                          15157 ;*******************************************************************
+                          15158 	;***********************************************************
+                          15159 	; non-destructive 'and' of n and the contents of port (c)
+   24F9 ED 74 20          15179 	tstio	#nc+x,(c)			;ED 74 20
+   24FC ED 74 20          15180 	tstio	(c),#nc+x			;ED 74 20
+   24FF ED 74 20          15181 	tstio	#nc+x			;ED 74 20
+   2502 ED 74 20          15182 	tstio	 nc+x			;ED 74 20
+                          15186 	;***********************************************************
+                          15187 	; end of the Z180 section
+                          15188 	;***********************************************************
+                          15189 	
+                          15190 ;*******************************************************************
+                          15191 ;	UNDOCUMENTED	
+                          15192 ;*******************************************************************
+                          15193 	;***********************************************************
+                          15194 	; start of the Z80 undocumented section
+                          15195 	;***********************************************************
+                          15196 	.z80u
+   2505 DD 8C             15197 	adc	a,ixh			;DD 8C
+   2507 DD 8D             15198 	adc	a,ixl			;DD 8D
+   2509 FD 8C             15199 	adc	a,iyh			;FD 8C
+   250B FD 8D             15200 	adc	a,iyl			;FD 8D
+   250D DD 84             15201 	add	a,ixh			;DD 84
+   250F DD 85             15202 	add	a,ixl			;DD 85
+   2511 FD 84             15203 	add	a,iyh			;FD 84
+   2513 FD 85             15204 	add	a,iyl			;FD 85
+   2515 DD A4             15205 	and	a,ixh			;DD A4
+   2517 DD A5             15206 	and	a,ixl			;DD A5
+   2519 FD A4             15207 	and	a,iyh			;FD A4
+   251B FD A5             15208 	and	a,iyl			;FD A5
+   251D DD BC             15209 	cp	a,ixh			;DD BC
+   251F DD BD             15210 	cp	a,ixl			;DD BD
+   2521 FD BC             15211 	cp	a,iyh			;FD BC
+   2523 FD BD             15212 	cp	a,iyl			;FD BD
+   2525 DD B4             15213 	or	a,ixh			;DD B4
+   2527 DD B5             15214 	or	a,ixl			;DD B5
+   2529 FD B4             15215 	or	a,iyh			;FD B4
+   252B FD B5             15216 	or	a,iyl			;FD B5
+   252D DD 9C             15217 	sbc	a,ixh			;DD 9C
+   252F DD 9D             15218 	sbc	a,ixl			;DD 9D
+   2531 FD 9C             15219 	sbc	a,iyh			;FD 9C
+   2533 FD 9D             15220 	sbc	a,iyl			;FD 9D
+   2535 DD 94             15221 	sub	a,ixh			;DD 94
+   2537 DD 95             15222 	sub	a,ixl			;DD 95
+   2539 FD 94             15223 	sub	a,iyh			;FD 94
+   253B FD 95             15224 	sub	a,iyl			;FD 95
+   253D DD AC             15225 	xor	a,ixh			;DD AC
+   253F DD AD             15226 	xor	a,ixl			;DD AD
+   2541 FD AC             15227 	xor	a,iyh			;FD AC
+   2543 FD AD             15228 	xor	a,iyl			;FD AD
+                          15229 					;
+   2545 DD 25             15230 	dec	ixh			;DD 25
+   2547 DD 2D             15231 	dec	ixl			;DD 2D
+   2549 FD 25             15232 	dec	iyh			;FD 25
+   254B FD 2D             15233 	dec	iyl			;FD 2D
+   254D DD 24             15234 	inc	ixh			;DD 24
+   254F DD 2C             15235 	inc	ixl			;DD 2C
+   2551 FD 24             15236 	inc	iyh			;FD 24
+   2553 FD 2C             15237 	inc 	iyl			;FD 2C
+                          15238 					;
+   2555 DD ED 60          15239 	in	ixh,(c)			;DD ED 60
+   2558 DD ED 68          15240 	in	ixl,(c)			;DD ED 68
+   255B FD ED 60          15241 	in	iyh,(c)			;FD ED 60
+   255E FD ED 68          15242 	in	iyl,(c)			;FD ED 68
+                          15243 					;
+   2561 DD 67             15244 	ld	ixh,a			;DD 67
+   2563 DD 6F             15245 	ld	ixl,a			;DD 6F
+   2565 FD 67             15246 	ld	iyh,a			;FD 67
+   2567 FD 6F             15247 	ld	iyl,a			;FD 6F
+   2569 DD 60             15248 	ld	ixh,b			;DD 60
+   256B DD 68             15249 	ld	ixl,b			;DD 68
+   256D FD 60             15250 	ld	iyh,b			;FD 60
+   256F FD 68             15251 	ld	iyl,b			;FD 68
+   2571 DD 61             15252 	ld	ixh,c			;DD 61
+   2573 DD 69             15253 	ld	ixl,c			;DD 69
+   2575 FD 61             15254 	ld	iyh,c			;FD 61
+   2577 FD 69             15255 	ld	iyl,c			;FD 69
+   2579 DD 62             15256 	ld	ixh,d			;DD 62
+   257B DD 6A             15257 	ld	ixl,d			;DD 6A
+   257D FD 62             15258 	ld	iyh,d			;FD 62
+   257F FD 6A             15259 	ld	iyl,d			;FD 6A
+   2581 DD 63             15260 	ld	ixh,e			;DD 63
+   2583 DD 6B             15261 	ld	ixl,e			;DD 6B
+   2585 FD 63             15262 	ld	iyh,e			;FD 63
+   2587 FD 6B             15263 	ld	iyl,e			;FD 6B
+                          15264 					;
+   2589 DD 7C             15265 	ld	a,ixh			;DD 7C
+   258B DD 7D             15266 	ld	a,ixl			;DD 7D
+   258D FD 7C             15267 	ld	a,iyh			;FD 7C
+   258F FD 7D             15268 	ld	a,iyl			;FD 7D
+   2591 DD 44             15269 	ld	b,ixh			;DD 44
+   2593 DD 45             15270 	ld	b,ixl			;DD 45
+   2595 FD 44             15271 	ld	b,iyh			;FD 44
+   2597 FD 45             15272 	ld	b,iyl			;FD 45
+   2599 DD 4C             15273 	ld	c,ixh			;DD 4C
+   259B DD 4D             15274 	ld	c,ixl			;DD 4D
+   259D FD 4C             15275 	ld	c,iyh			;FD 4C
+   259F FD 4D             15276 	ld	c,iyl			;FD 4D
+   25A1 DD 54             15277 	ld	d,ixh			;DD 54
+   25A3 DD 55             15278 	ld	d,ixl			;DD 55
+   25A5 FD 54             15279 	ld	d,iyh			;FD 54
+   25A7 FD 55             15280 	ld	d,iyl			;FD 55
+   25A9 DD 5C             15281 	ld	e,ixh			;DD 5C
+   25AB DD 5D             15282 	ld	e,ixl			;DD 5D
+   25AD FD 5C             15283 	ld	e,iyh			;FD 5C
+   25AF FD 5D             15284 	ld	e,iyl			;FD 5D
+                     0001 15285 .if 1
+                          15286 					;
+   25B1 DD 64             15287 	ld	ixh,ixh			;DD 64
+   25B3 DD 65             15288 	ld	ixh,ixl			;DD 65
+   25B5 DD 6C             15289 	ld	ixl,ixh			;DD 6C
+   25B7 DD 6D             15290 	ld	ixl,ixl			;DD 6D
+   25B9 FD 64             15291 	ld	iyh,iyh			;FD 64
+   25BB FD 65             15292 	ld	iyh,iyl			;FD 65
+   25BD FD 6C             15293 	ld	iyl,iyh			;FD 6C
+   25BF FD 6D             15294 	ld	iyl,iyl			;FD 6D
+                          15295 .endif
+                          15296 					;
+   25C1 DD 26 20          15316 	ld	ixh,#nc+x			;DD 26 20
+   25C4 DD 2E 20          15317 	ld	ixl,#nc+x			;DD 2E 20
+   25C7 FD 26 20          15318 	ld	iyh,#nc+x			;FD 26 20
+   25CA FD 2E 20          15319 	ld	iyl,#nc+x			;FD 2E 20
+   25CD DD 26 20          15342 	ld	ixh,#nc+x			;DD 26 20
+   25D0 DD 2E 23          15343 	ld	ixl,#nc+x+3		;DD 2E 23
+   25D3 FD 26 1F          15344 	ld	iyh,#nc+x-1		;FD 26 1F
+   25D6 FD 2E 20          15345 	ld	iyl,#nc+x			;FD 2E 20
+                          15349 	;***********************************************************
+                          15350 	; without 'a'
+   25D9 DD 8C             15351 	adc	ixh			;DD 8C
+   25DB DD 8D             15352 	adc	ixl			;DD 8D
+   25DD FD 8C             15353 	adc	iyh			;FD 8C
+   25DF FD 8D             15354 	adc	iyl			;FD 8D
+   25E1 DD 84             15355 	add	ixh			;DD 84
+   25E3 DD 85             15356 	add	ixl			;DD 85
+   25E5 FD 84             15357 	add	iyh			;FD 84
+   25E7 FD 85             15358 	add	iyl			;FD 85
+   25E9 DD A4             15359 	and	ixh			;DD A4
+   25EB DD A5             15360 	and	ixl			;DD A5
+   25ED FD A4             15361 	and	iyh			;FD A4
+   25EF FD A5             15362 	and	iyl			;FD A5
+   25F1 DD BC             15363 	cp	ixh			;DD BC
+   25F3 DD BD             15364 	cp	ixl			;DD BD
+   25F5 FD BC             15365 	cp	iyh			;FD BC
+   25F7 FD BD             15366 	cp	iyl			;FD BD
+   25F9 DD B4             15367 	or	ixh			;DD B4
+   25FB DD B5             15368 	or	ixl			;DD B5
+   25FD FD B4             15369 	or	iyh			;FD B4
+   25FF FD B5             15370 	or	iyl			;FD B5
+   2601 DD 9C             15371 	sbc	ixh			;DD 9C
+   2603 DD 9D             15372 	sbc	ixl			;DD 9D
+   2605 FD 9C             15373 	sbc	iyh			;FD 9C
+   2607 FD 9D             15374 	sbc	iyl			;FD 9D
+   2609 DD 94             15375 	sub	ixh			;DD 94
+   260B DD 95             15376 	sub	ixl			;DD 95
+   260D FD 94             15377 	sub	iyh			;FD 94
+   260F FD 95             15378 	sub	iyl			;FD 95
+   2611 DD AC             15379 	xor	ixh			;DD AC
+   2613 DD AD             15380 	xor	ixl			;DD AD
+   2615 FD AC             15381 	xor	iyh			;FD AC
+   2617 FD AD             15382 	xor	iyl			;FD AD
+                          15383 	;***********************************************************
+                          15384 	; c.f. 'tset' on Z280 (see above)
+                          15385 	; shift left (like SLA), but shift a '1' into bit 0 !!!
+   2619 CB 36             15386 	sll	(hl)			;CB 36
+   261B DD CB 55 36       15406 	sll	offsetc+x(ix)		;DD CB 55 36
+   261F FD CB 55 36       15407 	sll	offsetc+x(iy)		;FD CB 55 36
+   2623 DD CB 55 36       15408 	sll	(ix+offsetc+x)		;DD CB 55 36
+   2627 FD CB 55 36       15409 	sll	(iy+offsetc+x)		;FD CB 55 36
+   262B CB 37             15413 	sll	a			;CB 37
+   262D CB 30             15414 	sll	b			;CB 30
+   262F CB 31             15415 	sll	c			;CB 31
+   2631 CB 32             15416 	sll	d			;CB 32
+   2633 CB 33             15417 	sll	e			;CB 33
+   2635 CB 34             15418 	sll	h			;CB 34
+   2637 CB 35             15419 	sll	l			;CB 35
+                          15420 	;  sll a  ==  tset a	may be used to distinguish Z80 from Z280 with Areg = 0x41
+                          15421 	;***********************************************************
+                          15422 	; end of the Z80 undocumented section
+                          15423 	;***********************************************************
+                          15424 
+                          15425 	.globl	z
+   2639 3E 12             15426 	ld	a,# >0x1234
+   263B 3E 34             15427 	ld	a,# <0x1234
+   263D 3E 13             15428 	ld	a,# >(z+0x1234)
+   263F 3E 35             15429 	ld	a,# <(z+0x1234)
+                          15430 	
+                          15431 
+                          15432 	.end
+                          15433 
+ASxxxx Assembler V05.50  (2/14/17 Zilog Z80 / Z180 / HD64180 / Z280)    Page 1
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:33 2023
+Test of Z280 assembler
+Symbol Table
+
+    .__.$$$.       =   2710 L   |     .__.ABS.       =   0000 G
+    .__.CPU.       =   0087 L   |     .__.H$L.       =   0000 L
+    CXLR           =   0005     |     CXL_           =   0002 
+    CX_R           =   0000     |     C_LR           =   0008 
+    C_L_           =   0005     |     C__R           =   0004 
+    ODDBALL_SHIFT_ =   0000     |     _XLR           =   0000 
+    _XL_           =   0001     |     _X_R           =   0000 
+    adc01              **** GX  |     adc02              **** GX
+    adc03              **** GX  |     adc04              **** GX
+    adc05              **** GX  |     adc06              **** GX
+    adc07              **** GX  |     adc08              **** GX
+    adc09              **** GX  |     adc11              **** GX
+    adc12              **** GX  |     adc13              **** GX
+    adc14              **** GX  |     adc15              **** GX
+    adc16              **** GX  |     add01              **** GX
+    add02              **** GX  |     add03              **** GX
+    add04              **** GX  |     add05              **** GX
+    add06              **** GX  |     addw01             **** GX
+    addw02             **** GX  |     addw03             **** GX
+    and01              **** GX  |     and02              **** GX
+    and03              **** GX  |     and04              **** GX
+    and05              **** GX  |     and06              **** GX
+    call01             **** GX  |     call02             **** GX
+    call03             **** GX  |     call04             **** GX
+    call05             **** GX  |     call06             **** GX
+    cp01               **** GX  |     cp02               **** GX
+    cp03               **** GX  |     cp04               **** GX
+    cp05               **** GX  |     cp06               **** GX
+    cp07               **** GX  |     cp08               **** GX
+    cp09               **** GX  |     cpw01              **** GX
+    cpw02              **** GX  |     cpw03              **** GX
+    cpw04              **** GX  |     cpw05              **** GX
+    cpw06              **** GX  |     daddc          =   3344 G
+    daddr          =   3344     |     daddx              **** GX
+    dec01              **** GX  |     dec02              **** GX
+    dec03              **** GX  |     decb01             **** GX
+    decb02             **** GX  |     decb03             **** GX
+    decw01             **** GX  |     decw02             **** GX
+    decw03             **** GX  |     div01              **** GX
+    div02              **** GX  |     div03              **** GX
+    divu01             **** GX  |     divu02             **** GX
+    divu03             **** GX  |     divuw01            **** GX
+    divuw02            **** GX  |     divuw03            **** GX
+    divw01             **** GX  |     divw02             **** GX
+    divw03             **** GX  |     ex01               **** GX
+    ex02               **** GX  |     ex03               **** GX
+    in01               **** GX  |     in02               **** GX
+    in03               **** GX  |     inc01              **** GX
+    inc02              **** GX  |     inc03              **** GX
+    incw01             **** GX  |     incw02             **** GX
+    incw03             **** GX  |   0 jmp1               0DB5 R
+    jp01               **** GX  |     jp02               **** GX
+    jp03               **** GX  |     jr_1               **** GX
+    jr_2               **** GX  |     jr_3               **** GX
+    jr_4               **** GX  |     ld01               **** GX
+    ld02               **** GX  |     ld03               **** GX
+    ld04               **** GX  |     ld05               **** GX
+    ld06               **** GX  |     ld07               **** GX
+    ld08               **** GX  |     ld09               **** GX
+    lda01              **** GX  |     lda02              **** GX
+    lda03              **** GX  |     lda04              **** GX
+    lda05              **** GX  |     lda06              **** GX
+    lda07              **** GX  |     lda08              **** GX
+    lda09              **** GX  |     ldb01              **** GX
+    ldb02              **** GX  |     ldb03              **** GX
+    ldw01              **** GX  |     ldw02              **** GX
+    ldw03              **** GX  |     ldw04              **** GX
+    ldw05              **** GX  |     ldw06              **** GX
+    ldw07              **** GX  |     ldw08              **** GX
+    ldw09              **** GX  |     ldw11              **** GX
+    ldw12              **** GX  |     ldw13              **** GX
+    ldw14              **** GX  |     ldw15              **** GX
+    ldw16              **** GX  |     ldw17              **** GX
+    ldw18              **** GX  |     ldw19              **** GX
+    ldw21              **** GX  |     ldw22              **** GX
+    ldw23              **** GX  |   0 ljr1               0E21 R
+  0 ljr2               0E29 R   |     lxofc          =   1122 G
+    lxoff          =   1122     |     lxofx              **** GX
+    mult01             **** GX  |     mult02             **** GX
+    mult03             **** GX  |     mult04             **** GX
+    mult05             **** GX  |     mult06             **** GX
+    multu01            **** GX  |     multu02            **** GX
+    multu03            **** GX  |     multu04            **** GX
+    multu05            **** GX  |     multu06            **** GX
+    multuw01           **** GX  |     multuw02           **** GX
+    multuw03           **** GX  |     multw01            **** GX
+    multw02            **** GX  |     multw03            **** GX
+    n              =   0020     |     nc             =   0020 G
+    nn             =   0584     |     nnc            =   0584 G
+    nnx                **** GX  |     nx                 **** GX
+    offset         =   0055     |     offsetc        =   0055 G
+    offsetx            **** GX  |     or01               **** GX
+    or02               **** GX  |     or03               **** GX
+    or04               **** GX  |     or05               **** GX
+    or06               **** GX  |     out01              **** GX
+    out02              **** GX  |     out03              **** GX
+    pop01              **** GX  |     pop02              **** GX
+    pop03              **** GX  |     push01             **** GX
+    push02             **** GX  |     push03             **** GX
+    raofc          =   1234 G   |     raoff          =   1234 
+    raofx              **** GX  |     sbc01              **** GX
+    sbc02              **** GX  |     sbc03              **** GX
+    sbc04              **** GX  |     sbc05              **** GX
+    sbc06              **** GX  |     sub01              **** GX
+    sub02              **** GX  |     sub03              **** GX
+    sub04              **** GX  |     sub05              **** GX
+    sub06              **** GX  |     sub07              **** GX
+    sub08              **** GX  |     sub09              **** GX
+    subw01             **** GX  |     subw02             **** GX
+    subw03             **** GX  |     sxofc          =   0055 G
+    sxoff          =   0055     |     sxofx              **** GX
+    x                  **** GX  |   0 xadc01         =   0061 GR
+  0 xadc02         =   0065 GR  |   0 xadc03         =   0069 GR
+  0 xadc04         =   006D GR  |   0 xadc05         =   0071 GR
+  0 xadc06         =   0075 GR  |   0 xadc07         =   0079 GR
+  0 xadc08         =   007D GR  |   0 xadc09         =   0081 GR
+  0 xadc11         =   016A GR  |   0 xadc12         =   016E GR
+  0 xadc13         =   0172 GR  |   0 xadc14         =   01DB GR
+  0 xadc15         =   01DF GR  |   0 xadc16         =   01E3 GR
+  0 xadd01         =   02B4 GR  |   0 xadd02         =   02B8 GR
+  0 xadd03         =   02BC GR  |   0 xadd04         =   0331 GR
+  0 xadd05         =   0335 GR  |   0 xadd06         =   0339 GR
+  0 xaddw01        =   038E GR  |   0 xaddw02        =   0393 GR
+  0 xaddw03        =   0398 GR  |   0 xand01         =   046F GR
+  0 xand02         =   0473 GR  |   0 xand03         =   0477 GR
+  0 xand04         =   04A5 GR  |   0 xand05         =   04A9 GR
+  0 xand06         =   04AD GR  |   0 xcall01        =   05F6 GR
+  0 xcall02        =   05FA GR  |   0 xcall03        =   05FE GR
+  0 xcall04        =   0606 GR  |   0 xcall05        =   060A GR
+  0 xcall06        =   060E GR  |   0 xcp01          =   06A0 GR
+  0 xcp02          =   06A4 GR  |   0 xcp03          =   06A8 GR
+  0 xcp04          =   0707 GR  |   0 xcp05          =   070B GR
+  0 xcp06          =   070F GR  |   0 xcp07          =   082D GR
+  0 xcp08          =   0832 GR  |   0 xcp09          =   0837 GR
+  0 xcpw01         =   076B GR  |   0 xcpw02         =   0770 GR
+  0 xcpw03         =   0775 GR  |   0 xcpw04         =   07CC GR
+  0 xcpw05         =   07D1 GR  |   0 xcpw06         =   07D6 GR
+  0 xdec01         =   08BD GR  |   0 xdec02         =   08C1 GR
+  0 xdec03         =   08C5 GR  |   0 xdecb01        =   092F GR
+  0 xdecb02        =   0933 GR  |   0 xdecb03        =   0937 GR
+  0 xdecw01        =   097B GR  |   0 xdecw02        =   097F GR
+  0 xdecw03        =   0983 GR  |   0 xdiv01         =   0A12 GR
+  0 xdiv02         =   0A17 GR  |   0 xdiv03         =   0A1C GR
+  0 xdivu01        =   0AAC GR  |   0 xdivu02        =   0AB1 GR
+  0 xdivu03        =   0AB6 GR  |   0 xdivuw01       =   0B28 GR
+  0 xdivuw02       =   0B2D GR  |   0 xdivuw03       =   0B32 GR
+  0 xdivw01        =   0B9B GR  |   0 xdivw02        =   0BA0 GR
+  0 xdivw03        =   0BA5 GR  |   0 xex01          =   0C41 GR
+  0 xex02          =   0C46 GR  |   0 xex03          =   0C4B GR
+  0 xin01          =   0CE1 GR  |   0 xin02          =   0CE6 GR
+  0 xin03          =   0CEB GR  |   0 xinc01         =   0D6D GR
+  0 xinc02         =   0D71 GR  |   0 xinc03         =   0D75 GR
+  0 xincw01        =   0DA1 GR  |   0 xincw02        =   0DA5 GR
+  0 xincw03        =   0DA9 GR  |   0 xjp01          =   0E13 GR
+  0 xjp02          =   0E17 GR  |   0 xjp03          =   0E1B GR
+  0 xjr_1              0E2B GR  |   0 xjr_2              0E2D GR
+  0 xjr_3              0E2F GR  |   0 xjr_4              0E31 GR
+  0 xld01          =   104B GR  |   0 xld02          =   104F GR
+  0 xld03          =   1053 GR  |   0 xld04          =   10B7 GR
+  0 xld05          =   10BB GR  |   0 xld06          =   10BF GR
+  0 xld07          =   1138 GR  |   0 xld08          =   113D GR
+  0 xld09          =   1142 GR  |   0 xlda01         =   132F GR
+  0 xlda02         =   1334 GR  |   0 xlda03         =   1339 GR
+  0 xlda04         =   1348 GR  |   0 xlda05         =   134D GR
+  0 xlda06         =   1352 GR  |   0 xlda07         =   1360 GR
+  0 xlda08         =   1364 GR  |   0 xlda09         =   1368 GR
+  0 xldb01         =   11E0 GR  |   0 xldb02         =   11E5 GR
+  0 xldb03         =   11EA GR  |   0 xldw01         =   143A GR
+  0 xldw02         =   1440 GR  |   0 xldw03         =   1446 GR
+  0 xldw04         =   1566 GR  |   0 xldw05         =   156A GR
+  0 xldw06         =   156E GR  |   0 xldw07         =   1577 GR
+  0 xldw08         =   157C GR  |   0 xldw09         =   1581 GR
+  0 xldw11         =   158B GR  |   0 xldw12         =   1590 GR
+  0 xldw13         =   1595 GR  |   0 xldw14         =   16AF GR
+  0 xldw15         =   16B3 GR  |   0 xldw16         =   16B7 GR
+  0 xldw17         =   16C0 GR  |   0 xldw18         =   16C5 GR
+  0 xldw19         =   16CA GR  |   0 xldw21         =   16D4 GR
+  0 xldw22         =   16D9 GR  |   0 xldw23         =   16DE GR
+  0 xmult01        =   18CF GR  |   0 xmult02        =   18D4 GR
+  0 xmult03        =   18D9 GR  |   0 xmult04        =   1969 GR
+  0 xmult05        =   196E GR  |   0 xmult06        =   1973 GR
+  0 xmultu01       =   1A08 GR  |   0 xmultu02       =   1A0D GR
+  0 xmultu03       =   1A12 GR  |   0 xmultu04       =   1AA7 GR
+  0 xmultu05       =   1AAC GR  |   0 xmultu06       =   1AB1 GR
+  0 xmultuw01      =   1B11 GR  |   0 xmultuw02      =   1B16 GR
+  0 xmultuw03      =   1B1B GR  |   0 xmultw01       =   1B77 GR
+  0 xmultw02       =   1B7C GR  |   0 xmultw03       =   1B81 GR
+  0 xor01          =   1BE3 GR  |   0 xor02          =   1BE7 GR
+  0 xor03          =   1BEB GR  |   0 xor04          =   1C5D GR
+  0 xor05          =   1C61 GR  |   0 xor06          =   1C65 GR
+  0 xout01         =   1CE9 GR  |   0 xout02         =   1CEE GR
+  0 xout03         =   1CF3 GR  |   0 xpop01         =   1D27 GR
+  0 xpop02         =   1D2B GR  |   0 xpop03         =   1D2F GR
+  0 xpush01        =   1D49 GR  |   0 xpush02        =   1D4D GR
+  0 xpush03        =   1D51 GR  |   0 xsbc01         =   1F8B GR
+  0 xsbc02         =   1F8F GR  |   0 xsbc03         =   1F93 GR
+  0 xsbc04         =   1FFA GR  |   0 xsbc05         =   1FFE GR
+  0 xsbc06         =   2002 GR  |   0 xsub01         =   221E GR
+  0 xsub02         =   2222 GR  |   0 xsub03         =   2226 GR
+  0 xsub04         =   228D GR  |   0 xsub05         =   2291 GR
+  0 xsub06         =   2295 GR  |   0 xsub07         =   22E3 GR
+  0 xsub08         =   22E8 GR  |   0 xsub09         =   22ED GR
+  0 xsubw01        =   2352 GR  |   0 xsubw02        =   2357 GR
+  0 xsubw03        =   235C GR  |   0 xzor01         =   2410 GR
+  0 xzor02         =   2414 GR  |   0 xzor03         =   2418 GR
+  0 xzor04         =   247F GR  |   0 xzor05         =   2483 GR
+  0 xzor06         =   2487 GR  |     z                  **** GX
+    zor01              **** GX  |     zor02              **** GX
+    zor03              **** GX  |     zor04              **** GX
+    zor05              **** GX  |     zor06              **** GX
+
+ASxxxx Assembler V05.50  (2/14/17 Zilog Z80 / Z180 / HD64180 / Z280)    Page 2
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:33 2023
+Test of Z280 assembler
+Area Table
+
+[_CSEG]
+   0 _CODE            size 2641   flags C180
+[_DSEG]
+   1 _DATA            size    0   flags C0C0
+

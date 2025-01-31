@@ -1,7 +1,7 @@
 /* lkrloc3.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -102,7 +102,7 @@ int c;
 		break;
 
 	default:
-		fprintf(stderr, "Undefined Relocation Operation\n");
+		fprintf(stderr, "?ASlink-Error-Undefined Relocation Operation\n");
 		lkerr++;
 		break;
 
@@ -130,6 +130,8 @@ int c;
  *			+----+----+----+----+----+
  *		  rtflag|  1 |  1 |  1 |  1 |  1 |
  *			+----+----+----+----+----+
+ *		  rterr |  0 |  0 |  x |  x |  x |
+ *			+----+----+----+----+----+
  *
  * 	The  T  line contains the assembled code output by the assem-
  *	bler with xx xx being the offset address from the  current  area
@@ -141,6 +143,7 @@ int c;
  *
  *	global variables:
  *		int	rtcnt		number of values evaluated
+ *		int	rterr[]		array of evaluation errors
  *		int	rtflg[]		array of evaluation flags
  *		int	rtval[]		array of evaluation values
  *
@@ -220,8 +223,8 @@ relt3()
  *		a_uint	relv		relocation final value
  *		int	rindex		symbol / area index
  *		a_uint	rtbase		base code address
+ *		a_uint	rtbofst		rtbase code offset
  *		a_uint	rtofst		rtval[] index offset
- *		a_uint	rtpofst		rtval[] index offset (initial)
  *		int	rtp		index into T data
  *		sym	**s		pointer to array of symbol pointers
  *		int	v		temporary
@@ -270,7 +273,7 @@ relr3()
 	int mode;
 	a_uint reli, relv;
 	int aindex, rindex, rtp, error, i;
-	a_uint rtbase, rtofst, rtpofst, paga, pags;
+	a_uint rtbase, rtofst, rtbofst, paga, pags;
 	a_uint m, v;
 	struct areax **a;
 	struct sym **s;
@@ -285,7 +288,7 @@ relr3()
 	 * Verify Area Mode
 	 */
 	if (eval() != R3_AREA || eval()) {
-		fprintf(stderr, "R input error\n");
+		fprintf(stderr, "?ASlink-Error-R input error\n");
 		lkerr++;
 		return;
 	}
@@ -295,7 +298,7 @@ relr3()
 	 */
 	aindex = (int) evword();
 	if (aindex >= hp->h_narea) {
-		fprintf(stderr, "R area error\n");
+		fprintf(stderr, "?ASlink-Error-R area error\n");
 		lkerr++;
 		return;
 	}
@@ -338,7 +341,6 @@ relr3()
 	while (more()) {
 		error = 0;
 		relv = 0;
-		rtpofst = rtofst;
 		mode = (int) eval();
 		rtp = (int) eval();
 		rindex = (int) evword();
@@ -348,14 +350,14 @@ relr3()
 		 */
 		if (mode & R3_SYM) {
 			if (rindex >= hp->h_nsym) {
-				fprintf(stderr, "R symbol error\n");
+				fprintf(stderr, "?ASlink-Error-R symbol error\n");
 				lkerr++;
 				return;
 			}
 			reli = symval(s[rindex]);
 		} else {
 			if (rindex >= hp->h_narea) {
-				fprintf(stderr, "R area error\n");
+				fprintf(stderr, "?ASlink-Error-R area error\n");
 				lkerr++;
 				return;
 			}
@@ -548,9 +550,15 @@ relr3()
 		 * Error Processing
 		 */
 		if (error) {
+			for (i=a_bytes,rtbofst=0; i<rtp; i++) {
+				if (rtflg[i]) {
+					rtbofst += 1;
+				}
+			}
+
 			rerr.aindex = aindex;
 			rerr.mode = mode;
-			rerr.rtbase = rtbase + rtp - rtpofst;
+			rerr.rtbase = rtbase + (rtbofst / pcb);
 			rerr.rindex = rindex;
 			rerr.rval = relv - reli;
 			relerr3(errmsg3[error]);
@@ -663,7 +671,7 @@ relp3()
 	 * Verify Area Mode
 	 */
 	if (eval() != R3_AREA || eval()) {
-		fprintf(stderr, "P input error\n");
+		fprintf(stderr, "?ASlink-Error-P input error\n");
 		lkerr++;
 	}
 
@@ -672,7 +680,7 @@ relp3()
 	 */
 	aindex = (int) evword();
 	if (aindex >= hp->h_narea) {
-		fprintf(stderr, "P area error\n");
+		fprintf(stderr, "?ASlink-Error-P area error\n");
 		lkerr++;
 		return;
 	}
@@ -690,14 +698,14 @@ relp3()
 		 */
 		if (mode & R3_SYM) {
 			if (rindex >= hp->h_nsym) {
-				fprintf(stderr, "P symbol error\n");
+				fprintf(stderr, "?ASlink-Error-P symbol error\n");
 				lkerr++;
 				return;
 			}
 			relv = symval(s[rindex]);
 		} else {
 			if (rindex >= hp->h_narea) {
-				fprintf(stderr, "P area error\n");
+				fprintf(stderr, "?ASlink-Error-P area error\n");
 				lkerr++;
 				return;
 			}
@@ -711,7 +719,7 @@ relp3()
 	 */
 	aindex = (int) adb_xb(0, a_bytes);
 	if (aindex >= hp->h_narea) {
-		fprintf(stderr, "P area error\n");
+		fprintf(stderr, "?ASlink-Error-P area error\n");
 		lkerr++;
 		return;
 	}

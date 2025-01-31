@@ -473,7 +473,7 @@
 	jr	z,jr2adl	; 28 06
 	jr	nc,jr3adl	; 30 04
 	jr	c,jr4adl	; 38 02
-	jr	jr5adl		; 18 0
+	jr	jr5adl		; 18 00
 
 	jr1adl:	jr2adl: jr3adl: jr4adl: jr5adl:
 

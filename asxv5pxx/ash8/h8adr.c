@@ -1,7 +1,7 @@
 /* h8adr.c */
 
 /*
- *  Copyright (C) 1994-2014  Alan R. Baldwin
+ *  Copyright (C) 1994-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,6 +32,18 @@ addr(esp)
 struct expr *esp;
 {
 	int c;
+	char *p;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	aindx = 0;
 	if ((c = getnb()) == '#') {
@@ -51,8 +63,8 @@ struct expr *esp;
 	if (c == '@') {
 		if ((c = getnb()) == '@') {
 			addr1(esp);
-			if (esp->e_mode != S_EXT) {
-				aerr();
+			if ((esp->e_mode != S_EXT) && (esp->e_mode != S_DIR)) {
+				xerr('a', "An address is required.");
 			}
 			esp->e_mode = S_INDM;
 		} else
@@ -60,22 +72,22 @@ struct expr *esp;
 			expr(esp, 0);
 			if ((c = getnb()) == ',') {
 				if (!admode(wordreg)) {
-					aerr();
+					xerr('a', "Valid word registers are R0 -> R7, and SP.");
 				}
 			} else {
 				unget(c);
-				aerr();
+				xerr('a', "Second argument required.");
 			}
 			esp->e_mode = S_INDO;
 			if (getnb() != ']') {
-				aerr();
+				xerr('a', "Missing ']'.");
 			}
 		} else {
 			unget(c);
 			addr1(esp);
 			switch(esp->e_mode) {
 			case S_BREG:	/* Register Indirect */
-				aerr();
+				xerr('a', "Byte registers are invalid.");
 				aindx &= ~0x0008;
 				esp->e_mode = S_INDR;
 				break;
@@ -103,25 +115,19 @@ struct expr *esp;
 		if ((c = getnb()) == '@') {
 			if ((c = getnb()) == '@') {
 				addr1(esp);
-				if (esp->e_mode != S_EXT) {
-					aerr();
-				}
 				esp->e_mode = S_INDM;
 			} else {
 				unget(c);
 				addr1(esp);
-				if (esp->e_mode != S_EXT) {
-					aerr();
-				}
 				esp->e_mode = S_DIR;
 			}
 		} else {
 			unget(c);
 			addr1(esp);
-			if (esp->e_mode != S_EXT) {
-				aerr();
-			}
 			esp->e_mode = S_DIR;
+		}
+		if ((esp->e_mode != S_EXT) && (esp->e_mode != S_DIR)) {
+			xerr('a', "An address is required.");
 		}
 	} else {
 		unget(c);
@@ -134,11 +140,11 @@ struct expr *esp;
 			break;
 
 		case S_INDI:	/* Post-Increment Register Indirect */
-			aerr();
+			xerr('a', "Rn+ is invalid.");
 			break;
 
 		case S_INDD:	/* Pre-Decrement Register Indirect */
-			aerr();
+			xerr('a', "-Rn is invalid.");
 			break;
 
 		case S_CREG:	/* CCR Register */
@@ -159,28 +165,55 @@ int
 addr1(esp)
 struct expr *esp;
 {
-	if (admode(bytereg)) {
-		esp->e_mode = S_BREG;
-	} else
-	if (admode(wordreg)) {
-		esp->e_mode = S_WREG;
-	} else
 	if (admode(autoinc)) {
 		esp->e_mode = S_INDI;
 	} else
 	if (admode(autodec)) {
 		esp->e_mode = S_INDD;
 	} else
+	if (admode(bytereg)) {
+		esp->e_mode = S_BREG;
+	} else
+	if (admode(wordreg)) {
+		esp->e_mode = S_WREG;
+	} else
 	if (admode(ccr_reg)) {
 		esp->e_mode = S_CREG;
 	} else {
 		expr(esp, 0);
 		esp->e_mode = S_EXT;
+		if ((!esp->e_flag)
+		    && (esp->e_base.e_ap == NULL)
+		    && ((esp->e_addr & 0xFF00) == 0xFF00)) {
+			esp->e_mode = S_DIR;
+		}
+		if ((!esp->e_flag)
+		    && (zpg != NULL)
+		    && (esp->e_base.e_ap == zpg)) {
+			esp->e_mode = S_DIR;
+		}
 	}
 	return (esp->e_mode);
 }
 
 	
+/*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
+
 /*
  * Enter admode() to search a specific addressing mode table
  * for a match. Return (1) for a match, (0) for no match.
@@ -231,24 +264,10 @@ char *str;
 	}
 
 	if (!*str)
-		if (any(*ptr," \t\n,];")) {
+		if (!(ctype[*ptr & 0x007F] & LTR16)) {
 			ip = ptr;
 			return(1);
 		}
-	return(0);
-}
-
-/*
- *      any --- does str contain c?
- */
-int
-any(c,str)
-int c;
-char *str;
-{
-	while (*str)
-		if(*str++ == c)
-			return(1);
 	return(0);
 }
 

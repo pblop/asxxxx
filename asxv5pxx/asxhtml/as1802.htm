@@ -169,45 +169,45 @@ CDP1802 COSMAC Microprocessor Instruction Set Summary
         |                                                              |
         |                    _________    _________                    |
         |                  _|         \__/         |_                  |
-        |       --> CLOCK |_|1                   40|_| Vdd             |
+        |       --&gt CLOCK |_|1                   40|_| Vdd             |
         |            ____  _|                      |_  ____            |
-        |        --> WAIT |_|2                   39|_| XTAL -->        |
+        |        --&gt WAIT |_|2                   39|_| XTAL --&gt        |
         |           _____  _|                      |_  ______          |
-        |       --> CLEAR |_|3                   38|_| DMA IN <--      |
+        |       --&gt CLEAR |_|3                   38|_| DMA IN &lt--      |
         |                  _|                      |_  _______         |
-        |           <-- Q |_|4                   37|_| DMA OUT <--     |
+        |           &lt-- Q |_|4                   37|_| DMA OUT &lt--     |
         |                  _|                      |_  _________       |
-        |         <-- SC1 |_|5                   36|_| INTERRUPT <--   |
+        |         &lt-- SC1 |_|5                   36|_| INTERRUPT &lt--   |
         |                  _|                      |_  ___             |
-        |         <-- SC0 |_|6                   35|_| MWR <--         |
+        |         &lt-- SC0 |_|6                   35|_| MWR &lt--         |
         |             ___  _|                      |_                  |
-        |         <-- MRD |_|7                   34|_| TPA -->         |
+        |         &lt-- MRD |_|7                   34|_| TPA --&gt         |
         |                  _|                      |_                  |
-        |      <--> BUS 7 |_|8                   33|_| TPB -->         |
+        |      &lt--&gt BUS 7 |_|8                   33|_| TPB --&gt         |
         |                  _|                      |_                  |
-        |      <--> BUS 6 |_|9                   32|_| MA7 -->         |
+        |      &lt--&gt BUS 6 |_|9                   32|_| MA7 --&gt         |
         |                  _|                      |_                  |
-        |      <--> BUS 5 |_|10       1802       31|_| MA6 -->         |
+        |      &lt--&gt BUS 5 |_|10       1802       31|_| MA6 --&gt         |
         |                  _|                      |_                  |
-        |      <--> BUS 4 |_|11                  30|_| MA5 -->         |
+        |      &lt--&gt BUS 4 |_|11                  30|_| MA5 --&gt         |
         |                  _|                      |_                  |
-        |      <--> BUS 3 |_|12                  29|_| MA4 -->         |
+        |      &lt--&gt BUS 3 |_|12                  29|_| MA4 --&gt         |
         |                  _|                      |_                  |
-        |      <--> BUS 2 |_|13                  28|_| MA3 -->         |
+        |      &lt--&gt BUS 2 |_|13                  28|_| MA3 --&gt         |
         |                  _|                      |_                  |
-        |      <--> BUS 1 |_|14                  27|_| MA2 -->         |
+        |      &lt--&gt BUS 1 |_|14                  27|_| MA2 --&gt         |
         |                  _|                      |_                  |
-        |      <--> BUS 0 |_|15                  26|_| MA1 -->         |
+        |      &lt--&gt BUS 0 |_|15                  26|_| MA1 --&gt         |
         |                  _|                      |_                  |
-        |             Vcc |_|16                  25|_| MA0 -->         |
+        |             Vcc |_|16                  25|_| MA0 --&gt         |
         |                  _|                      |_  ___             |
-        |          <-- N2 |_|17                  24|_| EF1 <--         |
+        |          &lt-- N2 |_|17                  24|_| EF1 &lt--         |
         |                  _|                      |_  ___             |
-        |          <-- N1 |_|18                  23|_| EF2 <--         |
+        |          &lt-- N1 |_|18                  23|_| EF2 &lt--         |
         |                  _|                      |_  ___             |
-        |          <-- N0 |_|19                  22|_| EF3 <--         |
+        |          &lt-- N0 |_|19                  22|_| EF3 &lt--         |
         |                  _|                      |_  ___             |
-        |             Vss |_|20                  21|_| EF4 <--         |
+        |             Vss |_|20                  21|_| EF4 &lt--         |
         |                   |______________________|                   |
         |                                                              |
         |                                                              |
@@ -303,10 +303,10 @@ CDP1802 COSMAC Microprocessor Instruction Set Summary
         |SEP  r|DN|-|Set P                       |P=N                  |
         |SEQ   |7B|-|Set Q                       |Q=1                  |
         |SEX  r|EN|-|Set X                       |X=N                  |
-        |SHL   |FE|*|Shift Left                  |{DF,D}={DF,D,0}<-    |
-        |SHLC  |7E|*|Shift Left with Carry       |{DF,D}={DF,D}<-      |
-        |SHR   |F6|*|Shift Right                 |{D,DF}=->{0,D,DF}    |
-        |SHRC  |76|*|Shift Right with Carry      |{D,DF}=->{D,DF}      |
+        |SHL   |FE|*|Shift Left                  |{DF,D}={DF,D,0}&lt-    |
+        |SHLC  |7E|*|Shift Left with Carry       |{DF,D}={DF,D}&lt-      |
+        |SHR   |F6|*|Shift Right                 |{D,DF}=-&gt{0,D,DF}    |
+        |SHRC  |76|*|Shift Right with Carry      |{D,DF}=-&gt{D,DF}      |
         |SKP   |38|-|Short Skip                  |See NBR              |
         |SMB   |77|*|Subtract Memory with Borrow |{DF,D}=D-mx-{~DF}    |
         |SMBI i|7F|*|Subtract Mem with Borrow Imm|{DF,D}=D-mp-~DF,p=p+1|
@@ -386,13 +386,13 @@ CDP1802 COSMAC Microprocessor Instruction Set Summary
         | ~         |Logical NOT                                       |
         | v         |Logical inclusive OR                              |
         | .         |Logical exclusive OR                              |
-        | <-        |Rotate left                                       |
-        | ->        |Rotate right                                      |
+        | &lt-        |Rotate left                                       |
+        | -&gt        |Rotate right                                      |
         | { }       |Combination of operands                           |
         | ?         |Hexadecimal digit (0-F)                           |
-        | -->       |Input pin                                         |
-        | <--       |Output pin                                        |
-        | <-->      |Input/output pin                                  |
+        | --&gt       |Input pin                                         |
+        | &lt--       |Output pin                                        |
+        | &lt--&gt      |Input/output pin                                  |
         ----------------------------------------------------------------
 
 </PRE></B></H4>
@@ -410,6 +410,6 @@ CDP1802 COSMAC Microprocessor Instruction Set Summary
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

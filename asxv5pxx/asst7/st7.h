@@ -1,7 +1,7 @@
 /* ST7.h */
 
 /*
- *  Copyright (C) 2010-2014  Alan R. Baldwin
+ *  Copyright (C) 2010-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -129,10 +129,8 @@ extern	int		srch(char *str);
 
 	/* ST7mch.c */
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
-extern	VOID		opcy_aerr(void);
-extern	VOID		valu_aerr(struct expr *e, int n);
 extern	int		ls_mode(struct expr *e);
 extern	int		setbit(int b);
 extern	int		getbit(void);
@@ -151,8 +149,6 @@ extern	int		srch();
 extern	VOID		machine();
 extern	int		mchpcr();
 extern	VOID		minit();
-extern	VOID		opcy_aerr();
-extern	VOID		valu_aerr();
 extern	int		ls_mode();
 extern	int		setbit();
 extern	int		getbit();

@@ -1,7 +1,7 @@
 /* m08mch.c */
 
 /*
- *  Copyright (C) 1993-2014  Alan R. Baldwin
+ *  Copyright (C) 1993-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "asxxxx.h"
 #include "m6808.h"
 
-char	*cpu	= "Motorola 68HC(S)08";
+char	*cpu	= "Motorola 68HC(S)08 / 68(HC)05";
 char	*dsft	= "asm";
 
 /*
@@ -35,9 +35,8 @@ char	*dsft	= "asm";
 #define	OPCY_ERR	((char) (0xFE))
 #define	OPCY_CPU	((char)	(0xFD))
 
-
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	UN	((char) (OPCY_NONE | 0x00))
 #define	P2	((char) (OPCY_NONE | 0x01))
@@ -197,8 +196,8 @@ static char *s08Page[2] = {
 };
 
 
-static int mchtyp;
-
+int mchtyp;
+struct area *zpg;
 
 /*
  * Process a machine op.
@@ -209,10 +208,15 @@ struct mne *mp;
 {
 	int op, t1, t2, type;
 	struct expr e1, e2, e3;
-	a_uint espv;
-	struct area *espa;
+	struct sym *sp;
 	char id[NCPS];
-	int c, v1;
+	int c, v1, v2, v3;
+
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
 
 	clrexpr(&e1);
 	clrexpr(&e2);
@@ -223,32 +227,41 @@ struct mne *mp;
 
 	case S_SDP:
 		opcycles = OPCY_SDP;
-		espa = NULL;
+		zpg = dot.s_area;
 		if (more()) {
 			expr(&e1, 0);
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 				if (e1.e_addr) {
-					err('b');
+					e1.e_addr = 0;
+					xerr('b', "Only Page 0 Allowed.");
 				}
 			}
 			if ((c = getnb()) == ',') {
 				getid(id, -1);
-				espa = alookup(id);
-				if (espa == NULL) {
-					err('u');
+				zpg = alookup(id);
+				if (zpg == NULL) {
+					zpg = dot.s_area;
+					xerr('u', "Undefined Area.");
 				}
 			} else {
 				unget(c);
 			}
 		}
-		if (espa) {
-			outdp(espa, &e1, 0);
-		} else {
-			outdp(dot.s_area, &e1, 0);
-		}
+		outdp(zpg, &e1, 0);
 		lmode = SLIST;
 		break;
 
+	case S_PGD:
+		do {
+			getid(id, -1);
+			sp = lookup(id);
+			sp->s_flag &= ~S_LCL;
+			sp->s_flag |=  S_GBL;
+			sp->s_area = (zpg != NULL) ? zpg : dot.s_area;
+ 		} while (comma(0));
+		lmode = SLIST;
+		break;
+ 
 	case S_CPU:
 		opcycles = OPCY_CPU;
 		mchtyp = op;
@@ -259,13 +272,13 @@ struct mne *mp;
 	case S_INH8S:
 		if (mchtyp != X_HCS08) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "A 68HCS08 Instruction.");
 			break;
 		} /* Fall Through */
 	case S_INH8:
 		if ((mchtyp != X_HC08) && (mchtyp != X_HCS08)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "A 68HC(S)08 Instruction.");
 			break;
 		} /* Fall Through */
 	case S_INH:
@@ -275,16 +288,15 @@ struct mne *mp;
 	case S_BRA8:
 		if ((mchtyp != X_HC08) && (mchtyp != X_HCS08)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "A 68HC(S)08 Instruction.");
 			break;
 		} /* Fall Through */
 	case S_BRA:
 		expr(&e1, 0);
 		outab(op);
-		if (mchpcr(&e1)) {
-			v1 = (int) (e1.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e1, &v1, 1)) {
 			if ((v1 < -128) || (v1 > 127))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outab(v1);
 		} else {
 			outrb(&e1, R_PCR);
@@ -325,7 +337,7 @@ struct mne *mp;
 				break;
 			}
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_TYP2:
@@ -365,7 +377,7 @@ struct mne *mp;
 		if (t1 == S_SP1) {
 			if ((mchtyp == X_HC08) || (mchtyp == X_HCS08)) {
 				if (op == 0xAC || op == 0xAD)
-					aerr();
+					xerr('a', "Invalid 68HC(S)08 JMP/JSR Addressing Mode.");
 				outab(0x9e);
 				outab(op+0x40);
 				outrb(&e1, R_USGN);
@@ -375,47 +387,59 @@ struct mne *mp;
 		if (t1 == S_SP2) {
 			if ((mchtyp == X_HC08) || (mchtyp == X_HCS08)) {
 				if (op == 0xAC || op == 0xAD)
-					aerr();
+					xerr('a', "Invalid 68HC(S)08 JMP/JSR Addressing Mode.");
 				outab(0x9e);
 				outab(op+0x30);
 				outrw(&e1, 0);
 				break;
 			}
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_TYP3:
 		t1 = addr(&e1);
-		espv = e1.e_addr;
-		if (t1 != S_IMMED || espv & ~0x07)
-			aerr();
+		if (t1 != S_IMMED)
+			xerr('a', "Require Immediate(#) For First Argument.");
 		comma(1);
 		t2 = addr(&e2);
 		if (t2 != S_DIR)
-			aerr();
-		outab(op + 2*(espv&0x07));
+			xerr('a', "Require Direct Mode For Second Argument.");
+		if (is_abs(&e1)) {
+			v1 = (int) e1.e_addr;
+			if (v1 & ~0x07)
+				xerr('a', "Valid Bit Values Are 0 -> 7.");
+			outab(op | ((v1 & 0x07) << 1));
+		} else {
+			outrbm(&e1, R_MBRO | R_3BIT, op);
+		}
 		outrb(&e2, R_PAG0);
 		break;
 
+
 	case S_TYP4:
 		t1 = addr(&e1);
-		espv = e1.e_addr;
-		if (t1 != S_IMMED || espv & ~0x07)
-			aerr();
+		if (t1 != S_IMMED)
+			xerr('a', "Require Immediate(#) For First Argument.");
 		comma(1);
 		t2 = addr(&e2);
 		if (t2 != S_DIR)
-			aerr();
+			xerr('a', "Require Direct Mode For Second Argument.");
 		comma(1);
 		expr(&e3, 0);
-		outab(op + 2*(espv&0x07));
+		if (is_abs(&e1)) {
+			v1 = (int) e1.e_addr;
+			if (v1 & ~0x07)
+				xerr('a', "Valid Bit Values Are 0 -> 7.");
+			outab(op | ((v1 & 0x07) << 1));
+		} else {
+			outrbm(&e1, R_MBRO | R_3BIT, op);
+		}
 		outrb(&e2, R_PAG0);
-		if (mchpcr(&e3)) {
-			v1 = (int) (e3.e_addr - dot.s_addr - 1);
-			if ((v1 < -128) || (v1 > 127))
-				aerr();
-			outab(v1);
+		if (mchpcr(&e3, &v3, 1)) {
+			if ((v3 < -128) || (v3 > 127))
+				xerr('a', "Branching Range Exceeded.");
+			outab(v3);
 		} else {
 			outrb(&e3, R_PCR);
 		}
@@ -426,7 +450,7 @@ struct mne *mp;
 	case S_TYPAI:
 		if ((mchtyp != X_HC08) && (mchtyp != X_HCS08)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "A 68HC(S)08 Instruction.");
 			break;
 		}
 		t1 = addr(&e1);
@@ -435,20 +459,20 @@ struct mne *mp;
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 				v1 = (int) e1.e_addr;
 				if ((v1 < -128) || (v1 > 127))
-					aerr();
+					xerr('a', "Branching Range Exceeded.");
 				outab(v1);
 			} else {
 				outrb(&e1, 0);
 			}
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_TYPHX:
 		if ((mchtyp != X_HC08) && (mchtyp != X_HCS08)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "A 68HC(S)08 Instruction.");
 			break;
 		}
 		t1 = addr(&e1);
@@ -508,13 +532,13 @@ struct mne *mp;
 			outrb(&e1, R_PAG0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_CBEQ:
 		if ((mchtyp != X_HC08) && (mchtyp != X_HCS08)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "A 68HC(S)08 Instruction.");
 			break;
 		}
 		t1 = addr(&e1);
@@ -540,14 +564,13 @@ struct mne *mp;
 			outab(op+0x30);
 			outrb(&e1, R_USGN);
 		} else {
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
-		if (mchpcr(&e2)) {
-			v1 = (int) (e2.e_addr - dot.s_addr - 1);
-			if ((v1 < -128) || (v1 > 127))
-				aerr();
-			outab(v1);
+		if (mchpcr(&e2, &v2, 1)) {
+			if ((v2 < -128) || (v2 > 127))
+				xerr('a', "Branching Range Exceeded.");
+			outab(v2);
 		} else {
 			outrb(&e2, R_PCR);
 		}
@@ -558,21 +581,20 @@ struct mne *mp;
 	case S_CQAX:
 		if ((mchtyp != X_HC08) && (mchtyp != X_HCS08)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "A 68HC(S)08 Instruction.");
 			break;
 		}
 		t1 = addr(&e1);
 		if (t1 != S_IMMED)
-			aerr();
+			xerr('a', "Immediate(#) First Argument Required.");
 		comma(1);
 		expr(&e2, 0);
 		outab(op);
 		outrb(&e1, 0);
-		if (mchpcr(&e2)) {
-			v1 = (int) (e2.e_addr - dot.s_addr - 1);
-			if ((v1 < -128) || (v1 > 127))
-				aerr();
-			outab(v1);
+		if (mchpcr(&e2, &v2, 1)) {
+			if ((v2 < -128) || (v2 > 127))
+				xerr('a', "Branching Range Exceeded.");
+			outab(v2);
 		} else {
 			outrb(&e2, R_PCR);
 		}
@@ -583,7 +605,7 @@ struct mne *mp;
 	case S_DBNZ:
 		if ((mchtyp != X_HC08) && (mchtyp != X_HCS08)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "A 68HC(S)08 Instruction.");
 			break;
 		}
 		t1 = addr(&e1);
@@ -605,14 +627,13 @@ struct mne *mp;
 			outab(op+0x30);
 			outrb(&e1, R_USGN);
 		} else {
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
-		if (mchpcr(&e2)) {
-			v1 = (int) (e2.e_addr - dot.s_addr - 1);
-			if ((v1 < -128) || (v1 > 127))
-				aerr();
-			outab(v1);
+		if (mchpcr(&e2, &v2, 1)) {
+			if ((v2 < -128) || (v2 > 127))
+				xerr('a', "Branching Range Exceeded.");
+			outab(v2);
 		} else {
 			outrb(&e2, R_PCR);
 		}
@@ -623,15 +644,14 @@ struct mne *mp;
 	case S_DZAX:
 		if ((mchtyp != X_HC08) && (mchtyp != X_HCS08)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "A 68HC(S)08 Instruction.");
 			break;
 		}
 		expr(&e1, 0);
 		outab(op);
-		if (mchpcr(&e1)) {
-			v1 = (int) (e1.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e1, &v1, 1)) {
 			if ((v1 < -128) || (v1 > 127))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outab(v1);
 		} else {
 			outrb(&e1, R_PCR);
@@ -643,7 +663,7 @@ struct mne *mp;
 	case S_MOV:
 		if ((mchtyp != X_HC08) && (mchtyp != X_HCS08)) {
 			opcycles = OPCY_ERR;
-			err('o');
+			xerr('o', "A 68HC(S)08 Instruction.");
 			break;
 		}
 		t1 = addr(&e1);
@@ -677,12 +697,13 @@ struct mne *mp;
 				break;
 			}
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	default:
 		opcycles = OPCY_ERR;
 		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 
@@ -708,16 +729,39 @@ struct mne *mp;
 			break;
 		}
 	}
+ 	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - 1);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - 1);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {
@@ -746,8 +790,11 @@ minit()
 	 */
 	hilo = 1;
 
-	if (pass == 0) {
-		mchtyp = X_HC08;
-		sym[2].s_addr = X_HC08;
-	}
+	/*
+	 * Zero Page
+	 */
+	zpg = NULL;
+
+	mchtyp = X_HC08;
+	sym[2].s_addr = X_HC08;
 }

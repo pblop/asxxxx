@@ -1,0 +1,15 @@
+82569
+R:\ASXV5PXX\ASXMAK\SYMANTEC\BUILD\asxscn.prj
+asxscn.OPN
+novcs
+asxscn.DEF
+6
+1150362660
+0 0 0 0 0 "asxscn.DEF"
+0 0 0 0 0 "..\..\..\ASXXMISC\asxxscan.c"
+0 -1 0 0 0 "..\..\..\asxxsrc\asxxxx.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\stdlib.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\stdio.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\setjmp.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\string.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\time.h"

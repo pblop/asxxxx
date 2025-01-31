@@ -1,0 +1,8 @@
+..\..\..\as68cf\m68cfcyc.c(3030): Error! E1011: Symbol 'F_SNCS' has not been declared
+..\..\..\as68cf\m68cfcyc.c(3030): Error! E1054: Expression must be constant
+..\..\..\as68cf\m68cfcyc.c(3048): Error! E1011: Symbol 'F_MVCR' has not been declared
+..\..\..\as68cf\m68cfcyc.c(3048): Error! E1054: Expression must be constant
+..\..\..\as68cf\m68cfcyc.c(3074): Error! E1011: Symbol 'F_DCC' has not been declared
+..\..\..\as68cf\m68cfcyc.c(3074): Error! E1054: Expression must be constant
+..\..\..\as68cf\m68cfcyc.c(3083): Error! E1011: Symbol 'F_TCC' has not been declared
+..\..\..\as68cf\m68cfcyc.c(3083): Error! E1054: Expression must be constant

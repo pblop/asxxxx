@@ -72,7 +72,11 @@ The assemblers provide the following features:
    ASxxxx assembles one or more source files into a single relo-
 catable ascii object file.  The output of the ASxxxx  assemblers
 consists of an ascii relocatable object file(*.rel), an assembly
-listing file(*.lst), and a symbol file(*.sym).  
+listing file(*.lst), and a symbol file(*.sym) each controlled by
+an  assembler  option.  If both the object and listing files are
+specified then a listing to relocated listing hint file  (*.hlr)
+is  created  as  a  helper for the linker to properly create the
+relocated listing file.  
 
 </PRE></B></H4>
 <H5><A HREF= #Index> =&gt; Section Index</A></H5>
@@ -89,6 +93,6 @@ listing file(*.lst), and a symbol file(*.sym).
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: October 2014</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

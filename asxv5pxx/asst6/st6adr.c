@@ -1,7 +1,7 @@
 /* st6adr.c */
 
 /*
- *  Copyright (C) 2010-2014  Alan R. Baldwin
+ *  Copyright (C) 2010-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -51,6 +51,18 @@ addr(esp)
 struct expr *esp;
 {
 	int c;
+	char *p;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	rcode = 0;
 	if ((c = getnb()) == '#') {
@@ -66,7 +78,7 @@ struct expr *esp;
 			esp->e_mode = S_VAL;
 		}
 		if (getnb() != ')') {
-			aerr();
+			xerr('a', "Missing ')'.");
 		}
 	} else {
 		unget(c);
@@ -80,6 +92,23 @@ struct expr *esp;
 	}
 	return (esp->e_mode);
 }
+
+/*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
 
 /*
  * Enter admode() to search a specific addressing mode table

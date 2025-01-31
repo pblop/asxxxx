@@ -1,7 +1,7 @@
 /* assym.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -109,7 +109,7 @@ syminit()
 		h = hash(mp->m_id, 1);
 		mp->m_mp = mnehash[h];
 		mnehash[h] = mp;
-		if (mp->m_flag&S_EOL)
+		if (mp->m_flag & S_EOL)
 			break;
 		++mp;
 	}
@@ -122,7 +122,7 @@ syminit()
 		h = hash(sp->s_id, zflag);
 		sp->s_sp = symhash[h];
 		symhash[h] = sp;
-		if (sp->s_flag&S_EOL)
+		if (sp->s_flag & S_EOL)
 			break;
 		++sp;
 	}
@@ -606,14 +606,14 @@ int flag;
 
 static	char *	pnext = NULL;
 static	int	bytes = 0;
-   
+
 char *
 strsto(str)
 char *str;
 {
 	int  len;
 	char *p;
-   
+
 	/*
 	 * What we need, including a null.
 	 */
@@ -677,7 +677,7 @@ unsigned int n;
 	VOID *p;
 
 	if ((lnk = (struct memlnk *) malloc (sizeof(struct memlnk))) == NULL) {
-		fprintf(stderr, "Out of space!\n");
+		fprintf(stderr, "?ASxxxx-Error-Out of space!\n");
 		asexit(ER_FATAL);
 	}
 	lnk->next = (asxmem == NULL) ? NULL : asxmem;
@@ -685,7 +685,7 @@ unsigned int n;
 	asxmem = lnk;
 
 	if ((p = (VOID *) malloc (n)) == NULL) {
-		fprintf(stderr, "Out of space!\n");
+		fprintf(stderr, "?ASxxxx-Error-Out of space!\n");
 		asexit(ER_FATAL);
 	}
 	asxmem->ptr = p;

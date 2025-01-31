@@ -114,7 +114,7 @@ extern	int		srch(char *str);
 
 	/* z8mch.c */
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 
 #else

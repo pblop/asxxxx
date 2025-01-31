@@ -132,7 +132,7 @@ bj,lkrloc3.obj,lkrloc4.obj,lksdcdb.obj,lksym.obj
  @%append aslink.lk1 LIBR aslink.imp
 !endif
 !ifneq BLANK ""
- @%append aslink.lk1 
+ @%append aslink.lk1 op resource=
 !endif
- *wlink name aslink d all sys nt op m op maxe=25 op q op symf @aslink.lk1
+ *wlink name aslink d all SYS nt op m op maxe=25 op q op symf @aslink.lk1
 

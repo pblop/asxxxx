@@ -1,7 +1,7 @@
 /* 1802mch.c */
 
 /*
- *  Copyright (C) 2002-2014  Alan R. Baldwin
+ *  Copyright (C) 2002-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -38,8 +38,8 @@ char	*dsft	= "asm";
 #define	OPCY_SDP	((char) (0xFF))
 #define	OPCY_ERR	((char) (0xFE))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	UN	((char) (OPCY_NONE | 0x00))
 
@@ -79,6 +79,12 @@ struct mne *mp;
 	int op, v, rd;
 	struct expr e;
 
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
+
 	clrexpr(&e);
 	op = (int) mp->m_valu;
 	switch (mp->m_type) {
@@ -96,9 +102,9 @@ struct mne *mp;
 	case S_NIB:
 		rd = reg();
 		if (rd > R15)
-			aerr();
+			xerr('a', "Invalid Register");
 		if (op == 0 && rd == 0) /* no "LDN R0" */
-			aerr();
+			xerr('a', "LDN R0 is not allowed.");
 		outab(op | rd);
 		break;
 
@@ -113,7 +119,7 @@ struct mne *mp;
 		if (is_abs(&e)) {
 			v = (int) (e.e_addr & ~0xFF);
 			if ( ((v & ~0xFF) != 0) && ((v & ~0x7F) != ~0x7F) )
-				aerr();
+				xerr('a', "Argument is < -128 or > 255.");
 		}
 		outab(op);
 		outrb(&e, 0);
@@ -125,7 +131,7 @@ struct mne *mp;
 		if (is_abs(&e)) {
 			if ((e.e_addr & ~0x07) || (e.e_addr == 0)) {
 				e.e_addr = 1;
-				aerr();
+				xerr('a', "Argument is not 1 -> 7, argument set to 1.");
 			}
 			outab(op | (e.e_addr & 0x07));
 		} else {
@@ -135,12 +141,17 @@ struct mne *mp;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 	if (opcycles == OPCY_NONE) {
 		opcycles = pg1802[cb[0] & 0xFF];
 	}
+	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*
@@ -154,7 +165,7 @@ reg()
 
 	getid(id, -1);
 	if ((mp = mlookup(id)) == NULL || mp->m_type != S_REG) {
-		aerr();
+		xerr('a', "Register required.");
 		return (0);
 	}
 	return ((int) mp->m_valu);

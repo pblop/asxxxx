@@ -1,0 +1,30 @@
+82569
+R:\asxv5pxx\asxmak\symantec\build\as68k.prj
+as68k.OPN
+novcs
+as68k.DEF
+6
+1657391356
+0 0 0 0 0 "..\..\..\ASXXSRC\asdata.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asdbg.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asexpr.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\aslex.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\aslist.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asmain.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asmcro.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asout.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\assubr.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\assym.c"
+0 0 0 0 0 "..\..\..\AS68K\m68kadr.c"
+0 0 0 0 0 "..\..\..\AS68K\m68kmch.c"
+0 0 0 0 0 "..\..\..\AS68K\m68kpst.c"
+0 0 0 0 0 "as68k.DEF"
+0 -1 0 0 0 "..\..\..\asxxsrc\asxxxx.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\stdlib.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\stdio.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\setjmp.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\string.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\time.h"
+0 -1 0 0 0 "..\..\..\AS68K\m68k.h"
+0 0 0 0 0 "..\..\..\AS68K\m68kcyc.c"
+0 0 0 0 0 "..\..\..\AS68K\m68kfpp.c"

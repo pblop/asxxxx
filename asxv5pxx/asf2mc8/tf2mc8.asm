@@ -696,7 +696,7 @@
 	xch	a,t			; 42
 	xchw	a,t			; 43
 	;
-	mov	*dir,a			; 45*3
+	mov	*dir,a			; 45*33
 	mov	@ix+off,a		; 46r44
 	mov	@ep,a			; 47
 	mov	r0,a			; 48

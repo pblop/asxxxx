@@ -1,7 +1,7 @@
 /* aslink.h */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2022  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,8 +39,8 @@
  * Local Definitions
  */
 
-#define	VERSION "V05.11"
-#define	COPYRIGHT "2015"
+#define	VERSION "V05.50"
+#define	COPYRIGHT "2022"
 
 /*
  * To include NoICE Debugging set non-zero
@@ -155,7 +155,7 @@
 #define ALIST	2		/* Address only */
 #define	BLIST	3		/* Address only with allocation */
 #define CLIST	4		/* Code */
-#define	ELIST	5		/* Equate only */
+#define	ELIST	5		/* Equate or IF conditional evaluation */
 
 #define	LIST_ERR	0x0001	/* Error Code(s) */
 #define	LIST_LOC	0x0002	/* Location */
@@ -165,9 +165,9 @@
 #define	LIST_LIN	0x0020	/* Line Numbers */
 #define	LIST_SRC	0x0040	/* Assembler Source Code */
 
-#define	LIST_NLST	0x0080	/* For HLR file only */
+#define	HLR_NLST	0x0080	/* For HLR file only */
 
-#define	LIST_NONE	0x0000	/* NLIST Flags Mask */
+#define	HLR_NONE	0x0000	/* NLIST Flags Mask */
 
 /*
  * Global symbol types.
@@ -188,7 +188,7 @@
  */
 #define	ER_NONE		0	/* No error */
 #define	ER_WARNING	1	/* Warning */
-#define	ER_ERROR	2	/* Assembly error */
+#define	ER_ERROR	2	/* Assembly/Linker error */
 #define	ER_FATAL	3	/* Fatal error */
 
 /*
@@ -205,7 +205,7 @@
 #define		IXXMAXBYTES	32	/* NMAX > (2 * IXXMAXBYTES) */
 #define		SXXMAXBYTES	32	/* NMAX > (2 * SXXMAXBYTES) */
 #define		DBXMAXBYTES	64	/* NMAX > (  DBXMAXBYTES  ) */
-#define	FILSPC		80	/* File spec length */
+#define	FILSPC		256	/* File spec length */
 
 /*
  * NTXT must be defined to have the same value in
@@ -594,12 +594,12 @@ struct	bank
  *	area definition found as the REL files are read.  The
  *	struct area contains the name of the area, a flag byte
  *	which contains the area attributes (REL/CON/OVR/ABS),
- *	the area base address set flag byte (-b option), and the
+ *	the area base address set flag byte (-a option), and the
  *	area base address and total size which will be filled
  *	in at the end of the first pass through the REL files.
  *	The area structure also contains a link to the bank
  *	this area is a part of and a data output file handle
- *	pointer which is loaded from from the bank structure.
+ *	pointer which is loaded from the bank structure.
  *	As A directives are read from the REL files a linked
  *	list of unique area structures is created by placing a
  *	link to the new area structure in the previous area structure.
@@ -639,13 +639,14 @@ struct	areax
 	struct	head	*a_bhp;	/* Base header link */
 	a_uint	a_addr;		/* Beginning address of section */
 	a_uint	a_size;		/* Size of the area in section */
+	a_uint	a_bndry;	/* Boundary for this A directive */
 };
 
 /*
  *	A sym structure is created for every unique symbol
  *	referenced/defined while reading the REL files.  The
  *	struct sym contains the symbol's name, a flag value
- *	(not used in this linker), a symbol type denoting
+ *	set to inhibit map output, a symbol type denoting
  *	referenced/defined, and an address which is loaded
  *	with the relative address within the area in which
  *	the symbol was defined.  The sym structure also
@@ -682,13 +683,13 @@ struct	lfile
 
 /*
  *	The struct base contains a pointer to a
- *	base definition string and a link to the next
- *	base structure.
+ *	base definition string and a link to
+ *	the next base structure.
  */
 struct	base
 {
-	struct	base  *b_base;	/* Base link */
-	char	      *b_strp;	/* String pointer */
+	struct	base  *link;	/* Base Link */
+	char	      *strp;	/* Base String pointer */
 };
 
 /*
@@ -911,11 +912,17 @@ extern	struct	areax	*axp;	/*	Pointer to the current
 extern	struct	sym *symhash[NHASH]; /*	array of pointers to NHASH
 				      *	linked symbol lists
 				      */
-extern	struct	base	*basep;	/*	The pointer to the first
-				 *	base structure
+extern	struct	base  *a_basep;	/*	The pointer to the first
+				 *	area base structure
 				 */
-extern	struct	base	*bsp;	/*	Pointer to the current
-				 *	base structure
+extern	struct	base  *a_bsp;	/*	Pointer to the current
+				 *	area base structure
+				 */
+extern	struct	base  *b_basep;	/*	The pointer to the first
+				 *	bank base structure
+				 */
+extern	struct	base  *b_bsp;	/*	Pointer to the current
+				 *	bank base structure
 				 */
 extern	struct	globl	*globlp;/*	The pointer to the first
 				 *	globl structure
@@ -962,6 +969,10 @@ extern	FILE	*yfp;		/*	SDCDB output file handle
 
 extern	int	oflag;		/*	Output file type flag
 				 */
+extern	char	*outnam;	/*	Pointer to -o+ output file name
+				 */
+extern	char	*outext;	/*	Pointer to -o+ output file extension
+				 */
 extern	int	objflg;		/*	Linked file/library object output flag
 				 */
 
@@ -971,6 +982,9 @@ extern	int	jflag;		/*	-j, enable NoICE Debug output
 #endif
 
 extern	int	mflag;		/*	Map output flag
+				 */
+extern	int	m1flag;		/*	Include linker generated
+				 *	symbols in map file
 				 */
 extern	int	xflag;		/*	Map file radix type flag
 				 */
@@ -1053,7 +1067,9 @@ extern	int	listing;	/*	Assembled line listing bits
 				 */
 extern	int	lmode;		/*	Assembled line listing mode
 				 */
-extern	int	bytcnt;		/*	Assenbled bytes for this line
+extern	int	bytcnt;		/*	Assembled bytes for this line
+				 */
+extern	int	bgncnt;		/*	Assembled bytes for this line
 				 */
 extern	char	eqt_id[128];	/*	Area name for this ELIST line
 				 */
@@ -1094,10 +1110,12 @@ extern	VOID		exit(int n);
 
 /* lkmain.c */
 extern	FILE *		afile(char *fn, char *ft, int wf);
-extern	VOID		bassav(void);
+extern	VOID		areasav(void);
+extern	VOID		banksav(void);
+extern	char *		filespec(char *p);
 extern	int		fndidx(char *str);
 extern	int		fndext(char *str);
-extern	VOID		gblsav(void);
+extern	VOID		glblsav(void);
 extern	int		intsiz(void);
 extern	VOID		link(void);
 extern	VOID		lkexit(int i);
@@ -1105,9 +1123,8 @@ extern	int		main(int argc, char *argv[]);
 extern	VOID		map(void);
 extern	int		parse(void);
 extern	VOID		doparse(void);
-extern	VOID		setarea(void);
 extern	VOID		setgbl(void);
-extern	VOID		usage(int n);
+extern	VOID		usage(void);
 
 /* lklex.c */
 extern	VOID		chopcrlf(char *str);
@@ -1128,6 +1145,7 @@ extern	VOID		lnkarea(void);
 extern	VOID		lnksect(struct area *tap);
 extern	VOID		lnkserr(char *frmt, char *str);
 extern	VOID		newarea(void);
+extern	VOID		setarea(void);
 
 /* lkbank.c */
 extern	VOID		chkbank(FILE *fp);
@@ -1169,11 +1187,14 @@ extern	VOID		newpag(FILE *fp);
 extern	VOID		slew(struct area *xp, struct bank *yp);
 extern	VOID		lstarea(struct area *xp, struct bank *yp);
 extern	VOID		lkulist(int i);
+extern	VOID		lklist(a_uint cpc, int v, int err);
 extern	VOID		lkalist(a_uint cpc);
+extern	VOID		hlrlist(a_uint cpc, int v, int err);
 extern	VOID		hlralist(a_uint cpc);
-extern	VOID		lkglist(a_uint cpc, int v, int err);
-extern	VOID		hlrglist(a_uint cpc, int v, int err);
-extern	int		hlrelist(void);
+extern	VOID		hlrelist(void);
+extern	VOID		hlrclist(a_uint cpc, int v);
+extern	VOID		setgh(void);
+extern	VOID		lsterr(int err);
 
 /* lknoice.c */
 extern	VOID		NoICEfopen(void);
@@ -1269,10 +1290,12 @@ extern	VOID		exit();
 
 /* lkmain.c */
 extern	FILE *		afile();
-extern	VOID		bassav();
+extern	VOID		areasav();
+extern	VOID		banksav();
+extern	char *		filespec();
 extern	int		fndext();
 extern	int		fndidx();
-extern	VOID		gblsav();
+extern	VOID		glblsav();
 extern	int		intsiz();
 extern	VOID		link();
 extern	VOID		lkexit();
@@ -1280,9 +1303,6 @@ extern	int		main();
 extern	VOID		map();
 extern	int		parse();
 extern	VOID		doparse();
-extern	VOID		setarea();
-extern	VOID		setbank();
-extern	VOID		chkbank();
 extern	VOID		setgbl();
 extern	VOID		usage();
 
@@ -1305,6 +1325,7 @@ extern	VOID		lnkarea();
 extern	VOID		lnksect();
 extern	VOID		lnkserr();
 extern	VOID		newarea();
+extern	VOID		setarea();
 
 /* lkbank.c */
 extern	VOID		chkbank();
@@ -1342,15 +1363,18 @@ extern	a_uint		term();
 
 /* lklist.c */
 extern	int		dgt();
-extern	VOID		gethlr();
-extern	VOID		getlst();
+extern	int		gethlr();
+extern	int		getlst();
 extern	VOID		newpag();
 extern	VOID		slew();
 extern	VOID		lstarea();
 extern	VOID		lkulist();
 extern	VOID		lkalist();
 extern	VOID		lkglist();
-extern	int		hlrelist();
+extern	VOID		hlrelist();
+extern	VOID		hlrclist();
+extern	VOID		setgh();
+extern	VOID		lsterr();
 
 /* lknoice.c */
 extern	VOID		NoICEfopen();

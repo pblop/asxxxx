@@ -1,7 +1,7 @@
 /* h8mch.c */
 
 /*
- *  Copyright (C) 1994-2014  Alan R. Baldwin
+ *  Copyright (C) 1994-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -40,8 +40,8 @@ int	bb[NB];
 #define	OPCY_SDP	(-1)
 #define	OPCY_ERR	(-2)
 
-/*	OPCY_NONE	(0x80)	*/
-/*	OPCY_MASK	(0x7F)	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	UN	(OPCY_NONE | 0x00)
 
@@ -71,6 +71,8 @@ static char h8pg1[256] = {
 /*F0*/   2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2
 };
 
+struct area *zpg;
+
 /*
  * Process a machine op.
  */
@@ -82,10 +84,16 @@ struct mne *mp;
 	int oplb, ophb;
 	int rf, opcode, c;
 	struct expr e1, e2;
-	struct area *espa;
+	struct sym *sp;
 	int t1, t2, v1, v2;
 	char id[NCPS];
 	a_uint pc;
+
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
 
 	clrexpr(&e1);
 	clrexpr(&e2);
@@ -98,33 +106,42 @@ struct mne *mp;
 
 	case S_SDP:
 		opcycles = OPCY_SDP;
-		espa = NULL;
+		zpg = dot.s_area;
+		e1.e_addr = ~0x00FF;
 		if (more()) {
 			expr(&e1, 0);
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
-				if (e1.e_addr != ~0x00FF) {
-					err('b');
+				if (e1.e_addr  != ~0x00FF) {
+					xerr('b', "Only Page 0xFF00 Allowed.");
 				}
+				e1.e_addr = ~0x00FF;
 			}
 			if ((c = getnb()) == ',') {
 				getid(id, -1);
-				espa = alookup(id);
-				if (espa == NULL) {
-					err('u');
+				zpg = alookup(id);
+				if (zpg == NULL) {
+					zpg = dot.s_area;
+					xerr('u', "Undefined Area.");
 				}
 			} else {
 				unget(c);
 			}
 		}
-		if (espa) {
-			outdp(espa, &e1, 0);
-		} else {
-			e1.e_addr = ~0x00FF;
-			outdp(dot.s_area, &e1, 0);
-		}
+		outdp(zpg, &e1, 0);
 		lmode = SLIST;
 		break;
 
+	case S_PGD:
+		do {
+			getid(id, -1);
+			sp = lookup(id);
+			sp->s_flag &= ~S_LCL;
+			sp->s_flag |=  S_GBL;
+			sp->s_area = (zpg != NULL) ? zpg : dot.s_area;
+ 		} while (comma(0));
+		lmode = SLIST;
+		break;
+ 
 	case S_OPS:
 		t1 = addr(&e1);
 		v1 = aindx;
@@ -132,7 +149,7 @@ struct mne *mp;
 		t2 = addr(&e2);
 		v2 = aindx;
 		if ((t1 != S_IMMB) || (t2 != S_WREG)) {
-			aerr();
+			xerr('a', "Arguments: #1 -> #2, R0 -> R7 or SP.");
 		}
 		if (e1.e_addr == 1) {	/* #1,Rd */
 			outaw(op | (v2 & 0x0007));
@@ -141,7 +158,7 @@ struct mne *mp;
 			outaw(op | 0x0080 | (v2 & 0x0007));
 		} else {		/* Error - #1,Rd */
 			outaw(op | (v2 & 0x0007));
-			aerr();
+			xerr('a', "First argument must be #1 or #2.");
 		}
 		break;
 
@@ -152,11 +169,11 @@ struct mne *mp;
 		t2 = addr(&e2);
 		v2 = aindx;
 		if (t2 != S_BREG) {
-			aerr();
+			xerr('a', "Second argument requires a Byte register.");
 		}
 		switch(t1) {
 		default:
-			aerr();
+			xerr('a', "First argument not a #__ or R0 -> R7 or SP.");
 
 		case S_BREG:		/* Rs,Rd */
 			outab(oplb);
@@ -180,11 +197,11 @@ struct mne *mp;
 		v2 = aindx;
 		switch(t1) {
 		default:
-			aerr();
+			xerr('a', "First argument not a #__ or R0 -> R7 or SP.");
 
 		case S_BREG:		/* Rs,Rd */
 			if (t2 != S_BREG) {
-				aerr();
+				xerr('a', "Second argument not R0 -> R7 or SP.");
 			}
 			outab(oplb);
 			outab(((v1 & 0x000F) << 4) | (v2 & 0x000F));
@@ -194,7 +211,7 @@ struct mne *mp;
 		case S_IMMW:		/* #xx:16,Rd / #xx:16,ccr */
 			switch(t2) {
 			default:
-				aerr();
+				xerr('a', "Second argument not CCR or R0 -> R7 or SP.");
 
 			case S_BREG:	/* #xx:8,Rd */
 				outab(ophb | (v2 & 0x000F));
@@ -224,33 +241,33 @@ struct mne *mp;
 		if (opflag == 1) {
 			if (t1 == S_WREG) {
 				t1 = S_BREG;
-				aerr();
+				xerr('a', "First argument specifies a Word register for a Byte operation.");
 			}
 			if (t2 == S_WREG) {
 				t2 = S_BREG;
-				aerr();
+				xerr('a', "Second argument specifies a Word register for a Byte operation.");
 			}
 		} else
 		if (opflag == 2) {
 			if (t1 == S_BREG) {
 				t1 = S_WREG;
-				aerr();
+				xerr('a', "First argument specifies a Byte register for a Word operation.");
 			}
 			if (t2 == S_BREG) {
 				t2 = S_WREG;
-				aerr();
+				xerr('a', "Second argument specifies a Byte register for a Word operation.");
 			}
 		} else
 		if (t1 == S_BREG) {
 			if (t2 == S_WREG) {
 				t2 = S_BREG;
-				aerr();
+				xerr('a', "First argument is a Byte register, the second is a Word register.");
 			}
 		} else
 		if (t1 == S_WREG) {
 			if (t2 == S_BREG) {
 				t2 = S_WREG;
-				aerr();
+				xerr('a', "First argument is a Word register, the second is a Byte register.");
 			}
 		}
 		if ((opflag == 2) || (t1 == S_WREG) || (t2 == S_WREG)) {
@@ -268,7 +285,7 @@ struct mne *mp;
 		if ((t1 == S_BREG) || (t1 == S_WREG)) {
 			switch(t2) {
 			default:
-				aerr();
+				xerr('a', "Invalid Addressing Mode.");
 
 			case S_BREG:	/* Rs,Rd (byte) */
 				outab(0x0C);
@@ -311,7 +328,7 @@ struct mne *mp;
 
 			case S_INDD:	/* Rs,@-Rd */
 				if ((t1 == S_BREG) && ((v2 & 0x07) == 0x07)) {
-					aerr();
+					xerr('a', "R7_ and SP_ are not valid second arguments.");
 				}
 				outab(opcode + 0x04);
 				outab(0x80 | (v2 << 4) | v1);
@@ -331,7 +348,7 @@ struct mne *mp;
 		if ((t2 == S_BREG) || (t2 == S_WREG)) {
 			switch(t1) {
 			default:
-				aerr();
+				xerr('a', "Invalid Addressing Mode.");
 
 			case S_BREG:	/* Rs,Rd (byte) */
 				outab(0x0C);
@@ -374,7 +391,7 @@ struct mne *mp;
 
 			case S_INDI:	/* @Rs+,Rd */
 				if ((t2 == S_BREG) && ((v1 & 0x07) == 0x07)) {
-					aerr();
+					xerr('a', "R7_ and SP_ are not valid first arguments.");
 				}
 				outab(opcode + 0x04);
 				outab((v1 << 4) | v2);
@@ -409,7 +426,7 @@ struct mne *mp;
 		} else {
 			outaw(0xF000);
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_ADD:
@@ -422,7 +439,7 @@ struct mne *mp;
 		v2 = aindx;
 		if ((rf != S_SUB) && ((t1 == S_IMMB) || (t1 == S_IMMW))) {
 			if (t2 != S_BREG) {
-				aerr();
+				xerr('a', "Second argument requires a Byte register.");
 			}
 			outab(ophb | (v2 & 0x000F));
 			outrb(&e1, R_NORM);
@@ -434,7 +451,7 @@ struct mne *mp;
 		 */
 		if (opflag == 1) {
 			if ((t1 != S_BREG) || (t2 != S_BREG)) {
-				aerr();
+				xerr('a', "First and second arguments require Byte registers.");
 			}
 		} else
 		/*
@@ -442,7 +459,7 @@ struct mne *mp;
 		 */
 		if (opflag == 2) {
 			if ((t1 != S_WREG) || (t2 != S_WREG)) {
-				aerr();
+				xerr('a', "First and second arguments require Word registers.");
 			}
 			v1 &= 0x0007;
 			v2 &= 0x0007;
@@ -452,13 +469,13 @@ struct mne *mp;
 		 */
 		{
 			if ((t1 != S_BREG) && (t1 != S_WREG)) {
-				aerr();
+				xerr('a', "First argument must be a register.");
 			}
 			if ((t2 != S_BREG) && (t2 != S_WREG)) {
-				aerr();
+				xerr('a', "Second argument must be a register.");
 			}
 			if (t1 != t2) {
-				aerr();
+				xerr('a', "First and second arguments require same size registers.");
 			}
 		}
 		if ((opflag == 2) || (t1 == S_WREG)) {
@@ -474,7 +491,7 @@ struct mne *mp;
 		t1 = addr(&e1);
 		v1 = aindx;
 		if ( t1 != S_BREG) {
-			aerr();
+			xerr('a', "Argument must be a Byte register.");
 		}
 		outaw(op | (v1 & 0x0F));
 		break;
@@ -492,7 +509,7 @@ struct mne *mp;
 			if (more()) {
 				comma(1);
 				if (!admode(ccr_reg)) {
-					aerr();
+					xerr('a', "Optional second argument must be CCR.");
 				}
 			}
 			outab(ophb);
@@ -510,13 +527,13 @@ struct mne *mp;
 			if (more()) {
 				comma(1);
 				if (!admode(ccr_reg)) {
-					aerr();
+					xerr('a', "Optional second argument must be CCR.");
 				}
 			}
 			outab(0x03);
 			outab(v1 & 0x000F);
 			if (t1 == S_WREG) {
-				aerr();
+				xerr('a', "Argument must be a Byte register.");
 			}
 			break;
 		}
@@ -530,15 +547,18 @@ struct mne *mp;
 			outab(0x02);
 			outab(v2 & 0x000F);
 			if (t2 != S_BREG) {
-				aerr();
+				xerr('a', "Argument must be a Byte register.");
 			}
 			break;
 		} else
 		if ((opflag == 2) && ((t1 == S_BREG) || (t1 == S_WREG))) {
 			outab(0x02);
 			outab(v1 & 0x000F);
-			if ((t1 != S_BREG) || more()) {
-				aerr();
+			if (t1 != S_BREG) {
+				xerr('a', "Argument must be a Byte register.");
+			}
+			if (more()) {
+				xerr('q', "Spurious characters found.");
 			}
 			break;
 		}
@@ -546,7 +566,7 @@ struct mne *mp;
 		 * Error
 		 */
 		outaw(op);
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_INH:
@@ -560,10 +580,10 @@ struct mne *mp;
 		t2 = addr(&e2);
 		v2 = aindx;
 		if (t1 != S_BREG) {
-			aerr();
+			xerr('a', "First argument must be a Byte register.");
 		}
 		if (t2 != S_WREG) {
-			aerr();
+			xerr('a', "Second argument must be a Word register.");
 		}
 		outaw(op | ((v1 & 0x000F) << 4) | (v2 & 0x0007));
 		break;
@@ -572,7 +592,7 @@ struct mne *mp;
 		t1 = addr(&e1);
 		v1 = aindx;
 		if ( t1 != S_BREG) {
-			aerr();
+			xerr('a', "Argument must be a Byte register.");
 		}
 		outaw(op | (v1 & 0x000F));
 		break;
@@ -581,7 +601,7 @@ struct mne *mp;
 		t1 = addr(&e1);
 		v1 = aindx;
 		if ( t1 != S_WREG) {
-			aerr();
+			xerr('a', "Argument must be a Word register.");
 		}
 		outaw(op | (v1 & 0x0007));
 		break;
@@ -593,10 +613,10 @@ struct mne *mp;
 		t2 = addr(&e2);
 		v2 = aindx;
 		if ((t1 != S_EXT) && (t1 != S_DIR)) {
-			aerr();
+			xerr('a', "First argument must be an address.");
 		}
 		if (t2 != S_BREG) {
-			aerr();
+			xerr('a', "Second argument must be a Byte register.");
 		}
 		outaw(op | (v2 & 0x000F));
 		outrw(&e1, R_NORM);
@@ -609,10 +629,10 @@ struct mne *mp;
 		t2 = addr(&e2);
 		v2 = aindx;
 		if (t1 != S_BREG) {
-			aerr();
+			xerr('a', "First argument must be a Byte register.");
 		}
 		if ((t2 != S_EXT) && (t2 != S_DIR)) {
-			aerr();
+			xerr('a', "Second argument must be an address.");
 		}
 		outaw(op | (v1 & 0x000F));
 		outrw(&e2, R_NORM);
@@ -645,7 +665,7 @@ struct mne *mp;
 
 		default:
 			outaw(op);
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
 		break;
@@ -659,13 +679,13 @@ struct mne *mp;
 		switch(t1) {
 		default:
 		case S_WREG:		/* Rn(word),xxx */
-			aerr();
+			xerr('a', "First argument must be a Byte register.");
 
 		case S_BREG:		/* Rn(byte),xxx */
 			switch(t2) {
 			default:
 			case S_WREG:	/* Rn(byte),Rd(word) */
-				aerr();
+				xerr('a', "Second argument must be a Byte register.");
 
 			case S_BREG:	/* Rn(byte),Rd(byte) */
 				outaw(op | ((v1&0x000F) << 4) | (v2&0x000F));
@@ -688,16 +708,16 @@ struct mne *mp;
 
 		case S_IMMB:
 			if ((v1 = (int) e1.e_addr) & ~0x07) {
-				aerr();
+				xerr('a', "A constant value of 0 -> 7 is allowed.");
 			}
 			if (e1.e_flag != 0 || e1.e_base.e_ap != NULL) {
-				aerr();
+				xerr('a', "A constant value of 0 -> 7 is allowed.");
 			}
 			op |= 0x1000;
 			switch(t2) {
 			default:
 			case S_WREG:	/* #xx:3,Rd(word) */
-				aerr();
+				xerr('a', "Second argument must be a Byte register.");
 
 			case S_BREG:	/* #xx:3,Rd(byte) */
 				outaw(op | ((v1&0x0007) << 4) | (v2&0x000F));
@@ -728,19 +748,19 @@ struct mne *mp;
 		v2 = aindx;
 		switch(t1) {
 		default:
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 
 		case S_IMMB:
 			if ((v1 = (int) e1.e_addr) & ~0x07) {
-				aerr();
+				xerr('a', "A constant value of 0 -> 7 is allowed.");
 			}
 			if (e1.e_flag != 0 || e1.e_base.e_ap != NULL) {
-				aerr();
+				xerr('a', "A constant value of 0 -> 7 is allowed.");
 			}
 			switch(t2) {
 			default:
 			case S_WREG:	/* #xx:3,Rd(word) */
-				aerr();
+				xerr('a', "Second argument must be a Byte register.");
 
 			case S_BREG:	/* #xx:3,Rd(byte) */
 				outaw(op | ((v1&0x0007) << 4) | (v2&0x000F));
@@ -774,10 +794,9 @@ struct mne *mp;
 	case S_BRA:
 		expr(&e1, 0);
 		outab(ophb);
-		if (mchpcr(&e1)) {
-			v1 = (int) (e1.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e1, &v1, 1)) {
 			if ((v1 < -128) || (v1 > 127))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outab(v1);
 		} else {
 			outrb(&e1, R_PCR);
@@ -788,16 +807,21 @@ struct mne *mp;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('a', "Internal Opcode Error.");
 		break;
 	}
 	if (pc & 0x0001) {
-		err('b');
+		xerr('b', "Odd address error.");
 		dot.s_addr += 1;
 	}
 	if (opcycles == OPCY_NONE) {
 		opcycles = h8pg1[cb[0] & 0xFF];
 	}
+	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 VOID
@@ -809,7 +833,7 @@ struct expr *esp;
 	if (esp->e_flag == 0 && esp->e_base.e_ap == NULL) {
 		v = (int) esp->e_addr;
 		if (((v & ~0x007F) != ~0x007F) && ((v & 0x00FF) != v)) {
-			aerr();
+			xerr('a', "Value is < -128 or > 255.");
 		}
 	}
 }
@@ -820,7 +844,7 @@ struct expr *esp;
 {
 	if (esp->e_flag == 0 && esp->e_base.e_ap == NULL) {
 		if (esp->e_addr & ~0x00FF) {
-			aerr();
+			xerr('a', "Value is > 255.");
 		}
 	}
 }
@@ -831,7 +855,7 @@ struct expr *esp;
 {
 	if (esp->e_flag == 0 && esp->e_base.e_ap == NULL) {
 		if ((esp->e_addr & ~0x00FF) != ~0x00FF) {
-			aerr();
+			xerr('a', "Address not in page.");
 		}
 	}
 }
@@ -861,44 +885,6 @@ struct expr *esp;
 		return(getbit());
 	}
 }
-
-/*
- * Machine specific initialization.
- * Set up the bit table.
- * Process any setup code.
- */
-VOID
-minit()
-{
-	char **dp;
-
-	/*
-	 * Byte Order
-	 */
-	hilo = 1;
-
-	bp = bb;
-	bm = 1;
-
-	for (dp = dpcode; *dp; dp++) {
-		strcpy(ib,*dp);
-		cp = cb;
-		cpt = cbt;
-		ep = eb;
-		ip = ib;
-		asmbl();
-	}
-}
-
-/*
- * H8/3xx Initialization Coding
- */
-char *dpcode[] = {
-	";	H8/3xx Direct Page Initialization",
-	"	.setdp	0xFF00,_CODE",
-	"",
-	NULL
-};
 
 /*
  * Store `b' in the next slot of the bit table.
@@ -945,10 +931,28 @@ getbit()
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - n);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - n);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {
@@ -966,4 +970,40 @@ struct expr *esp;
 	return(0);
 }
 
+/*
+ * Machine specific initialization.
+ * Set up the bit table.
+ * Process any setup code.
+ */
+VOID
+minit()
+{
+	int i;
+
+	/*
+	 * Byte Order
+	 */
+	hilo = 1;
+
+	/*
+	 * Zero Page
+	 */
+	zpg = NULL;
+
+	/*
+	 * Multi-pass Processing
+	 */
+	passlmt = 100;	/* Maximum Pass 1 Loops */
+	if (pass < 2) {
+		for (i=0; i<NB; i++) {
+			bb[i] = 0;
+		}
+	}
+
+	/*
+	 * Reset Bit Pointer
+	 */
+	bp = bb;
+	bm = 1;
+}
 

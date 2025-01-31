@@ -14,39 +14,80 @@
 
 
 <H4><B><PRE>
-.z80 DIRECTIVE 
+.z80 Directive 
 
 Format:  
-
         .z80 
 
 The  .z80  directive enables processing of only the z80 specific
 mnemonics.  HD64180/Z180 mnemonics encountered without the .hd64
-directive will be flagged with an 'o' error.  
+directive will be flagged with an <o> error.  
 
      The  .z80  directive  also  selects the Z80 specific cycles
-count output when the -c command line option is specified.  
+count to be output.  
 
 
-.hd64 DIRECTIVE 
+.hd64 Directive 
 
 Format:  
-
         .hd64 
 
 The  .hd64  directive  enables  processing  of  the HD64180/Z180
 specific mnemonics not included  in  the  Z80  instruction  set.
 HD64180/Z180  mnemonics  encountered without the .hd64 directive
-will be flagged with an 'o' error.  A synonym of .hd64 is .z180. 
+will be flagged with an <o> error.  A synonym of .hd64 is .z180. 
 
      The  .hd64 directive also selects the HD64180/Z180 specific
-cycles count output when the -c command line  option  is  speci-
-fied.  
+cycles count to be output.  
 
+
+.8085 Directive 
+
+Format:  
+        .8085 
+
+The  .8085 directive enables processing of the standard 8085 in-
+structions using the z80 style syntax.   Extended  (unspecified)
+8085 instructions will be flagged with an <o> error.  Addressing
+modes not supported by the 8085 will be flagged with an <a>  er-
+ror.  
+
+     The  .8085  directive also selects the 8085 specific cycles
+count to be output.  
+
+
+.8085x Directive 
+
+Format:  
+        .8085x 
+
+The  .8085x directive enables processing of the standard and ex-
+tended 8085 instructions using the z80 style syntax.  Addressing
+modes  not supported by the 8085 will be flagged with an <a> er-
+ror.  
+
+     The  .8085x directive also selects the 8085 specific cycles
+count to be output.  
+
+     See  the  AS8085 appendix for a description of the extended
+(unspecified) instructions enabled by the .8085x directive.  
+
+
+.8080 Directive 
+
+Format:  
+        .8080 
+
+The  .8080 directive enables processing of the standard 8080 in-
+structions using the z80 style syntax.  All  non  8080  instruc-
+tions  will  be flagged with an <o> error.  Addressing modes not
+supported by the 8080 will be flagged with an <a> error.  
+
+     The  .8080  directive also selects the 8080 specific cycles
+count to be output.  
 
 
 THE .__.CPU.  VARIABLE 
-
 
      The  value of the pre-defined symbol '.__.CPU.' corresponds
 to the selected processor type.  The default value  is  0  which
@@ -58,6 +99,9 @@ assembler:
         --------------            --------------
             .z80                         0
         .hd64 / .z180                    1
+           .8085                         2
+           .8085x                        3
+           .8080                         4
 
 
      The  variable '.__.CPU.' is by default defined as local and
@@ -66,10 +110,10 @@ mand line options -g or -a will not cause the local symbol to be
 output to the created .rel file.  
 
      The  assembler  .globl  directive may be used to change the
-variable  type to  global  causing  its definition to be  output
+the variable type to global causing its definition to be  output
 to  the .rel file.  The inclusion of the definition of the vari-
 able '.__.CPU.' might be  a  useful  means  of  validating  that
-seperately  assembled files have been compiled for the same pro-
+separately  assembled files have been compiled for the same pro-
 cessor type.  The linker will report an error for variables with
 multiple non equal definitions.  
 
@@ -123,8 +167,6 @@ mode supported by ASZ80:
         label           call/jmp/jr label
 
 The  terms  data,  dir,  offset, and ext may all be expressions.
-The terms dir and offset are not allowed to be  external  refer-
-ences.  
 
    Note  that  not all addressing modes are valid with every in-
 struction,  refer  to the Z80/HD64180/Z180  technical  data  for
@@ -288,6 +330,6 @@ HD64180/Z180 Specific Instructions
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

@@ -1,2 +1,2 @@
-ascheck -loxchff bndry
+ascheck -loxcff bndry
 

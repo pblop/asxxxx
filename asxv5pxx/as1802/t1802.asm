@@ -1,7 +1,7 @@
 	.title	Test of 1802 Assembler
 	.sbttl	All 1802 instructions
 
-again=$$4567
+again=$@4567
 
 main:
 
@@ -136,7 +136,7 @@ main:
 ; Short branches
 
 ; This Address will cause Linker paging errors for all branches.
-. = main + $$00EC
+. = main + $@00EC
 
 Short_Begin_1:
 1$:	br	20$		;n30*12
@@ -163,7 +163,7 @@ Short_Begin_1:
 Short_End_1:
 
 ; This Address will cause Linker paging errors for 2 branches.
-. = main + $$01FE
+. = main + $@01FE
 
 Short_Begin_2:
 1$:	br	20$		;n30*24
@@ -190,7 +190,7 @@ Short_Begin_2:
 Short_End_2:
 
 ; This Address will cause Linker paging errors for 2 branches.
-. = main + $$02DA
+. = main + $@02DA
 
 Short_Begin_3:
 1$:	br	20$		;n30*00
@@ -217,7 +217,7 @@ Short_Begin_3:
 Short_End_3:
 
 ; This Address will not cause Linker paging errors for these branches.
-. = main + $$0400
+. = main + $@0400
 
 Short_Begin_4:
 ; ------------------		; Page Boundary
@@ -244,7 +244,7 @@ Short_Begin_4:
 Short_End_4:
 
 ; This Address will not cause Linker paging errors for these branches.
-. = main + $$04D8
+. = main + $@04D8
 
 Short_Begin_5:
 1$:	br	20$		;n30*FE

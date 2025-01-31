@@ -127,15 +127,15 @@ SOURCE=..\..\..\..\asxxsrc\assym.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\as78k0s\r78kadr.c
+SOURCE=..\..\..\..\as78k0s\r78ksadr.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\as78k0s\r78kmch.c
+SOURCE=..\..\..\..\as78k0s\r78ksmch.c
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\as78k0s\r78kpst.c
+SOURCE=..\..\..\..\as78k0s\r78kspst.c
 # End Source File
 # End Group
 # Begin Group "Header Files"
@@ -147,7 +147,7 @@ SOURCE=..\..\..\..\asxxsrc\asxxxx.h
 # End Source File
 # Begin Source File
 
-SOURCE=..\..\..\..\as78k0s\r78k0s.h
+SOURCE=..\..\..\..\as78k0s\r78ks.h
 # End Source File
 # End Group
 # Begin Group "Resource Files"

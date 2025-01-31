@@ -1,7 +1,7 @@
 /* st6mch.c */
 
 /*
- *  Copyright (C) 2010-2014  Alan R. Baldwin
+ *  Copyright (C) 2010-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,8 +36,8 @@ char	*dsft	= "asm";
 #define	OPCY_ERR	((char) (0xFE))
 #define	OPCY_SKP	((char)	(0xFD))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	UN	((char) (OPCY_NONE | 0x00))
 
@@ -79,6 +79,12 @@ struct mne *mp;
 	int v1, v2, v3;
 	int op, rf;
 
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
+
 	clrexpr(&e1);
 	clrexpr(&e2);
 	clrexpr(&e3);
@@ -110,20 +116,23 @@ struct mne *mp;
 				switch(v1) {
 				case X:		outab(op);		break;
 				case Y:		outab(op | 0x08);	break;
-				default:	opcy_aerr();		break;
+				default:
+					xerr('a', "Addressing mode supports only X and Y.");
+					break;
 				}
 				break;
 			case S_IMM:
 				outab(op | 0x10);
 				outrb(&e1, R_NORM);
-				valu_aerr(&e1, 1);
+				if (valu_err(&e1, 1))
+					xerr('a', "First argument: Value < 128 or > 255.");
 				break;
 			default:
-				opcy_aerr();
+				xerr('a', "Invalid Addressing Mode.");
 				break;
 			}
 		} else {
-			opcy_aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		break;
 
@@ -143,14 +152,15 @@ struct mne *mp;
 			case S_VAL:
 				outab(op | 0x10);
 				outrb(&e1, R_NORM);
-				valu_aerr(&e1, 1);
+				if (valu_err(&e1, 1))
+					xerr('a', "First argument: Value < 128 or > 255.");
 				break;
 			default:
-				opcy_aerr();
+				xerr('a', "First argument not a #__ or value.");
 				break;
 			}
 		} else {
-			opcy_aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		break;
 
@@ -185,7 +195,7 @@ struct mne *mp;
 				default:			break;
 				}
 			} else {
-				opcy_aerr();
+				xerr('a', "Internal Opcode Error.");
 			}
 			break;
 		case S_VAL:
@@ -196,11 +206,13 @@ struct mne *mp;
 			switch(v1) {
 			case X:		outab(op);		break;
 			case Y:		outab(op | 0x08);	break;
-			default:	opcy_aerr();		break;
+			default:
+				xerr('a', "Addressing mode supports only X and Y.");
+				break;
 			}
 			break;
 		default:
-			opcy_aerr();
+			xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
 		break;
@@ -241,14 +253,20 @@ struct mne *mp;
 				switch(v2) {
 				case X:		outab(op);		break;
 				case Y:		outab(op | 0x08);	break;
-				default:	opcy_aerr();		break;
+				default:
+					xerr('a', "Addressing mode supports only X and Y.");
+					break;
 				}
 				break;
 			case S_IMM:
 				outab	(op | 0x10);
-				outrb(&e2, R_NORM);	valu_aerr(&e2, 1);
+				outrb(&e2, R_NORM);
+				if (valu_err(&e2, 1))
+					xerr('a', "Second argument: Value < 128 or > 255.");
 				break;
-			default:	opcy_aerr();	break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 		} else
 		/*
@@ -276,13 +294,17 @@ struct mne *mp;
 				switch(v1) {
 				case X:		outab(op);		break;
 				case Y:		outab(op | 0x08);	break;
-				default:	opcy_aerr();		break;
+				default:
+					xerr('a', "Addressing mode supports only X and Y.");
+					break;
 				}
 				break;
-			default:	opcy_aerr();	break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 		} else {
-			opcy_aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		break;
 
@@ -308,20 +330,24 @@ struct mne *mp;
 					outab(0x0D);
 					outab(v1);
 				}
-				outrb(&e2, R_NORM);	valu_aerr(&e2, 1);
+				outrb(&e2, R_NORM);
+				if (valu_err(&e2, 1))
+					xerr('a', "Second argument: Value < 128 or > 255.");
 				break;
 			case S_VAL:
 				outab(0x0D);
 				outrb(&e1, R_USGN);
-				outrb(&e2, R_NORM);	valu_aerr(&e2, 1);
+				outrb(&e2, R_NORM);
+				if (valu_err(&e2, 1))
+					xerr('a', "Second argument: Value < 128 or > 255.");
 				break;
 			default:
-				opcy_aerr();
+				xerr('a', "Invalid Addressing Mode.");
 				break;
 			}
 			break;
 		default:
-			opcy_aerr();
+			xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
 		break;
@@ -342,10 +368,9 @@ struct mne *mp;
 	 */
 	case S_JR:
 		expr(&e1, 0);
-		if (mchpcr(&e1)) {
-			v1 = (int) (e1.e_addr - dot.s_addr-1);
+		if (mchpcr(&e1, &v1, 1)) {
 			if ((v1 < -16) || (v1 > 15))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outab(op | ((v1 & 0x1F) << 3));
 		} else {
 			outrbm(&e1, R_5BIT | R_PCR, op);
@@ -367,10 +392,9 @@ struct mne *mp;
 		expr(&e3, 0);
 		outrbm(&e1, R_3BIT | R_USGN, op);
 		outrb(&e2, R_USGN);
-		if (mchpcr(&e3)) {
-			v3 = (int) (e3.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e3, &v3, 1)) {
 			if ((v3 < -128) || (v3 > 127))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outab(v3);
 		} else {
 			outrb(&e3, R_PCR);
@@ -410,37 +434,33 @@ struct mne *mp;
 		if (v1 == A) {
 			outab(op);
 		} else {
-			opcy_aerr();
+			xerr('a', "Argument must be A.");
 		}
 		break;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 
 	if (opcycles == OPCY_NONE) {
 		opcycles = st6pg[cb[0] & 0xFF];
 	}
+	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*
- * Disable Opcode Cycles with aerr()
+ * Return 1 if the absolute value is not
+ * a valid unsigned or signed value.
+ * Else return 0.
  */
-VOID
-opcy_aerr()
-{
-	opcycles = OPCY_SKP;
-	aerr();
-}
-
-/*
- * Generate an 'a' error if the absolute
- * value is not a valid unsigned or signed value.
- */
-VOID
-valu_aerr(e, n)
+int
+valu_err(e, n)
 struct expr *e;
 int n;
 {
@@ -451,28 +471,47 @@ int n;
 		switch(n) {
 		default:
 #ifdef	LONGINT
-		case 1:	if ((v & ~0x000000FFl) && ((v & ~0x000000FFl) != ~0x000000FFl)) aerr();	break;
-		case 2:	if ((v & ~0x0000FFFFl) && ((v & ~0x0000FFFFl) != ~0x0000FFFFl)) aerr();	break;
-		case 3:	if ((v & ~0x00FFFFFFl) && ((v & ~0x00FFFFFFl) != ~0x00FFFFFFl)) aerr();	break;
-		case 4:	if ((v & ~0xFFFFFFFFl) && ((v & ~0xFFFFFFFFl) != ~0xFFFFFFFFl)) aerr();	break;
+		case 1:	if ((v & ~0x000000FFl) && ((v & ~0x000000FFl) != ~0x000000FFl)) return(1);
+		case 2:	if ((v & ~0x0000FFFFl) && ((v & ~0x0000FFFFl) != ~0x0000FFFFl)) return(1);
+		case 3:	if ((v & ~0x00FFFFFFl) && ((v & ~0x00FFFFFFl) != ~0x00FFFFFFl)) return(1);
+		case 4:	if ((v & ~0xFFFFFFFFl) && ((v & ~0xFFFFFFFFl) != ~0xFFFFFFFFl)) return(1);
 #else
-		case 1:	if ((v & ~0x000000FF) && ((v & ~0x000000FF) != ~0x000000FF)) aerr();	break;
-		case 2:	if ((v & ~0x0000FFFF) && ((v & ~0x0000FFFF) != ~0x0000FFFF)) aerr();	break;
-		case 3:	if ((v & ~0x00FFFFFF) && ((v & ~0x00FFFFFF) != ~0x00FFFFFF)) aerr();	break;
-		case 4:	if ((v & ~0xFFFFFFFF) && ((v & ~0xFFFFFFFF) != ~0xFFFFFFFF)) aerr();	break;
+		case 1:	if ((v & ~0x000000FF) && ((v & ~0x000000FF) != ~0x000000FF)) return(1);
+		case 2:	if ((v & ~0x0000FFFF) && ((v & ~0x0000FFFF) != ~0x0000FFFF)) return(1);
+		case 3:	if ((v & ~0x00FFFFFF) && ((v & ~0x00FFFFFF) != ~0x00FFFFFF)) return(1);
+		case 4:	if ((v & ~0xFFFFFFFF) && ((v & ~0xFFFFFFFF) != ~0xFFFFFFFF)) return(1);
 #endif
 		}
 	}
+	return(0);
 }
 
 /*
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - n);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - n);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {

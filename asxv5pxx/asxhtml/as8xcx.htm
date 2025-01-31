@@ -140,13 +140,13 @@ output to the created .rel file.
    The  assembler  .globl  directive  may  be used to change the
 variable type to global causing its definition to be  output  to
 the  .rel file.  The inclusion of the definition of the variable
-'.__.CPU.' might be a useful means of validating that seperately
+'.__.CPU.' might be a useful means of validating that separately
 assembled  files have been compiled for the same processor type.
 The linker will report an error for variables with multiple  non
 equal definitions.  
 
 
-DS80C390 Addressing Mode Directive 
+AS8XCXXX ASSEMBLER DIRECTIVES
 
    The  DS80C390  microprocessor  supports 16-Bit and 24-Bit ad-
 dressing modes.   The  .amode  assembler  directive  provides  a
@@ -166,6 +166,33 @@ cation loading the mode bits into the ACON register:
         ;mov    ta,#0xAA
         ;mov    ta,#0x55
         ;mov    acon,#amode
+
+
+The .msb Directive 
+
+
+   The .msb directive is available in the AS8XCXXX assembler.  
+
+   The  assembler operator '&gt;' selects the upper byte (MSB) when
+included in an assembler  instruction.   The  default  assembler
+mode  is  to  select bits &lt;15:8&gt; as the MSB.  The .msb directive
+allows the programmer to specify a particular byte as the  'MSB'
+when the address space is larger than 16-bits.  
+
+   The assembler directive   .msb n  configures the assembler to
+select a particular byte as MSB.  Given a 24-bit address of  Nmn
+(N(2) is &lt;23:16&gt;, m(1) is &lt;15:8&gt;, and n(0) is &lt;7:0&gt;) the follow-
+ing examples show how to select a particular address byte:  
+
+        .msb 1          ;select byte 1 of address
+                        ;&lt;M(3):N(2):m(1):n(0)&gt;
+        LD A,&gt;MNmn      ;byte m &lt;15:8&gt; ==&gt;&gt; A
+        ...
+
+        .msb 2          ;select byte 2 of address
+                        ;&lt;M(3):N(2):m(1):n(0)&gt;
+        LD A,&gt;MNmn      ;byte N &lt;23:16&gt; ==&gt;&gt; A
+        ...
 
 
 DS8XCXXX REGISTER SET 
@@ -1614,6 +1641,6 @@ T2CON   0x80                                        0x10
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

@@ -1,7 +1,7 @@
 /* z80.h */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -138,15 +138,21 @@
 #define	S_SBC	82
 
 /*
- * CPU Types
+ * CPU Type Split
  */
-#define	S_CPU	83
+#define	S_CPU	84
 
 /*
- * Processor Types (S_CPU)
+ * 8085 Undocumented Instructions
  */
-#define	X_Z80	0
-#define	X_HD64	1
+#define	X_INH1	85
+#define	X_ADI	86
+#define	X_JP	87
+
+/*
+ * CPU Type Split
+ */
+#define	X_CPU	88
 
 /*
  * HD64180 Instructions
@@ -157,6 +163,16 @@
 #define	X_MLT	93
 #define	X_TST	94
 #define	X_TSTIO	95
+
+/*
+ * Processor Types (S_CPU)
+ */
+#define	X_Z80	0
+#define	X_HD64	1
+#define	X_8080	2
+#define	X_8085	3
+#define	X_8085X	4
+
 
 struct adsym
 {
@@ -183,7 +199,8 @@ extern	int		srch(char *str);
 extern	int		genop(int pop, int op, struct expr *esp, int f);
 extern	int		gixiy(int v);
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
+extern	int		mchtyp;
 extern	VOID		minit(void);
 
 #else
@@ -198,6 +215,7 @@ extern	int		genop();
 extern	int		gixiy();
 extern	VOID		machine();
 extern	int		mchpcr();
+extern	int		mchtyp;
 extern	VOID		minit();
 
 #endif

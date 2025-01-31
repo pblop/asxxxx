@@ -468,10 +468,10 @@ agrp72_A:
 	addw	y,#awrd		;  ; 72 A9 54 32
 
 agrp72_B:
-	subw	x,abyt		;a ; 72 B0 10
-	subw	y,abyt		;a ; 72 B2 10
-	addw	y,abyt		;a ; 72 B9 10
-	addw	x,abyt		;a ; 72 BB 10
+	subw	x,abyt		;a ; 72 B0 01 10
+	subw	y,abyt		;a ; 72 B2 01 10
+	addw	y,abyt		;a ; 72 B9 01 10
+	addw	x,abyt		;a ; 72 BB 01 10
 
 	.page
 
@@ -1360,10 +1360,10 @@ xgrp72_A:
 	addw	y,#rwrd		;  ; 72 A9s54r32
 
 xgrp72_B:
-	subw	x,rbyt		;  ; 72 B0u10
-	subw	y,rbyt		;  ; 72 B2u10
-	addw	y,rbyt		;  ; 72 B9u10
-	addw	x,rbyt		;  ; 72 BBu10
+	subw	x,rbyt		;  ; 72 B0v00u10
+	subw	y,rbyt		;  ; 72 B2v00u10
+	addw	y,rbyt		;  ; 72 B9v00u10
+	addw	x,rbyt		;  ; 72 BBv00u10
 
 	.page
 

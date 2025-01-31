@@ -109,7 +109,7 @@ one- or two-byte argument.  There are some exceptions for this:
 
 Load Immediate Register 
 
-        LII n           (n --> I)
+        LII n           (n --&gt I)
         LIJ n
         LIA n
         LIB n
@@ -124,61 +124,61 @@ Load Immediate Register
 
 Load Accumulator 
 
-        LDP             (P --> A)
+        LDP             (P --&gt A)
         LDQ
         LDR
-        LDM             ((P) --> A)
-        LDD             ((DP) --> A)
+        LDM             ((P) --&gt A)
+        LDD             ((DP) --&gt A)
 
 
 Store Accumulator 
 
-        STP             (A --> P)
+        STP             (A --&gt P)
         STQ
         STR
-        STD             (A --> (DP))
+        STD             (A --&gt (DP))
 
 
 Move Data 
 
-        MVDM            ((P) --> (DP))
-        MVMD            ((DP) --> (P))
+        MVDM            ((P) --&gt (DP))
+        MVMD            ((DP) --&gt (P))
 
 
 Exchange Data 
 
-        EXAB            (A <--> B)
-        EXAM            (A <--> (P))
+        EXAB            (A &lt--&gt B)
+        EXAM            (A &lt--&gt (P))
 
 
 Stack Operations 
 
-        PUSH            (R - 1 --> R, A --> (R))
-        POP             ((R) --> A, R + 1 --> R)
-        LEAVE           (0 --> (R))
+        PUSH            (R - 1 --&gt R, A --&gt (R))
+        POP             ((R) --&gt A, R + 1 --&gt R)
+        LEAVE           (0 --&gt (R))
 
 
 Block Move Data 
 
-        MVW             ((Q) --> (P), I+1 bytes)
-        MVB             ((Q) --> (P), J+1 bytes)
-        MVWD            ((DP) --> (P), I+1 bytes)
-        MVBD            ((DP) --> (P), J+1 bytes)
-        DATA            ((B,A) --> (P), I+1 bytes,
+        MVW             ((Q) --&gt (P), I+1 bytes)
+        MVB             ((Q) --&gt (P), J+1 bytes)
+        MVWD            ((DP) --&gt (P), I+1 bytes)
+        MVBD            ((DP) --&gt (P), J+1 bytes)
+        DATA            ((B,A) --&gt (P), I+1 bytes,
                         reads CPU ROM also)
 
 
 Block Exchange Data 
 
-        EXW             ((Q) <--> (P), I+1 bytes)
-        EXB             ((Q) <--> (P), J+1 bytes)
-        EXWD            ((DP) <--> (P), I+1 bytes)
-        EXBD            ((DP) <--> (P), J+1 bytes)
+        EXW             ((Q) &lt--&gt (P), I+1 bytes)
+        EXB             ((Q) &lt--&gt (P), J+1 bytes)
+        EXWD            ((DP) &lt--&gt (P), I+1 bytes)
+        EXBD            ((DP) &lt--&gt (P), J+1 bytes)
 
 
 Increment and Decrement 
 
-        INCP            (P + 1 --> P)
+        INCP            (P + 1 --&gt P)
         DECP
         INCI
         DECI
@@ -192,7 +192,7 @@ Increment and Decrement
         DECK
         INCL
         DECL
-        IX              (X + 1 --> X, X --> DP)
+        IX              (X + 1 --&gt X, X --&gt DP)
         DX
         IY
         DY
@@ -214,25 +214,25 @@ Increment/Decrement with Load/Store
 
 Fill 
 
-        FILM            (A --> (P), I+1 bytes)
-        FILD            (A --> (DP), I+1 bytes)
+        FILM            (A --&gt (P), I+1 bytes)
+        FILD            (A --&gt (DP), I+1 bytes)
 
 
 Addition and Subtraction 
 
-        ADIA n          (A + n --> A)
+        ADIA n          (A + n --&gt A)
         SBIA n
-        ADIM n          ((P) + n --> (P))
+        ADIM n          ((P) + n --&gt (P))
         SBIM n
-        ADM n           ((P) + A --> (P))
+        ADM n           ((P) + A --&gt (P))
         SBM n
-        ADCM n          ((P) + A --> (P), with carry)
+        ADCM n          ((P) + A --&gt (P), with carry)
         SBCM
         ADB             (like ADM, but 16 bit)
         SBB
         ADN             (like ADM, BCD addition, I+1 bytes)
         SBN
-        ADW             ((P) + (Q) --> (P), BCD, I+1 bytes)
+        ADW             ((P) + (Q) --&gt (P), BCD, I+1 bytes)
         SBW
 
 
@@ -247,25 +247,25 @@ Shift Operations
 
 Boolean Operations 
 
-        ANIA n          (A & n --> A)
+        ANIA n          (A & n --&gt A)
         ORIA n
-        ANIM n          ((P) & n --> (P))
+        ANIM n          ((P) & n --&gt (P))
         ORIM n
-        ANID n          ((DP) & n --> (DP))
+        ANID n          ((DP) & n --&gt (DP))
         ORID n
-        ANMA            ((P) & A --> (P))
+        ANMA            ((P) & A --&gt (P))
         ORMA
 
 
 Compare 
 
-        CPIA n          (A - n --> c,z)
-        CPIM n          ((P) - n --> c,z)
-        CPMA            ((P) - A --> c,z)
-        TSIA n          (A & n --> z)
-        TSIM n          ((P) & n --> z)
-        TSID n          ((DP) & n --> z)
-        TSIP            ((P) & A --> z)
+        CPIA n          (A - n --&gt c,z)
+        CPIM n          ((P) - n --&gt c,z)
+        CPMA            ((P) - A --&gt c,z)
+        TSIA n          (A & n --&gt z)
+        TSIM n          ((P) & n --&gt z)
+        TSID n          ((DP) & n --&gt z)
+        TSIP            ((P) & A --&gt z)
 
 
 CPU Control 
@@ -317,26 +317,26 @@ that relative jumps need 1 byte less than absolute jumps.
 Calls 
 
         CALL nm
-        CAL nm          (nm must be <= 0x1fff,
+        CAL nm          (nm must be &lt= 0x1fff,
                         1 byte less code than CALL)
         RTN
 
 
 Input and output 
 
-        INA             (IA --> A)
+        INA             (IA --&gt A)
         INB
         OUTA
         OUTB
-        OUTF            (A --> FO)
+        OUTF            (A --&gt FO)
         OUTC            (control port)
-        TEST n          (timers, pins & n --> z)
+        TEST n          (timers, pins & n --&gt z)
 
 
 Unknown Commands 
 
-        READ            ((PC+1) -> A)
-        READM           ((PC+1) -> (P))
+        READ            ((PC+1) -&gt A)
+        READM           ((PC+1) -&gt (P))
         WRIT            (???)
 
 </PRE></B></H4>
@@ -354,6 +354,6 @@ Unknown Commands
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

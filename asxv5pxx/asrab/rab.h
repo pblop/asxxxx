@@ -233,7 +233,7 @@ extern	int		srch(char *str);
 extern	int		genop(int pop, int op, struct expr *esp, int f);
 extern	int		gixiy(int v);
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 extern  VOID            clrPreByte(void);
 extern  VOID            chkPreByte(struct mne *mp);

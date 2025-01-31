@@ -1,0 +1,198 @@
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+</HEAD>
+<BODY BGCOLOR="#C0C0C0">
+
+<A href="../home.htm">
+<IMG width=343 height=58 border=0 SRC="welcom.gif" ALT="Welcome"></A>
+
+<H2>ASSX  Assembler</H2>
+
+<A NAME = "TOP"> </A> 
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+     The  ASSX  assembler  supports the UBICOM SX family of com-
+munication  controllers.   The  processor  family  includes  the
+SX18/20/28/42/52 variations.  
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+SX REGISTER SET 
+
+The following is a list of the SX registers used by ASSX.  
+
+        W       -       8-bit working register
+        M       -       mode register
+
+The  following  is  a list of the SX special function registers.
+(Not all are present in all SX processors.) 
+
+Address
+-------
+ 0x00   INDF    -       indirect addressing register
+ 0x01   RTCC    -       real time clock/counter
+ 0x02   PC      -       program counter
+ 0x03   STATUS  -       ALU status bits
+ 0x04   FSR     -       File Select Register
+ 0x05   RA      -       Port RA data register
+ 0x06   RB      -       Port RB data register
+ 0x07   RC      -       Port RC data register
+ 0x08   RD      -       Port RD data register
+ 0x09   RE      -       Port RE data register
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+SX INSTRUCTION SET 
+
+
+     The following list specifies the format for each addressing
+mode supported by ASSX:  
+
+        W               the working register
+
+        M               the MODE register
+
+        fr              a memory address
+                        for a file register
+
+        fr.bit          a memory address
+                        for a file register
+                        with bit selection (0-7)
+
+        !               Non-memory-mapped register
+                        designator prefix
+
+        #lit            immediate data
+
+        label           branch label or value
+
+The terms fr, data, lit, and label may all be expressions.  
+
+     The  following  tables  list all SX mnemonics recognized by
+the ASSX assembler.  Note that the argument ordering is dst,src. 
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+Logical Operation Instructions 
+
+        and   fr,W      and   W,fr      and   W,#lit
+        or    fr,W      or    W,fr      or    W,#lit
+        xor   fr,W      xor   W,fr      xor   W,#lit
+        not   fr
+
+
+Arithmetic and Shift Instructions 
+
+        add   fr,W      add    W,fr
+        clr   fr        clr    W        clr    !WDT
+        dec   fr        decsz  fr
+        inc   fr        incsz  fr
+        rl    fr        rr     fr
+        sub   fr,W      swap   fr
+
+
+Bitwise Operation Instructions 
+
+        clrb  fr.bit    setb   fr.bit
+        sb    fr.bit    snb    fr.bit
+
+
+Data Movement Instructions 
+
+        mov   fr,W      mov   W,fr      mov   W,fr-W
+        mov   W,#lit    mov   M,#lit
+        mov   W,M       mov   M,W
+
+        mov   W,/fr     Move Complement of fr to W
+        mov   W,--fr    Move (fr - 1) to W
+        mov   W,++fr    Move (fr + 1) to W
+        mov   W,<<fr    Rotate fr Left through Carry
+                        and move to W
+        mov   W,>>fr    Rotate fr Right through Carry
+                        and move to W
+        mov   W,<>fr    Swap High/Low Nibbles of fr
+                        and move to W
+
+        mov   !rx,W     Move Data Between W
+                        and Control Register
+        mov   !option,W Move W to OPTION Register
+
+        movsz W,--fr    Move (fr - 1) to W
+                        and Skip if Zero
+        movsz W,++fr    Move (fr + 1) to W
+                        and Skip if Zero
+
+        test  fr        Test fr for Zero
+
+
+Program Control Instructions 
+
+        call    label   PC<7:0> <- label
+        jmp     label   PC<8:0> <- label
+
+        nop             No Operation
+
+        ret             Return from Subroutine
+
+        retp            Return from Subroutine
+                        Across Page Boundary
+
+        reti            Return from interrupt
+
+        retiw           Return from Interrupt
+                        and add W to RTCC
+
+        retw    lit     Return from Subroutine
+                        with Literal in W
+
+
+System Control Instructions 
+
+        bank    label   Load Bank Number
+
+        iread           Read Word from
+                        Instruction Memory
+
+        page    label   Load Page Number
+
+        sleep           Power Down Mode
+
+
+Equivalent Assembler Mnemonics 
+
+        clc             Clear Carry Flag
+        clz             Clear Zero Flag
+        sc              Set Carry Flag
+        sz              Set Zero Flag
+        jmp   W         Jump Indirect W
+        jmp   PC+W      Jump Indirect W Relative
+        mode  #lit      Move immediate to MODE Register
+        not   W         Complement W
+        skip            Skip Next Instruction
+
+</PRE></B></H4>
+<H5><A HREF="asxdoc.htm#TOP"> Go to the Documentation Index</A></H5>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4>
+<P><A HREF="asxxxx.htm#JUMP">
+<IMG width=32 height=32 border=0 SRC="spcshp.gif" ALIGN=bottom></A>
+<B>...  Exit the ASxxxx Documentation</B></A></P>
+
+<P><A href="../home.htm">
+<IMG width=32 height=32 border=0 SRC="home.gif" ALIGN=bottom></A>
+<B>...  Home Page</B></P>
+</H4>
+
+<H6><P><B>Last Updated: September 2023</B></P></H6>
+</BODY> 
+</HTML>

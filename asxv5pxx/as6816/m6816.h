@@ -1,7 +1,7 @@
 /* m6816.h */
 
 /*
- *  Copyright (C) 1991-2014  Alan R. Baldwin
+ *  Copyright (C) 1991-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -59,11 +59,15 @@
 #define	T_EXT	0x02
 #define	T_INDX	0x04
 #define	T_E_I	0x08
-#define	T_IM8	0x10
-#define	T_IM16	0x20
 #define	T_IND8	0x40
 #define	T_IND16	0x80
-
+/*
+ * Index Registers
+ */
+#define	T_X	0x00
+#define	T_Y	0x10
+#define	T_Z	0x20
+#define	T_XYZ	(T_X | T_Y | T_Z)
 /*
  * 6816 Instruction types
  */
@@ -77,8 +81,8 @@
 #define S_PSHM	47
 #define	S_PULM	48
 #define	S_JXX	49
-#define	S_MOVB	50
-#define	S_MOVW	51
+#define	S_MOV	50
+#define	S_MOVX	51
 #define	S_CMP	52
 #define	S_STOR	53
 #define	S_LOAD	54
@@ -94,10 +98,19 @@
 #define	S_BRA	64
 #define S_BSR	65
 
+#define	S_IMMB	66
+#define	S_DOPDB	67
+#define	S_DOPEB	68
+
 /*
  * Set Direct Pointer
  */
 #define	S_SDP	80
+
+/*
+ * Extended Addressing Modes
+ */
+#define	R_20BIT	0x0100		/* 20-Bit Addressing Mode */
 
 
 struct adsym
@@ -118,38 +131,60 @@ extern struct adsym pulm[];
 	/* m16adr.c */
 extern	int		addr(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
 	/* m16mch.c */
 extern	VOID		machine(struct mne *mp);
-extern	VOID		mchubyt(struct expr *e1);
+extern	VOID		sgnext4(struct expr *e1);
+extern	VOID		sgnext8(struct expr *e1);
+extern	VOID		sgnext16(struct expr *e1);
+extern	VOID		sgnext20(struct expr *e1);
+extern	VOID		srngchk4(struct expr *e1);
+extern	VOID		srngchk8(struct expr *e1);
+extern	VOID		srngchk16(struct expr *e1);
+extern	VOID		srngchk20(struct expr *e1);
+extern	VOID		urngchk4(struct expr *e1);
+extern	VOID		urngchk8(struct expr *e1);
+extern	VOID		urngchk16(struct expr *e1);
+extern	VOID		urngchk20(struct expr *e1);
+extern	int		mchcon(struct expr *e1);
+extern	int		mchbrcs(int t1, struct expr *e1, a_uint pc, struct expr *e2);
 extern	int		mchindx(int t1, struct expr *e1);
 extern	int		mchimm(struct expr *e1);
-extern	int		mchcon(struct expr *e1);
-extern	int		mchpcr(struct expr *esp);
 extern	VOID		minit(void);
 extern	int		setbit(int b);
 extern	int		getbit(void);
+extern	int		mchpcr(struct expr *esp);
 
 #else
 
 	/* m16adr.c */
 extern	int		addr();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
 	/* m16mch.c */
 extern	VOID		machine();
-extern	VOID		mchubyt();
+extern	VOID		sgnext4();
+extern	VOID		sgnext8();
+extern	VOID		sgnext16();
+extern	VOID		sgnext20();
+extern	VOID		srngchk4();
+extern	VOID		srngchk8();
+extern	VOID		srngchk16();
+extern	VOID		srngchk20();
+extern	VOID		urngchk4();
+extern	VOID		urngchk8();
+extern	VOID		urngchk16();
+extern	VOID		urngchk20();
+extern	int		mchcon();
+extern	int		mchbrcs();
 extern	int		mchindx();
 extern	int		mchimm();
-extern	int		mchcon();
-extern	int		mchpcr();
 extern	VOID		minit();
 extern	int		setbit();
 extern	int		getbit();
+extern	int		mchpcr();
 
 #endif
 

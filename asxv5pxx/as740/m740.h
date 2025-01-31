@@ -1,7 +1,7 @@
 /* m740.h */
 
 /*
- *  Copyright (C) 2005-2014  Alan R. Baldwin
+ *  Copyright (C) 2005-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -65,7 +65,8 @@ struct adsym
  * Machine Extensions
  */
 #define	S_SDP		30
-#define	S_M740		31
+#define	S_PGD		31
+#define	S_M740		32
 
 /*
  * Addressing types
@@ -122,13 +123,13 @@ struct adsym
 extern	struct	adsym	axy[];
 extern	int		addr(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 extern	int		zpage(struct expr *esp);
 
 	/* m74mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 extern	VOID		genbad(struct expr *esp);
 
@@ -138,11 +139,11 @@ extern	VOID		genbad(struct expr *esp);
 extern	struct	adsym	axy[];
 extern	int		addr();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 extern	int		zpage();
 
 	/* m74mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine();
 extern	int		mchpcr();
 extern	VOID		minit();

@@ -1,7 +1,7 @@
 /* f8.h */
 
 /*
- *  Copyright (C) 2012-2014  Alan R. Baldwin
+ *  Copyright (C) 2012-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -111,11 +111,6 @@ struct adsym
 #define	S_BRF	71
 #define	S_BRA	72
 
-/*
- * Set Direct Pointer
- */
-#define	S_SDP	80
-
 
 	/* machine dependent functions */
 
@@ -130,12 +125,11 @@ extern	struct	adsym	reg8[];
 extern	struct	adsym	reg16[];
 extern	int		addr(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
 	/* f8mch.c */
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 
 #else
@@ -149,7 +143,6 @@ extern	struct	adsym	reg8[];
 extern	struct	adsym	reg16[];
 extern	int		addr();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
 	/* f8mch.c */

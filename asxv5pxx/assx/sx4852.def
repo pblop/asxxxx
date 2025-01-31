@@ -1,0 +1,123 @@
+.nlist
+;****************************************************************************
+;
+; Include This File To Define The SX42 And SX52 SFRs
+;
+;	!!! NOTE !!!
+;		Only SFR Registers Are Defined
+;
+;****************************************************************************
+;
+; Set UPPER_CASE_SFR Non Zero To Define Upper Case SFRs
+	; Set LOWER_CASE_SFR Non Zero To Define Lower Case SFRs
+	; Else Both Upper And Lower Case SFRs Will Be Defined
+
+	.ifeq	UPPER_CASE_SFR + LOWER_CASE_SFR
+		UPPER_CASE_SFR = 1
+		LOWER_CASE_SFR = 1
+	.endif
+
+;
+;****************************************************************************
+;
+	; Macro To Define SFRs By Register Names
+	; Creates Symbols str0 = addr+0, str1 = addr+1, ..., str7 = addr+7
+	.macro	.sfr.r	addr, str0, str1, str2, str3, str4, str5, str6, str7
+	  sfr$n =: 0
+	  .irp	str, str0, str1, str2, str3, str4, str5, str6, str7
+	    .ifnb str
+	str =: addr + sfr$n
+	    .endif
+	    sfr$n = sfr$n + 1
+	  .endm
+	.endm
+
+;
+;****************************************************************************
+
+.ifne	UPPER_CASE_SFR
+	.list	(!,src)
+;	SX48/SX52 Upper Case SFRs         Defined
+	.nlist
+
+;	!RA
+.sfr.r	0x0C,		,	LVL_A_RD,	PLP_A_RD,	RA_DIR_RD
+.sfr.r	0x1C,		,	LVL_A_WT,	PLP_A_WT,	RA_DIR_WT
+
+;	!RB
+.sfr.r	0x00,	T1CPL_RD,	T1CPH_RD,	T1R2CML_RD,	T1R2CMH_RD
+.sfr.r	0x04,	T1R1CML_RD,	T1R1CMH_RD,	T1CNTB_RD,	T1CNTA_RD
+.sfr.r	0x08,	XCMPBW_0,	XWKPNDBW_0,	WKED_B_0,	WKEN_B_0
+.sfr.r	0x0C,	ST_B_RD,	LVL_B_RD,	PLP_B_RD,	RB_DIR_RD
+
+.sfr.r	0x10,	CLR_T1,		,		T1R2CML_WT,	T1R2CMH_WT
+.sfr.r	0x14,	T1R1CML_WT,	T1R1CMH_WT,	T1CNTB_WT,	T1CNTA_WT
+.sfr.r	0x18,	XCMPBW_1,	XWKPNDBW_1,	WKED_B_1,	WKEN_B_1
+.sfr.r	0x1C,	ST_B_WT,	LVL_B_WT,	PLP_B_WT,	RB_DIR_WT
+
+;	!RC
+.sfr.r	0x00,	T2CPL_RD,	T2CPH_RD,	T2R2CML_RD,	T2R2CMH_RD
+.sfr.r	0x04,	T2R1CML_RD,	T2R1CMH_RD,	T2CNTB_RD,	T2CNTA_RD
+
+.sfr.r	0x0C,	ST_C_RD,	LVL_C_RD,	PLP_C_RD,	RC_DIR_RD
+
+.sfr.r	0x10,	CLR_T2,		,		T2R2CML_WT,	T2R2CMH_WT
+.sfr.r	0x14,	T2R1CML_WT,	T2R1CMH_WT,	T2CNTB_WT,	T1CNTA_WT
+
+.sfr.r	0x1C,	ST_C_WT,	LVL_C_WT,	PLP_C_WT,	RC_DIR_WT
+
+;	!RD
+.sfr.r	0x0C,	ST_D_RD,	LVL_D_RD,	PLP_D_RD,	RD_DIR_RD
+
+.sfr.r	0x1C,	ST_D_WT,	LVL_D_WT,	PLP_D_WT,	RD_DIR_WT
+
+;	!RE
+.sfr.r	0x0C,	ST_E_RD,	LVL_E_RD,	PLP_E_RD,	RE_DIR_RD
+
+.sfr.r	0x1C,	ST_E_WT,	LVL_E_WT,	PLP_E_WT,	RE_DIR_WT
+
+.endif
+
+.ifne	LOWER_CASE_SFR
+	.list	(!,src)
+;	SX48/SX52 Lower Case SFRs         Defined
+	.nlist
+
+;	!ra
+.sfr.r	0x0c,		,	lvl_a_rd,	plp_a_rd,	ra_dir_rd
+.sfr.r	0x1c,		,	lvl_a_wt,	plp_a_wt,	ra_dir_wt
+
+;	!rb
+.sfr.r	0x00,	t1cpl_rd,	t1cph_rd,	t1r2cml_rd,	t1r2cmh_rd
+.sfr.r	0x04,	t1r1cml_rd,	t1r1cmh_rd,	t1cntb_rd,	t1cnta_rd
+.sfr.r	0x08,	xcmpbw_0,	xwkpndbw_0,	wked_b_0,	wken_b_0
+.sfr.r	0x0c,	st_b_rd,	lvl_b_rd,	plp_b_rd,	rb_dir_rd
+
+.sfr.r	0x10,	clr_t1,		,		t1r2cml_wt,	t1r2cmh_wt
+.sfr.r	0x14,	t1r1cml_wt,	t1r1cmh_wt,	t1cntb_wt,	t1cnta_wt
+.sfr.r	0x18,	xcmpbw_1,	xwkpndbw_1,	wked_b_1,	wken_b_1
+.sfr.r	0x1c,	st_b_wt,	lvl_b_wt,	plp_b_wt,	rb_dir_wt
+
+;	!rc
+.sfr.r	0x00,	t2cpl_rd,	t2cph_rd,	t2r2cml_rd,	t2r2cmh_rd
+.sfr.r	0x04,	t2r1cml_rd,	t2r1cmh_rd,	t2cntb_rd,	t2cnta_rd
+
+.sfr.r	0x0c,	st_c_rd,	lvl_c_rd,	plp_c_rd,	rc_dir_rd
+
+.sfr.r	0x10,	clr_t2,		,		t2r2cml_wt,	t2r2cmh_wt
+.sfr.r	0x14,	t2r1cml_wt,	t2r1cmh_wt,	t2cntb_wt,	t1cnta_wt
+
+.sfr.r	0x1c,	st_c_wt,	lvl_c_wt,	plp_c_wt,	rc_dir_wt
+
+;	!rd
+.sfr.r	0x0c,	st_d_rd,	lvl_d_rd,	plp_d_rd,	rd_dir_rd
+
+.sfr.r	0x1c,	st_d_wt,	lvl_d_wt,	plp_d_wt,	rd_dir_wt
+
+;	!re
+.sfr.r	0x0c,	st_e_rd,	lvl_e_rd,	plp_e_rd,	re_dir_rd
+
+.sfr.r	0x1c,	st_e_wt,	lvl_e_wt,	plp_e_wt,	re_dir_wt
+
+.endif
+

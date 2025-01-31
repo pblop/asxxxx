@@ -1,7 +1,7 @@
 /* asxxxx.h */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,6 +34,9 @@
  *
  *	Mike McCarty
  *	mike dot mccarty at sbcglobal dot net
+ *
+ *	Nick Downing
+ *	downing dot nick at gmail dot com
  */
 
 /*
@@ -50,8 +53,8 @@
  * Local Definitions
  */
 
-#define	VERSION	"V05.11"
-#define	COPYRIGHT "2015"
+#define	VERSION	"V05.50"
+#define	COPYRIGHT "2023"
 
 /*
  * To include NoICE Debugging set non-zero
@@ -142,7 +145,7 @@
  */
 #define	ER_NONE		0	/* No error */
 #define	ER_WARNING	1	/* Warning */
-#define	ER_ERROR	2	/* Assembly error */
+#define	ER_ERROR	2	/* Assembly/Linker error */
 #define	ER_FATAL	3	/* Fatal error */
 
 /*
@@ -165,7 +168,7 @@
 #define	MAXINC	6		/* Maximum nesting of include files */
 #define	MAXMCR	20		/* Maximum nesting of macro expansions */
 #define	MAXIF	10		/* Maximum nesting of if/else/endif */
-#define	FILSPC	80		/* Chars. in filespec */
+#define	FILSPC	256		/* Chars. in filespec */
 
 #define NLIST	0		/* No listing */
 #define SLIST	1		/* Source only */
@@ -190,20 +193,32 @@
 #define	LIST_MD		0x0200	/* Macro Definition */
 #define	LIST_ME		0x0400	/* Macro Expansion */
 #define	LIST_MEB	0x0800	/* Macro Expansion Binary */
+#define	LIST_MEL	0x1000	/* Macro Expansion Binary And Assembler Line */
 
-#define	LIST_BITS	0x0FFF	/* LIST  Flags Mask */
+#define	LIST_BITS	0x1FFF	/* LIST  Flags Mask */
 
 #define	LIST_NONE	0x0000	/* NLIST Flags Mask */
 #define	LIST_ASM	0x007F	/* LIST  Flags Mask for Assembler Line */
 #define	LIST_NORM	0x03FF	/* LIST  Flags Mask */
 
-#define	LIST_NOT	0x1000	/* Force Complement of Listing Mode */
+#define	LIST_NOT	0x2000	/* Force Complement of Listing Mode */
 
 #define	LIST_TORF	0x8000	/* IF-ENDIF Conditional Overide Flag */
 
-#define	T_ASM	0		/* Assembler Source File */
-#define	T_INCL	1		/* Assembler Include File */
-#define	T_MACRO	2		/* Assembler Macro */
+#define	T_INSERT	0	/* Command Line Insert */
+#define	T_ASM		1	/* Assembler Source File */
+#define	T_INCL		2	/* Assembler Include File */
+#define	T_MACRO		3	/* Assembler Macro */
+
+#define TRC_INS		0x01	/* Inserted Lines */
+#define TRC_ASM		0x02	/* Assembler Files */
+#define TRC_INC		0x04	/* Include Files */
+#define TRC_MCR		0x10	/* Macros */
+#define TRC_RPT		0x20	/* Macro Repeats */
+
+#define TRC_NONE	0x00	/* Debug None */
+#define TRC_ALL		0x37	/* Debug All */
+#define TRC_NOT		0x0100	/* Clear Flags To Complement */
 
 /*
  * Opcode Cycle definitions (Must Be The Same In ASxxxx / ASLink)
@@ -212,10 +227,10 @@
 #define	CYCNT_END	']'	/* Cycle count end   delimiter */
 
 /*
- * OPCY_NONE bit set signifies no opcode cycles set.
+ * CYCL_NONE bit set signifies no opcode cycles set.
  */
-#define	OPCY_NONE	((char) 0x80)	/* Opcode Cycle Count Not Set */
-#define	OPCY_MASK	((char) 0x7F)	/* Opcode Cycle Count MASK */
+#define	CYCL_NONE	0x4000	/* Opcode Cycle Count Not Set */
+#define	CYCL_MASK	0x3FFF	/* Opcode Cycle Count MASK */
 
 /*
  * Default Page Length Mask
@@ -273,6 +288,9 @@ typedef	signed INT32 v_sint;
  *	a variable used to track pass to pass changes in the
  *	area size caused by variable length instruction formats,
  *	and area flags which specify the area's relocation type.
+ *	The structure bndry is a linked list of boundaries specified
+ *	within this area.  This list is used (if defined) to calculate
+ *	the overall boundary required when the area is relocated.
  */
 struct	area
 {
@@ -283,6 +301,14 @@ struct	area
 	a_uint	a_size;		/* Area size */
 	a_uint	a_fuzz;		/* Area fuzz */
 	int	a_flag;		/* Area flags */
+	struct	bndry *a_bn;	/* Boundary link */
+	a_uint	a_bndry;	/* Area Boundary */
+};
+
+struct	bndry
+{
+	struct	bndry *a_bn;	/* Boundary link */
+	a_uint	a_bndry;	/* Boundary value */
 };
 
 /*
@@ -304,7 +330,7 @@ struct	area
 #define A_2BYTE 0x0001		/* 2 Byte Word Length */
 #define A_3BYTE 0x0002		/* 3 Byte Word Length */
 #define A_4BYTE 0x0003		/* 4 Byte Word Length */
-#define	A_BYTES	0x0003		/* Word Length */
+#define	A_BYTES	0x0003		/* Word Length Mask */
 
 #define	A_CON	0x0400		/* Concatenating */
 #define	A_OVR	0x0404		/* Overlaying */
@@ -476,33 +502,39 @@ struct	sym
 	struct	area *s_area;	/* Area line, 0 if absolute */
 	int	s_ref;		/* Ref. number */
 	a_uint	s_addr;		/* Address */
+	a_uint	p_addr;		/* Previous Pass Address */
 };
 
-#define	S_EOL		040	/* End mark for ___pst files */
+#define	S_EOL		0x40	/* End mark for ___pst files */
+
+#define	S_NEW		0	/* New  Name (External) */
+#define	S_USER		1	/* User Name (Assigned) */
 
 #define	S_LCL		001	/* Local Variable */
 #define	S_GBL		002	/* Global Variable */
 #define	S_ASG		004	/* Assigned Value */
 #define	S_MDF		010	/* Multiple Definition */
 
-#define	S_NEW		0	/* New  Name (External) */
-#define	S_USER		1	/* User Name (Assigned) */
-#define	S_SPARE		2	/* Spare Definition */
-#define	S_PAGE		3	/* .page */
-#define	S_HEADER	4	/* .title, .sbttl */
+#define	S_OPTN		1	/* .enabl, .dsabl */
+#define	  O_ENBL     1		/* .enabl */
+#define	  O_DSBL     0		/* .dsabl */
+#define	S_PAGE		2	/* .page */
+#define	S_HEADER	3	/* .title, .sbttl */
 #define	  O_TITLE    0		/* .title */
 #define	  O_SBTTL    1		/* .sbttl */
-#define	S_MODUL		5	/* .module */
-#define	S_INCL		6	/* .include */
-#define	S_AREA		7	/* .area */
-#define	S_ATYP		8	/* .area type */
-#define	S_BANK		9	/* .bank */
-#define S_BTYP		10	/* .bank type */
-#define	S_ORG		11	/* .org */
-#define	S_RADIX		12	/* .radix */
-#define	S_GLOBL		13	/* .globl */
-#define	S_LOCAL		14	/* .local */
-#define	S_CONDITIONAL	15	/* .if, .iif, .else, .endif, ... */
+#define	S_MODUL		4	/* .module */
+#define	S_INCL		5	/* .include, .incbin */
+#define	  I_CODE     0		/* .include */
+#define	  I_BNRY     1		/* .incbin */
+#define	S_AREA		6	/* .area */
+#define	  O_PSH	     1		/* .psharea */
+#define	  O_POP	     2		/* .poparea */
+#define	S_BANK		7	/* .bank */
+#define	S_ORG		8	/* .org */
+#define	S_RADIX		9	/* .radix */
+#define	S_GLOBL		10	/* .globl */
+#define	S_LOCAL		11	/* .local */
+#define	S_CONDITIONAL	12	/* .if, .iif, .else, .endif, ... */
 #define	  O_IF       0		/* .if */
 #define	  O_IFF	     1		/* .iff */
 #define	  O_IFT	     2		/* .ift */
@@ -539,49 +571,49 @@ struct	sym
 #define	  O_IIFEND   40		/* end of .iif conditionals */
 #define	  O_ELSE     40		/* .else */
 #define	  O_ENDIF    41		/* .endif */
-#define	S_LISTING	16	/* .nlist, .list */
+#define	S_LISTING	13	/* .nlist, .list */
 #define	  O_LIST     0		/* .list */
 #define	  O_NLIST    1		/* .nlist */
-#define	S_EQU		17	/* .equ, .gblequ, .lclequ */
+#define	S_EQU		14	/* .equ, .gblequ, .lclequ */
 #define	  O_EQU      0		/* .equ */
 #define	  O_GBLEQU   1		/* .gblequ */
 #define	  O_LCLEQU   2		/* .lclequ */
-#define	S_DATA		18	/* .byte, .word, .3byte, .4byte, .db, .dw, .fcb, .fdb */
+#define	S_DATA		15	/* .byte, .word, long, .3byte, .4byte, .db, .dw, .dl, .fcb, .fdb */
 #define	  O_1BYTE    1		/* .byte, .db, .fcb */
 #define	  O_2BYTE    2		/* .word, .dw, .fdb */
 #define	  O_3BYTE    3		/* .3byte */
-#define	  O_4BYTE    4		/* .4byte */
-#define	S_BLK		19	/* .blkb, .blkw, .blk3, .blk4, .ds, .rmb, .rs */
+#define	  O_4BYTE    4		/* .4byte, .long, .dl */
+#define	S_BLK		16	/* .blkb, .blkw, .blkl, .blk3, .blk4, .ds, .rmb, .rs */
 /*	  O_1BYTE    1	*/	/* .blkb, .ds, .rmb, .rs */
 /*	  O_2BYTE    2	*/	/* .blkw */
 /*	  O_3BYTE    3	*/	/* .blk3 */
-/*	  O_4BYTE    4	*/	/* .blk4 */
-#define	S_ASCIX		20	/* .ascii, .ascis, .asciz, .str, .strs, .strz */
+/*	  O_4BYTE    4	*/	/* .blk4, .blkl */
+#define	S_ASCIX		17	/* .ascii, .ascis, .asciz, .str, .strs, .strz */
 #define	  O_ASCII    0		/* .ascii */
 #define	  O_ASCIS    1		/* .ascis */
 #define	  O_ASCIZ    2		/* .asciz */
-#define	S_DEFINE	21	/* .define, .undefine */
+#define	S_DEFINE	18	/* .define, .undefine */
 #define	  O_DEF      0		/* .define */
 #define	  O_UNDEF    1		/* .undefine */
-#define	S_BOUNDARY	22	/* .even, .odd */
+#define	S_BOUNDARY	19	/* .even, .odd */
 #define	  O_EVEN     0		/* .even */
 #define	  O_ODD      1		/* .odd */
 #define	  O_BNDRY    2		/* .bndry */
-#define	S_MSG		23	/* .msg */
-#define	S_ERROR		24	/* .assume, .error */
+#define	S_MSG		20	/* .msg */
+#define	S_ERROR		21	/* .assume, .error */
 #define	  O_ASSUME   0		/* .assume */
 #define	  O_ERROR    1		/* .error */
-#define	S_MSB		25	/* .msb(0), .msb(1), .msb(2), .msb(3), .lohi, .hilo */
+#define	S_MSB		22	/* .msb(0), .msb(1), .msb(2), .msb(3), .lohi, .hilo */
 #define	  O_MSB      0		/* .msb(0), .msb(1), .msb(2), .msb(3) */
 #define	  O_LOHI     1		/* .lohi */
 #define	  O_HILO     2		/* .hilo */
-#define	S_BITS		26	/* .8bit, .16bit, .24bit, .32bit */
+#define	S_BITS		23	/* .8bit, .16bit, .24bit, .32bit */
 /*	  O_1BYTE    1	*/	/* .8bit */
 /*	  O_2BYTE    2	*/	/* .16bit */
 /*	  O_3BYTE    3	*/	/* .24bit */
 /*	  O_4BYTE    4	*/	/* .32bit */
-#define	S_END		27	/* .end */
-#define	S_MACRO		28	/* .macro, .endm, .mexit, ... */
+#define	S_END		24	/* .end */
+#define	S_MACRO		25	/* .macro, .endm, .mexit, ... */
 #define	  O_MACRO    0		/* .macro */
 #define	  O_ENDM     1		/* .endm */
 #define	  O_MEXIT    2		/* .mexit */
@@ -594,7 +626,12 @@ struct	sym
 #define	  O_NVAL     9		/* .nval */
 #define	  O_MDEL     10		/* .mdelete */
 #define	  O_CHECK    255	/* Building/Exiting a Macro Check */
-#define S_XXXXX		29	/* XXXXX */
+#define S_TRACE		26	/* .trace, .ntrace */
+#define   O_TRC      0		/* .trace */
+#define   O_NTRC     1		/* .ntrace */
+#define S_CONST		27	/* Permanent Symbols Accessible As Constants */
+/*			28  */	/* Spare Definition */
+/*			29  */	/* Spare Definition */
 
 #define S_DIREOL	30	/* Assembler Directive End Of List */
 
@@ -738,7 +775,7 @@ struct	mode
 #define	LTR16	(LETTER|RAD16)
 
 /*
- *	The exp structure is used to return the evaluation
+ *	The expr structure is used to return the evaluation
  *	of an expression.  The structure supports three valid
  *	cases:
  *	(1)	The expression evaluates to a constant,
@@ -748,7 +785,7 @@ struct	mode
  *		plus or minus a constant, mode = S_USER,
  *		flag = 0, addr contains the constant, and
  *		base = pointer to area symbol.
- *	(3)	The expression evaluates to a external
+ *	(3)	The expression evaluates to an external
  *		global symbol plus or minus a constant,
  *		mode = S_NEW, flag = 1, addr contains the
  *		constant, and base = pointer to symbol.
@@ -763,6 +800,7 @@ struct	expr
 		struct sym  *e_sp;
 	} e_base;		/* Rel. base */
 	char	e_rlcf;		/* Rel. flags */
+	char	e_inhbt;	/* Inhibit 0[BOQDHX] */
 };
 
 /*
@@ -847,9 +885,14 @@ struct	macrofp {
  *	narg	is the number of macro definition arguments
  *	bgnarg	is a pointer to the first definition argument string
  *	endarg	is a pointer to the last  definition argument string
+ *	darg    is the number of macro definition default values
+ *	bgndrg	is a pointer to the first definition default value string
+ *	enddrg	is a pointer to the last  definition default value string
  *	xarg	is the number of expansion arguments at macro invocation
  *	bgnxrg	is a pointer to the first expansion argument string
  *	endxrg	is a pointer to the last  expansion argument string
+ *	fname	is a pointer to the source file name
+ *	fline	is the source file line number of the macro
  */
 struct	mcrdef {
 	struct mcrdef *	next;		/* link to next macro definition */
@@ -859,12 +902,17 @@ struct	mcrdef {
 	int		type;		/* macro type */
 	int		rptcnt;		/* repeat counter */
 	int		nest;		/* macro nesting counter */
-	int		narg;		/* number of macro defintion arguments */
-	struct strlst * bgnarg;		/* link to first macro defintion argument */
+	int		narg;		/* number of macro definition arguments */
+	struct strlst * bgnarg;		/* link to first macro definition argument */
 	struct strlst * endarg;		/* link to last macro definition argument */
+	int		darg;		/* number of macro definition default values */
+	struct strlst * bgndrg;		/* link to first macro definition default value */
+	struct strlst * enddrg;		/* link to last macro definition default value */
 	int		xarg;		/* number of macro expansion arguments */
 	struct strlst * bgnxrg;		/* link to first macro expansion argument */
-	struct strlst * endxrg;		/* link to last macro xpansion argument */
+	struct strlst * endxrg;		/* link to last macro expansion argument */
+	char *		fname;		/* pointer to the source file name */
+	int		fline;	        /* source file line number of macro */
 };
 
 /*
@@ -877,6 +925,30 @@ struct	mcrdef {
 struct	strlst {
 	struct strlst *	next;		/* pointer to next string */
 	char *		text;		/* pointer to string text */
+};
+
+/*
+ *	The mstack structure contains parameters for:
+ *	(1) - Recovery of memory used by a macro invocation
+ *	(2) - Restoration of recursed argument parameters
+ *
+ * The Parameters:
+ *	mcrcnt	is the number of macros created (excludes incline macros)
+ *	mcrmem	is a pointer to the current allocated memory block
+ *	pnext	is a pointer to the next available memory byte in the memory block
+ *	bytes	is the number of bytes available in the memory block
+ *	xarg	is the number of expansion arguments at macro invocation
+ *	bgnxrg	is a pointer to the first expansion argument string
+ *	endxrg	is a pointer to the last  expansion argument string
+ */
+struct mstack {
+	int		mcrcnt;		/* macros created */
+	struct memlnk *	mcrmem;		/* pointer to memory block */
+	VOID	      * pnext;		/* pointer to available bytes */
+	int		bytes;		/* bytes available */
+	int		xarg;		/* number of macro expansion arguments */
+	struct strlst * bgnxrg;		/* link to first macro expansion argument */
+	struct strlst * endxrg;		/* link to last macro expansion argument */
 };
 
 /*
@@ -907,14 +979,19 @@ struct	memlnk {
 
 extern	int	aserr;		/*	ASxxxx error counter
 				 */
+extern	int	trcflags;	/*	ASxxxx tracing flags
+				 */
 extern	jmp_buf	jump_env;	/*	compiler dependent structure
 				 *	used by setjmp() and longjmp()
 				 */
-extern	struct	asmf	*asmp;	/*	The pointer to the first assembler
-				 *	source file structure of a linked list
-				 */
 extern	struct	asmf	*asmc;	/*	Pointer to the current
 				 *	source input structure
+				 */
+extern	struct	asmf	*asmo;	/*	The pointer to the first
+				 *	command line insert structure
+				 */
+extern	struct	asmf	*asmp;	/*	The pointer to the first assembler
+				 *	source file structure of a linked list
 				 */
 extern	struct	asmf	*asmi;	/*	Queued pointer to an include file
 				 *	source input structure
@@ -931,6 +1008,22 @@ extern	struct memlnk *	asxmem;	/*	Assembler Memory Allocation Structure
 extern	struct memlnk *	pmcrmem;/*	First Macro Memory Allocation Structure
 				 */
 extern	struct memlnk *	mcrmem;	/*	Macro Memory Allocation Structure
+				 */
+extern	int	mcrcnt;		/*	Regular Macros Created
+				 */
+extern	int	mcrexe;		/*	Regular Macros Executed
+				 */
+extern	int	inlcnt;		/*	Inline Macros Created
+				 */
+extern	int	inlexe;		/*	Inline Macros Executed
+				 */
+extern	int	mlevel;		/*	Macro Stack Level
+				 */
+extern	struct mstack mstk[MAXMCR]; /*	Macro Stack
+				 */
+extern	int	alevel;		/*	area stack pointer
+				 */
+extern	struct	area *astack[16]; /*	area stack
 				 */
 extern	int	asmblk;		/*	Assembler data blocks allocated
 				 */
@@ -998,7 +1091,7 @@ extern	int	fflag;		/*	-f(f), relocations flagged flag
 				 */
 extern	int	gflag;		/*	-g, make undefined symbols global flag
 				 */
-				/*	-h, usage help listed
+extern	int	iflag;		/*	-i, insert command line string flag
 				 */
 
 #if NOICE
@@ -1006,6 +1099,8 @@ extern	int	jflag;		/*	-j, enable NoICE Debug Symbols
 				 */
 #endif
 
+extern	int	kflag;		/*	-k, disable error output to .lst file
+				 */
 extern	int	lflag;		/*	-l, generate listing flag
 				 */
 extern	int	oflag;		/*	-o, generate relocatable output flag
@@ -1091,6 +1186,10 @@ extern	char	*ep;		/*	pointer into error list
 				 */
 extern	char	eb[NERR];	/*	array of generated error codes
 				 */
+extern	char	*ex[NERR];	/*	array of error string pointers
+				 */
+extern	int	exmode;		/*	expanded error code mode
+				 */
 extern	char	*ip;		/*	pointer into the assembler-source
 				 *	text line in ib[]
 				 */
@@ -1112,13 +1211,17 @@ extern	int	*cpt;		/*	pointer to assembler relocation type
 extern	int	cbt[NCODE];	/*	array of assembler relocation types
 				 *	describing the data in cb[]
 				 */
+extern	int	awg;		/*	automatic word generation (special coding)
+				 *	0 - default not defined, 1-4 - 1-4 bytes
+				 */
+extern	int	csn;		/*	'C' Style Numbers - 0nnn (Octal), 0xnnn (Hex), Else Decimal
+				 *	0 - default disabled, 1 - enabled
+				 */
 extern	int	opcycles;	/*	opcode execution cycles
 				 */
 extern	char	tb[NTITL];	/*	Title string buffer
 				 */
 extern	char	stb[NSBTL];	/*	Subtitle string buffer
-				 */
-extern	char	erb[NINPUT+4];	/*	Error string buffer
 				 */
 extern	char	symtbl[];	/*	string "Symbol Table"
 				 */
@@ -1153,6 +1256,7 @@ extern	int		printf();
 extern	char		putc();
 extern	int		rewind();
 extern	int		setjmp();
+extern	int		strchr();
 extern	int		strcmp();
 extern	char *		strcpy();
 extern	int		strlen();
@@ -1169,24 +1273,33 @@ extern	VOID		exit(int n);
 
 /* asmain.c */
 extern	FILE *		afile(char *fn, char *ft, int wf);
-extern	VOID		afilex(char *fn, char *ft);
+extern	VOID		afilex(char *fn, char *ft, int wf);
 extern	VOID		asexit(int i);
 extern	VOID		asmbl(void);
+extern	VOID		boundary(a_uint n);
 extern	VOID		equate(char *id,struct expr *e1,a_uint equtype);
+extern	char *		filespec(int argc, char *argv[], int *i, char *p, char **nam, char **ext, int opt);
+extern	VOID		fixrelfil(char *p, char **relfil);
 extern	int		fndidx(char *str);
 extern	int		intsiz(void);
+extern	VOID		insline(char *str, int i);
 /*
 extern	int		main(int argc, char *argv[]);
 */
+extern	VOID		multipass(void);
 extern	VOID		newdot(struct area *nap);
+extern	VOID		pckchr(a_uint size, int c, a_uint *v, a_uint *cnt);
 extern	VOID		phase(struct area *ap, a_uint a);
 extern	char *		usetxt[];
-extern	VOID		usage(int n);
+extern	VOID		usage(void);
 
 /* asmcro.c */
 extern	char *		fgetm(char *ptr, int len, FILE *fp);
 extern	VOID		getdarg(struct mcrdef *np);
+extern	VOID		getdfarg(struct mcrdef *np);
+extern	VOID		getinline(struct mcrdef *np);
 extern	VOID		getxarg(struct mcrdef *np);
+extern	VOID		getxnum(char *id);
 extern	VOID		getxstr(char *id);
 extern	VOID		macro(struct mcrdef * np);
 extern	VOID		macroscn(struct macrofp *nfp);
@@ -1198,6 +1311,8 @@ extern	char *		mstring(char *str);
 extern	char *		mstruct(int n);
 extern	struct mcrdef *	newdef(int code, char *id);
 extern	struct mcrdef *	nlookup(char *id);
+extern	VOID		pshmstk(struct mcrdef *np);
+extern	VOID		popmstk(struct mcrdef *np);
 
 /* aslex.c */
 extern	VOID		chopcrlf(char *str);
@@ -1216,6 +1331,7 @@ extern	int		nxtline(void);
 extern	int		replace(char *id);
 extern	VOID		scanline(void);
 extern	VOID		unget(int c);
+extern	int		skpcomma(void);
 
 /* assym.c */
 extern	VOID		allglob(void);
@@ -1237,6 +1353,7 @@ extern	VOID		symglob(void);
 extern	VOID		aerr(void);
 extern	VOID		diag(void);
 extern	VOID		err(int c);
+extern	VOID		xerr(int c, char *str);
 extern	char *		errors[];
 extern	char *		geterr(int c);
 extern	VOID		qerr(void);
@@ -1247,8 +1364,10 @@ extern	VOID		abscheck(struct expr *esp);
 extern	a_uint		absexpr(void);
 extern	VOID		clrexpr(struct expr *esp);
 extern	int		digit(int c, int r);
+extern	int		is_digit(int c, int r);
 extern	VOID		exprmasks(int n);
 extern	VOID		expr(struct expr *esp, int n);
+extern	VOID		binop(int c, struct expr *esp, struct expr *re);
 extern	int		is_abs(struct expr *esp);
 extern	int		oprio(int c);
 extern	a_uint		rngchk(a_uint n);
@@ -1323,13 +1442,54 @@ extern	struct	mode *	modep[16];
 extern	VOID		machine(struct mne *mp);
 extern	VOID		minit(void);
 
+/*
+ *	The number of cycle count digits to display.
+ *	The valid range is bounded be >= 2 and <= 4.
+ *	An assembler requiring other than the default
+ *	of 2 digits should set this value in minit().
+ */
+extern	int		cycldgts;
+
+/*
+ *	A pointer to the external function
+ *	which provides auxiliary functionallity
+ *	to the term() function in asexpr.c
+ *	returns:	!0 if item processed
+ *			 0 if nothing processed
+ */
+extern	int		(*mchterm_ptr)(struct expr *esp);
+
+/*
+ *	A pointer to the external function which
+ *	provides auxiliary functionallity to the
+ *	.enabl/.dsabl processing in asmain.c
+ *	returns:	!0 if item processed
+ *			 0 if nothing processed
+ */
+extern	int		(*mchoptn_ptr)(char *id, int v);
+
+/*
+ *	Parameters which specify the optional multi-pass
+ *	processing for assemblers that have variable
+ *	length instructions.
+ *	An assembler requiring more than the default
+ *	number of passes required to resolve all forward
+ *	references must set passlmt to a number greater
+ *	than 0 to enable the multi-pass processing.
+ */
+extern	int	nflglmt;
+extern	int	passlmt;
+extern	int	passcnt;
+extern	int	passJLH;
+extern	int	passfuz;
+
 /* asxcnv.c */
 
 /* Defined under asmain.c above
 extern	VOID		asexit(int i);
 extern	int		main(int argc, char *argv[]);
 extern	char *		usetxt[];
-extern	VOID		usage(int n);
+extern	VOID		usage(void);
 */
 extern	VOID		linout(char *str, unsigned int n);
 
@@ -1339,7 +1499,7 @@ extern	VOID		linout(char *str, unsigned int n);
 extern	VOID		asexit(int i);
 extern	int		main(int argc, char *argv[]);
 extern	char *		usetxt[];
-extern	VOID		usage(int n);
+extern	VOID		usage(void);
 */
 extern	int		dgt(int rdx, char *str, int n);
 
@@ -1351,13 +1511,22 @@ extern	VOID		exit();
 /* asmain.c */
 extern	FILE *		afile();
 extern	VOID		afilex();
+extern	char *		argvscan();
 extern	VOID		asexit();
 extern	VOID		asmbl();
+extern	VOID		boundary);
 extern	VOID		equate();
+extern	char *		filespec();
+extern	VOID		fixrelfil();
 extern	int		fndidx();
 extern	int		intsiz();
+extern	VOID		insline();
+/*
 extern	int		main();
+*/
+extern	VOID		multipass();
 extern	VOID		newdot();
+extern	VOID		pckchr();
 extern	VOID		phase();
 extern	char *		usetxt[];
 extern	VOID		usage();
@@ -1365,7 +1534,10 @@ extern	VOID		usage();
 /* asmcro.c */
 extern	char *		fgetm();
 extern	VOID		getdarg();
+extern	VOID		getdfarg();
+extern	VOID		getinline();
 extern	VOID		getxarg();
+extern	VOID		getxnum();
 extern	VOID		getxstr();
 extern	VOID		macro();
 extern	VOID		macroscn();
@@ -1377,6 +1549,8 @@ extern	char *		mstring();
 extern	char *		mstruct();
 extern	struct mcrdef *	newdef();
 extern	struct mcrdef *	nlookup();
+extern	VOID		pshmstk();
+extern	VOID		popmstk();
 
 /* aslex.c */
 extern	VOID		chopcrlf();
@@ -1395,6 +1569,7 @@ extern	int		nxtline();
 extern	int		replace();
 extern	VOID		scanline();
 extern	VOID		unget();
+extern	int		skpcomma();
 
 /* assym.c */
 extern	VOID		allglob();
@@ -1416,6 +1591,7 @@ extern	VOID		symglob();
 extern	VOID		aerr();
 extern	VOID		diag();
 extern	VOID		err();
+extern	VOID		xerr();
 extern	char *		errors[];
 extern	char *		geterr();
 extern	VOID		qerr();
@@ -1426,8 +1602,10 @@ extern	VOID		abscheck();
 extern	a_uint		absexpr();
 extern	VOID		clrexpr();
 extern	int		digit();
+extern	int		is_digit();
 extern	VOID		exprmasks();
 extern	VOID		expr();
+extern	VOID		binop();
 extern	int		is_abs();
 extern	int		oprio();
 extern	a_uint		rngchk();

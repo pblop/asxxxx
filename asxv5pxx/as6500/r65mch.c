@@ -1,7 +1,7 @@
 /* r65mch.c */
 
 /*
- *  Copyright (C) 1995-2015  Alan R. Baldwin
+ *  Copyright (C) 1995-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -55,8 +55,8 @@ int r65c02;
 #define	OPCY_65C00	((char) (0xFB))
 #define	OPCY_65C02	((char) (0xFA))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	UN	((char) (OPCY_NONE | 0x00))
 
@@ -148,7 +148,12 @@ static char c02pg1[256] = {
 /*E0*/   2, 7,UN,UN, 3, 4, 5, 5, 2, 3, 2,UN, 4, 5, 6, 7,
 /*F0*/   4, 7, 6,UN,UN, 5, 6, 5, 2, 6, 4,UN,UN, 6, 7, 7
 };
-				         
+
+struct area *zpg;
+
+int autodpcnst;
+int autodpsmbl;
+
 /*
  * Process a machine op.
  */
@@ -158,9 +163,15 @@ struct mne *mp;
 {
 	int op, t1;
 	struct expr e1,e2;
-	struct area *espa;
+	struct sym *sp;
 	char id[NCPS];
 	int c, v1, v2;
+
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
 
 	clrexpr(&e1);
 	clrexpr(&e2);
@@ -169,32 +180,41 @@ struct mne *mp;
 
 	case S_SDP:
 		opcycles = OPCY_SDP;
-		espa = NULL;
+		zpg = dot.s_area;
 		if (more()) {
 			expr(&e1, 0);
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 				if (e1.e_addr) {
-					err('b');
+					e1.e_addr = 0;
+					xerr('b', "Only Page 0 Allowed.");
 				}
 			}
 			if ((c = getnb()) == ',') {
 				getid(id, -1);
-				espa = alookup(id);
-				if (espa == NULL) {
-					err('u');
+				zpg = alookup(id);
+				if (zpg == NULL) {
+					zpg = dot.s_area;
+					xerr('u', "Undefined Area.");
 				}
 			} else {
 				unget(c);
 			}
 		}
-		if (espa) {
-			outdp(espa, &e1, 0);
-		} else {
-			outdp(dot.s_area, &e1, 0);
-		}
+		outdp(zpg, &e1, 0);
 		lmode = SLIST;
 		break;
 
+	case S_PGD:
+		do {
+			getid(id, -1);
+			sp = lookup(id);
+			sp->s_flag &= ~S_LCL;
+			sp->s_flag |=  S_GBL;
+			sp->s_area = (zpg != NULL) ? zpg : dot.s_area;
+ 		} while (comma(0));
+		lmode = SLIST;
+		break;
+ 
 	case S_R6500:
 		opcycles = OPCY_6500;
 		r65f11 = 0;
@@ -225,13 +245,15 @@ struct mne *mp;
 
 	case S_INH3:
 		if (r65c02) {
-			err('o');
+			while(more()) getnb();
+			xerr('o', "Invalid 65C02 Instruction");
 			break;
 		}
 		
 	case S_INH2:
 		if (!r65c00) {
-			err('o');
+			while(more()) getnb();
+			xerr('o', "Invalid 6500/65F11 Instruction");
 			break;
 		}
 		
@@ -241,15 +263,15 @@ struct mne *mp;
 
 	case S_BRA2:
 		if (!r65c00) {
-			err('o');
+			while(more()) getnb();
+			xerr('o', "Invalid 6500/65F11 Instruction");
 			break;
 		}
 		
 	case S_BRA1:
 		expr(&e1, 0);
 		outab(op);
-		if (mchpcr(&e1)) {
-			v1 = (int) (e1.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e1, &v1, 1)) {
 			if ((v1 < -128) || (v1 > 127))
 				aerr();
 			outab(v1);
@@ -304,6 +326,7 @@ struct mne *mp;
 
 	case S_DOP:
 		t1 = addr(&e1);
+		v1 = (int) e1.e_addr;
 		switch (t1) {
 		case S_IPREX:
 			outab(op + 0x01);
@@ -377,12 +400,12 @@ struct mne *mp;
 			if (op == 0xC0) {	/* 65C02 Extension */
 				outab(0x3A);
 				if (!r65c02)
-					aerr();
+					xerr('o', "Valid Only For The 65C02");
 			} else
 			if (op == 0xE0) {	/* 65C02 Extension */
 				outab(0x1A);
 				if (!r65c02)
-					aerr();
+					xerr('o', "Valid Only For The 65C02");
 			} else {
 				outab(op + 0x0A);
 			}
@@ -489,8 +512,13 @@ struct mne *mp;
 			outrb(&e1, R_PAG0);
 			break;
 		case S_INDY:
-			outab(op + 0x1E);
-			outrw(&e1, 0);
+			if (op == 0x80) {
+				outab(op + 0x16);
+				outrb(&e1, R_PAG0);
+			} else {
+				outab(op + 0x1E);
+				outrw(&e1, 0);
+			}
 			break;
 		default:
 			outab(op + 0x06);
@@ -522,8 +550,13 @@ struct mne *mp;
 			outrb(&e1, R_PAG0);
 			break;
 		case S_INDX:
-			outab(op + 0x1C);
-			outrw(&e1, 0);
+			if (op == 0x80) {
+				outab(op + 0x14);
+				outrb(&e1, R_PAG0);
+			} else {
+				outab(op + 0x1C);
+				outrw(&e1, 0);
+			}
 			break;
 		default:
 			outab(op + 0x04);
@@ -535,7 +568,8 @@ struct mne *mp;
 
 	case S_BB:
 		if (!r65f11) {
-			err('o');
+			while(more()) getnb();
+			xerr('o', "Invalid For The 6500");
 			break;
 		}
 		if ((c = getnb()) != '*')
@@ -545,8 +579,7 @@ struct mne *mp;
 		expr(&e2, 0);
 		outab(op);
 		outrb(&e1, R_PAG0);
-		if (mchpcr(&e2)) {
-			v2 = (int) (e2.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e2, &v2, 1)) {
 			if ((v2 < -128) || (v2 > 127))
 				aerr();
 			outab(v2);
@@ -559,7 +592,8 @@ struct mne *mp;
 
 	case S_MB:
 		if (!r65f11) {
-			err('o');
+			while(more()) getnb();
+			xerr('o', "Invalid For The 6500");
 			break;
 		}
 		t1 = addr(&e1);
@@ -571,7 +605,8 @@ struct mne *mp;
 
 	case S_STZ:
 		if (!r65c02) {
-			err('o');
+			while(more()) getnb();
+			xerr('o', "Valid Only For The 65C02");
 			break;
 		}
 		switch (addr(&e1)) {
@@ -579,13 +614,13 @@ struct mne *mp;
 			outab(op + 0x04);
 			outrb(&e1, R_PAG0);
 			break;
-		case S_DINDX:
-			outab(op + 0x14);
-			outrb(&e1, R_PAG0);
-			break;
 		case S_EXT:
 			outab(op + 0x3C);
 			outrw(&e1, 0);
+			break;
+		case S_DINDX:
+			outab(op + 0x14);
+			outrb(&e1, R_PAG0);
 			break;
 		case S_INDX:
 			outab(op + 0x3E);
@@ -601,7 +636,8 @@ struct mne *mp;
 
 	case S_TB:
 		if (!r65c02) {
-			err('o');
+			while(more()) getnb();
+			xerr('o', "Valid Only For The 65C02");
 			break;
 		}
 		switch (addr(&e1)) {
@@ -643,16 +679,39 @@ struct mne *mp;
 			opcycles = r65pg1[cb[0] & 0xFF];
 		}
 	}
+ 	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - n);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - n);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {
@@ -671,6 +730,23 @@ struct expr *esp;
 }
 
 /*
+ * Machine specific .enable/.dsable terms.
+ */
+int
+mchoptn(id, v)
+char *id;
+int v;
+{
+	/* Automatic Direct Page (Constants) */
+	if (symeq(id, "autodpcnst", 1)) { autodpcnst = v; } else
+	/* Automatic Direct Page (Symbols) */
+	if (symeq(id, "autodpsmbl", 1)) { autodpsmbl = v; } else {
+		return(0);
+	}
+	return(1);
+}
+
+/*
  * Machine dependent initialization
  */
 VOID
@@ -681,8 +757,27 @@ minit()
 	 */
 	hilo = 0;
 
+	/*
+	 * Zero Page Area Pointer
+	 */
+	zpg = NULL;
+
+	/*
+	 * Default Machine
+	 */
 	r6500  = 1;
 	r65f11 = 0;
 	r65c00 = 0;
 	r65c02 = 0;
+
+	/*
+	 * Automatic Direct Page
+	 */
+	autodpcnst = 1;
+	autodpsmbl = 1;
+	/*
+	 * External Calls
+	 */
+	/* .enabl/.dsabl Extension */
+	mchoptn_ptr = mchoptn;
 }

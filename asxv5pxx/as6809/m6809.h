@@ -1,7 +1,7 @@
 /* m6809.h */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -96,6 +96,7 @@
  * Set Direct Pointer
  */
 #define	S_SDP	80
+#define	S_PGD	81
 
 
 extern	int	aindx;
@@ -138,14 +139,15 @@ extern struct opdata mc6800[];
 extern	int		addr(struct expr *esp);
 extern	int		addr1(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
 	/* m09mch.c */
+extern	struct  area	*zpg;
+extern	a_uint		zpgadr;
 extern	VOID		machine(struct mne *mp);
 extern	VOID		genout(int cpg, int op, int rf, struct expr *esp);
 extern	VOID		m68out(int i);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 extern	int		setbit(int b);
 extern	int		getbit(void);
@@ -157,14 +159,16 @@ extern	struct	sdp	sdp;
 extern	int		addr();
 extern	int		addr1();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
 	/* m09mch.c */
+extern	struct  area	*zpg;
+extern	a_uint		zpgadr;
 extern	VOID		machine();
 extern	VOID		genout();
 extern	VOID		m68out();
-extern	int		mchpcr();
+extern	int		mchpcr1();
+extern	int		mchpcr2();
 extern	VOID		minit();
 extern	int		setbit();
 extern	int		getbit();

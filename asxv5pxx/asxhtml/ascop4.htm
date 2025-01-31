@@ -1,0 +1,332 @@
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+</HEAD>
+<BODY BGCOLOR="#C0C0C0">
+
+<A href="../home.htm">
+<IMG width=343 height=58 border=0 SRC="welcom.gif" ALT="Welcome"></A>
+
+<H2>ASCOP4  Assembler</H2>
+
+<A NAME = "TOP"> </A> 
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+   The  ASCOP4  assembler  supports  the  COP400 series of 4-bit
+microprocessors.  The COP400 family provides a  wide  choice  of
+RAM,  ROM,  and  IO  capability.   The ascop4 assembler specific
+directives configure the assembler to support a large number  of
+COP400 family processors.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+PROCESSOR SPECIFIC DIRECTIVES 
+
+.cop Directive 
+
+   Format:  
+
+        .cop    'type' 
+
+
+   The  COP400 family of processors have instruction set and ROM
+memory differences which are configured by specifying  the  .cop
+directive followed by the processor type.  
+
+   A  .cop  directive without an argument initializes the assem-
+bler to accept all instructions, sets the ROM size  to  2K,  en-
+ables  full  functionality  of the xad instruction, and sets the
+.__.CPU.  variable to zero.  
+
+   The .cop directive currently supports the following processor
+types where [n] is the value given  to  the  assembler  .__.CPU.
+variable:  
+
+        402   [1]       404   [2]       404M  [3]
+        410   [4]       410L  [5]       410C  [6]
+        411   [7]       411L  [8]       411C  [9]
+        413   [10]      413C  [11]      413CH [12]
+        420   [13]      420L  [14]
+        421   [15]      421L  [16]
+        422   [17]      422L  [18]
+        424   [19]      424L  [20]
+        425   [21]      425L  [22]
+        426   [23]      426L  [24]
+        440   [25]      441   [26]      442   [27]
+        2440  [28]      2441  [29]      2442  [30]
+        444   [31]      444L  [32]
+        445   [33]      445L  [34]
+
+
+   The  variable  '.__.CPU.'  is by default defined as local and
+will not be output to the created .rel file.  The assembler com-
+mand  line  options -g or -a will not cause the local symbols to
+be output to the created .rel file.  
+
+   The  assembler  .globl  directive  may  be used to change the
+variable type to global causing its definition to be  output  to
+the  rel  file.  The inclusion of the definition of the variable
+'.__.CPU.' might be a useful means of validating that separately
+assembled  files have been compiled for the same processor type.
+The linker will report an error for variables with multiple  non
+equal definitions.  
+
+
+.rom_size Directives 
+
+   Format:  
+
+        .rom256      256  Byte ROM Size 
+
+        .rom512      512  Byte ROM Size 
+
+        .rom1k       1024 Byte ROM Size 
+
+        .rom2k       2048 Byte ROM Size 
+
+
+.xad Directive 
+
+   Format:  
+
+        .xad    n 
+
+
+   The .xad directive can override the operating mode of the xad
+instruction selected by a .cop directive.  A non zero value of n
+limits the xad instruction to the following form:  
+
+        xad 3,15
+
+   and  a zero or blank argument restores the xad instruction to
+its full functionality.  
+
+
+.setpg Directive 
+
+Format:  
+
+        .setpg [base [,area]] 
+
+
+   The  .setpg  directive is used to inform the assembler of the
+area containing ROM pages 2 and 3 and the offset address  within
+the  selected  area.   The  only value allowed for the offset is
+0x80 (the beginning of page 2).  
+
+   The normal invocation methods are:  
+
+        .area   ROM
+        .setpg
+
+        or
+
+        .setpg  0x80,ROM
+
+
+   for  the  COP4 microprocessors.  If a .setpg directive is not
+issued the assembler defaults the region to the area "_CODE"  at
+offset 0x80.  
+
+   The  need  for  this  directive will become apparent from the
+following short description of the jp and jsrp instructions.  
+
+   The  jp  and  jsrp  instructions are unique in the sense that
+they are dependent upon where in  the  program  space  they  are
+located.  This can be seen by comparing the opcode values for jp
+and jsrp.  
+
+jp   loc
+  -  0x80 | &lt;A6:A0&gt; Jump within pages 2 and 3
+  -  0xC0 | &lt;A5:A0&gt; Jump within current page, not 2 or 3
+
+jsrp sub
+  -  0x80 | &lt;A5:A0&gt; JSR to page 2, not in 2 or 3
+
+--------------------------------------------------------
+
+jp   0xE0
+  -  0x80 | &lt;A6:A0&gt; --&gt;&gt; 0x80 | 0x60 --&gt;&gt; 0xE0
+  -                 (jp to page 3,  jp in page 2 or 3)
+jp   0x20
+  -  0xC0 | &lt;A5:A0&gt; --&gt;&gt; 0xC0 | 0x20 --&gt;&gt; 0xE0
+  -                 (jp to current page,  page 0)
+
+or
+
+jp   0xA0
+  -  0x80 | &lt;A6:A0&gt; --&gt;&gt; 0x80 | 0x20 --&gt;&gt; 0xA0
+  -                 (jp to page 2,  jp in page 2 or 3)
+jsrp 0xA0
+  -  0x80 | &lt;A5:A0&gt; --&gt;&gt; 0x80 | 0x20 --&gt;&gt; 0xA0
+  -                 (jsrp to page 2)
+
+
+   The  assembler and linker are not capable of changing the op-
+code based upon the relocated address of the instruction.   Thus
+a new instruction mnemonic, jp23, is introduced to indicate a jp
+instruction within pages 2 and 3.  The linker verifies that  any
+jp23 jump address is in this region (0x80 to 0xFF).  
+
+        jp      Use in pages 0, 1, and &gt;= 4
+        jp23    Use in pages 2 and 3
+
+   The  programmer  is  required to manually verify that jp23 is
+used in pages 2 and 3 and that jp is used in all other pages.  
+
+   The  COP400  documentation resolves the jp - jsrp conflict by
+not allowing a jsrp instruction to be located within page  2  or
+3.   The programmer must manually verify that a jsrp instruction
+is not located in page 2 or 3.  Use the jsr instruction in pages
+2 and 3.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+COP400 INSTRUCTION SET 
+
+    Instruction Argument Syntax:
+
+        A       4-Bit Accumulator
+        B       7-Bit RAM Address Register
+        Br      Upper 3-Bits of B (Register Address)
+        Bd      Lower 4-Bits of B (Digit Address)
+        C       1-Bit Carry Register
+        d       4-Bit Operand Field (RAM Digit Select)
+        r       3-Bit Operand Field (RAM Register Select)
+
+        n       2-Bit Operand Data (Immediate)
+        y       4-Bit Operand Data (Immediate)
+
+        addr    jump address or label
+
+The terms n, y, d, r and addr may be expressions.  
+
+   Note  that  not  all addressing modes may be valid with every
+instruction.  Refer to  the  COP400  technical  data  for  valid
+modes.  
+
+   The  following tables list the mnemonics and arguments recog-
+nized by the ASCOP4 assembler.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+COP400 Instructions 
+
+    Arithmetic Instructions
+        asc             (Add RAM to A with carry, then SKC)
+        add             (Add RAM to A)
+        adt             (Add ten to A)
+        aisc    #y      (Add immediate, Skip on carry)
+        casc            (Add RAM to /A with carry, then SKC)
+        comp            (Ones complement of A to A)
+        nop             (No Operation)
+        or              (OR RAM with A)
+        rc              (Reset Carry)
+        sc              (Set Carry)
+        xor             (Exclusive-OR RAM with A)
+
+    Transfer Of Control Instructions
+        jid             (Jump Indirect)
+        jmp     addr    (Jump)
+        jp      addr    (Jump within Page)
+        jp23    addr    (Jump to Page 2 or 3)
+        jsrp    addr    (Jump to Subroutine Page 2)
+        jsr     addr    (Jump to Subroutine)
+
+        ret             (Return from Subroutine)
+        retsk           (Return from Subroutine then Skip)
+        halt            (Halt)
+        it              (Idle until Timer overflow)
+
+    Memory Reference Instructions
+        came            (Copy A,RAM to E)
+        camq            (Copy A,RAM to Q)
+        camt            (Copy A,RAM to T)
+        cema            (Copy E to A,RAM)
+        cqma            (Copy Q to A,RAM)
+        ctma            (Copy T to A,RAM)
+        ld      r       (Load RAM into A, XOR Br with r)
+        ldd     r,d     (Load RAM into A from Direct r,d)
+        lqid            (Load Q Indirect)
+        rmb     n       (Reset RAM Bit)
+        smb     n       (Set RAM Bit)
+        stii    #y      (Store Immediate to RAM, Increment Bd)
+        x       r       (RAM &lt;--&gt; A, Br XOR r)
+        xad     r,d     (RAM(r,d) &lt;--&gt; A)
+        xds     r       (RAM &lt;--&gt; A, Bd - 1 -&gt; Bd, Br XOR r)
+                        (Skip on Decrement of Bd from 0 to 15)
+        xis     r       (RAM &lt;--&gt; A, Bd + 1 -&gt; Bd, Br XOR r)
+                        (Skip on Increment of Bd from 15 to 0)
+
+    Register Reference Instructions
+        cab             (Copy A to Bd)
+        cba             (Copy Bd to A)
+        lbi     r,d     (Load B from Direct r,d)
+        lei     #y      (Load EN from Immediate data)
+        xabr            (A &lt;--&gt; Br)
+        xan             (A &lt;--&gt; N, N is 2-Bit Stack Pointer)
+
+    Test Instructions
+        skc             (Skip if C is True)
+        ske             (Skip if A Equals RAM)
+        skgz            (Skip if G is Zero)
+        skgbz   #n      (Skip if G Bit is Zero)
+        skmbz   #n      (Skip if RAM Bit is Zero)
+
+    Input/Output Instructions
+        camr            (Output A,RAM to R Port)
+        ing             (Input G Port into A)
+        inh             (Input H Port into A)
+        inin            (Input IN Inputs into A)
+        inil            (Input IL Latches into A)
+        inl             (Input L Port into RAM,A)
+        inr             (Input R Port init RAM,A)
+        obd             (Output Bd to D Outputs)
+        ogi     #y      (Output Immediate to G Port)
+        omg             (Output RAM to G Ports)
+        omh             (Output RAM to H Port)
+        xas             (Exchange A with SIO)
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+ASCOP4 MACRO FILE 
+
+   The  'ascop4.mac'  macro file contains an alternate method to
+configure the ascop4 assembler for a  specific  processor.   The
+macro  file  contains  macros  which  redefine  the instructions
+present in the full ascop4 functionality.  This file can be mod-
+ified to specify processors not natively supported by the ascop4
+assembler.  See the internals of the macro file for  implementa-
+tion details.  
+
+</PRE></B></H4>
+<H5><A HREF="asxdoc.htm#TOP"> Go to the Documentation Index</A></H5>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4>
+<P><A HREF="asxxxx.htm#JUMP">
+<IMG width=32 height=32 border=0 SRC="spcshp.gif" ALIGN=bottom></A>
+<B>...  Exit the ASxxxx Documentation</B></A></P>
+
+<P><A href="../home.htm">
+<IMG width=32 height=32 border=0 SRC="home.gif" ALIGN=bottom></A>
+<B>...  Home Page</B></P>
+</H4>
+
+<H6><P><B>Last Updated: September 2023</B></P></H6>
+</BODY> 
+</HTML>

@@ -19,33 +19,39 @@
    Starting  ASlink without any arguments provides the following
 option list and then exits:  
 
-Usage: [-Options] [-Option with arg] file
-Usage: [-Options] [-Option with arg] outfile file [file ...]
+Usage: [-Options] [-Option with arg] file1 [file2 ...]
+  -h   or NO ARGUMENTS  Show this help list
   -p   Echo commands to stdout (default)
   -n   No echo of commands to stdout
 Alternates to Command Line Input:
-  -c                   ASlink &gt;&gt; prompt input
+  -c                   ASlink >> prompt input
   -f   file[.lnk]      Command File input
 Librarys:
   -k   Library path specification, one per -k
   -l   Library file specification, one per -l
 Relocation:
-  -b   area base address=expression
-  -g   global symbol=expression
+  -a   Area base address=expression
+  -b   Bank base address=expression
+  -g   Global symbol=expression
 Map format:
-  -m   Map output generated as (out)file[.map]
+  -m   Map output generated as file1[.map]
+  -m1    Linker generated symbols included in file1[.map]
   -w   Wide listing format for map file
-  -x   Hexidecimal (default)
+  -x   Hexadecimal (default)
   -d   Decimal
   -q   Octal
 Output:
-  -i   Intel Hex as (out)file[.i--]
-  -s   Motorola S Record as (out)file[.s--]
-  -t   Tandy CoCo Disk BASIC binary as (out)file[.bi-]
-  -j   NoICE Debug output as (out)file[.noi]
-  -y   SDCDB Debug output as (out)file[.cdb]
-  -o   Linked file/library object output enable (default)
-  -v   Linked file/library object output disable
+  -i   Intel Hex as file1[.hex]
+  -s   Motorola S Record as file1[.s--]
+  -t   Tandy CoCo Disk BASIC binary as file1[.bin]
+  -*+  -i+/-s+/-t+  Renaming Options  -*+[ ][name][.ext]
+    '-*+.ext'      (or)  '-*+  .ext'      ->  file1.ext
+    '-*+name'      (or)  '-*+  name'      ->  name[.---]
+    '-*+name.ext'  (or)  '-*+  name.ext'  ->   name.ext
+  -o   Linked file/library -i/-s/-t output enable (default)
+  -v   Linked file/library -i/-s/-t output disable
+  -j   NoICE Debug output as file1[.noi]
+  -y   SDCDB Debug output as file1[.cdb]
 List:
   -u   Update listing file(s) with link data as file(s)[.rst]
 Case Sensitivity:
@@ -58,20 +64,10 @@ End:
 
                               NOTE
 
-     When  ASlink  is  invoked  with  a single filename the
-     created output file will have the same filename as the
-     .rel file.  
-
-     When  ASlink  is  invoked  with multiple filenames the
-     first filename is the output filename and the  remain-
-     ing  filenames  are  linked  together  into the output
-
-
-THE LINKER                                              PAGE 3-3
-INVOKING ASLINK
-
-
-     filename.  
+     When  ASlink  is  invoked  with  a  single or multiple
+     filenames the first filename is  the  output  filename
+     and  the  remaining files, if any, are linked together
+     into the output filename.  
 
 
 
@@ -79,97 +75,156 @@ INVOKING ASLINK
 Most  sytems  require  the  options to be entered on the command
 line:  
 
-  aslink [-Options] [-Options with args] file
-
-  aslink [-Options] [-Options with args] outfile file1 [file2 ...]
+aslink [-Options] [-Options with args] file1 [file2 ...]
 
 
 Some  systems  may  request  the  arguments  after the linker is
 started at a system specific prompt:  
 
-  aslink
-  argv: -[options] -[option arg] file
-
-  aslink
-  argv: [-Options] [-Options with args] outfile file1 [file2 ...]
+aslink
+argv: [-Options] [-Option with args] file1 [file2 ...]
 
 
 The linker commands are explained in some more detail:  
 
-     1.  -c        ASlink &gt;&gt; prompt mode.  
-         The  ASlink &gt;&gt;  prompt  mode reads linker commands from
-         stdin.  
+        -h      or NO ARGUMENTS show this help list
 
-     2.  -f file   Command file mode.  
-         The  command file mode imports linker commands from the
-         specified file (extension must be  .lnk),  imported  -c
-         and  -f  commands  are ignored.  If the directory path,
-         for a file to be linked, is not specified in  the  com-
-         mand  file  then  the  path  defaults  to the .lnk file
-         directory path.  
+                Simply prints the help list on stdout.
 
-     3.  -p/-n     enable/disable echoing commands to stdout.  
+        -c      ASlink >> prompt mode.
 
-     4.  -i/-s/-t  Intel  Hex (file.i--), Motorola S (file.s--),
-         or Tandy Color Computer  Disk  Basic  (file.bi-)  image
-         output file.  
+                The ASlink#>> prompt mode reads
+                linker commands from stdin.
 
-     5.  -o/-v     Specifies      that     subsequent     linked
-         files/libraries will generate object  output  (default)
-         or  suppress  object  output.  (if option -i, -s, or -t
-         was specified) 
+        -f      file[.lnk]  Command File Input
 
-     6.  -z        Disable Case Sensitivity for Symbols 
+                The command file mode imports linker
+                commands from the specified file
+                (extension must be .lnk), imported
+                -c and -f commands are ignored.  If
+                the directory path, for a file to
+                be linked, is not specified in the
+                command file then the path defaults
+                to the command file directory path.
 
+        -p/-n   enable/disable echoing commands to stdout.
 
+        -i      Intel Hex as file1[.hex]
+        -s      Motorola S Record as file1[.s--]
+        -t      Tandy CoCo Disk BASIC binary as file1[.bin]
 
-THE LINKER                                              PAGE 3-4
-INVOKING ASLINK
+        -*+   -i+/-s+/-t+ Renaming Options  -o+[ ][name][.ext]
+          '-*+.ext'      (or)  '-*+  .ext'      ->  file1.ext
+          '-*+name'      (or)  '-*+  name'      ->  name[.---]
+          '-*+name.ext'  (or)  '-*+  name.ext'  ->   name.ext
 
+                The file name and/or extension of the
+                output file may be changed.
 
-     7.  -m        Generate  a  map  file (file.map).  This file
-         contains a list of the symbols (by area) with  absolute
-         addresses, sizes of linked areas, and other linking in-
-         formation.  
+        -o      Linked file/library output enabled (default)
 
-     8.  -w        Specifies  that a wide listing format be used
-         for the map file.  
+                Specifies that subsequent linked
+                files/libraries will enable object output.
+                (if option -i, -s, or -t was specified)
 
-     9.  -xdq      Specifies  the  number radix for the map file
-         (Hexidecimal, Decimal, or Octal).  
+        -v      Linked file/library output disabled
 
-    10.  -u        Generate  an  updated listing file (file.rst)
-         derived from the relocated addresses and data from  the
-         linker.  
+                Specifies that subsequent linked
+                files/libraries will disable object output.
+                (if option -i, -s, or -t was specified)
 
-    11.  file      File(s)  to  be  linked.  Files may be on the
-         same line as the above options or on a separate line(s)
-         one file per line or multiple files separated by spaces
-         or tabs.  
+        -z      Disable Case Sensitivity for Symbols
 
-    12.  -b  area=expression 
-         (one definition per line in a linker command file.) 
-         This  specifies  an area base address where the expres-
-         sion may contain constants and/or defined symbols  from
-         the linked files.  
+                Disables the distinction between
+                upper and lower case letters.
 
-    13.  -g  symbol=expression 
-         (one definition per line in a linker command file.) 
-         This  specifies  the value for the symbol where the ex-
-         pression may contain constants and/or  defined  symbols
-         from the linked files.  
+        -m      Map output generated as file1[.map]
 
-    14.  -k  library directory path 
-         (one definition per line in a linker command file.) 
-         This  specifies one possible path to an object library.
-         More than one path is allowed.  
+                Generate a map file (file1.map). This
+                file contains a list of the symbols
+                (by area) with absolute addresses,
+                sizes of linked areas, and other
+                linking information.
 
-    15.  -l  library file specification 
-         (one definition per line in a linker command file.) 
-         This  specifies a possible library file.  More than one
-         file is allowed.  
+        -m1     Linker generated symbols included in file1[.map]
 
-    16.  -e  or null line, terminates input to the linker.  
+                The linker creates internal symbols for
+                each area (area segment) input during
+                the linking process but normally suppresses
+                their inclusion in the map file.  This
+                option enables their inclusion in the
+                map file.
+
+        -w      Wide listing format for map file
+
+                Specifies that a wide listing format
+                be used for the map file.
+
+        -x      Hexadecimal (default)
+        -d      Decimal
+        -q      Octal
+
+                Specifies the number radix for the map file.
+
+        -u      Update listing file(s) with link data
+
+                Generate updated listing file(s) derived from
+                the relocated addresses and data from the
+                linker and the hint file (file.hlr) output
+                by the assembler.
+
+        -a      Area base address=expression
+
+                This specifies an area base address
+                where the expression may contain
+                constants and/or defined symbols
+                from the linked files. (one definition
+                per line in a linker command file.)
+
+        -b      Bank base address=expression
+
+                This specifies a bank base address
+                where the expression may contain
+                constants and/or defined symbols
+                from the linked files. (one definition
+                per line in a linker command file.)
+
+        -g      Global symbol=expression
+
+                This specifies the value for the
+                symbol where the expression may contain
+                constants and/or defined symbols
+                from the linked files. (one definition
+                per line in a linker command file.)
+
+        -k      Library path specification, one per -k
+
+                This specifies one possible path to an
+                object library. More than one path is
+                allowed.  (one definition per line in
+                a linker command file.)
+
+        -l      Library file specification, one per -l
+
+                This specifies a possible library file.
+                More than one file is allowed.  (one
+                definition per line in a linker command file.)
+
+        -e      or null line, terminates input
+
+                This -e option terminates the processing
+                of a linker command file (-f). Any
+                lines remaining in the file are ignored.
+
+   When  using  the command line all options and file(s) must be
+on a single line.  
+
+   When using the -c option (ASlink >>) or a command file [.lnk]
+options should precede the file(s).  The files  may  be  on  the
+same  line  as the options or on a separate line(s) one file per
+line or multiple files separated by spaces or tabs.  The use  of
+multiple  -o and -v options is available only with the interrac-
+tive, ASlink >>, or command file modes.  
 
 </PRE></B></H4>
 <H5><A HREF="aslink.htm#Index">  Return to the Linker Index</A></H5>
@@ -202,13 +257,13 @@ ways:
      1.  If  the  library  file  contained an absolute path/file
          specification  then  this  is   the   object   module's
          path/file.  
-         (i.e.  C:\...) 
+         (i.e.  C:\...  or C:/...) 
 
      2.  If  the  library  file  contains  a  relative path/file
          specification then the concatenation of  the  path  and
          this  file  specification  becomes  the object module's
          path/file.  
-         (i.e.  \...) 
+         (i.e.  \...  or /...) 
 
 
    As  an example, assume there exists a library file termio.lib
@@ -232,7 +287,7 @@ c:\syslib\6809\io_disk.rel     (concatenated path/file)
 d:\special\io_comm.rel         (absolute path/file) 
 
 all  other path(s)/file(s) don't exist.  (No errors are reported
-for non existant path(s)/file(s).) 
+for non existent path(s)/file(s).) 
 
 </PRE></B></H4>
 <H5><A HREF="aslink.htm#Index">  Return to the Linker Index</A></H5>
@@ -249,25 +304,45 @@ presented.  The first pass through the input files  is  used  to
 define  all  program  areas, the section area sizes, and symbols
 defined or referenced.  Undefined symbols will initiate a search
 of any specified library file(s) and the importing of the module
-containing the symbol definition.  After the first pass  the  -b
-(area  base  address) definitions, if any, are processed and the
-areas linked.  
+containing the symbol definition.  After the first pass  the  -a
+(area  base  address) and the -b (bank base address) definitions
+,if any, are processed and the areas linked.  
 
    The  area  linking proceeds by first examining the area types
 ABS, CON, REL, OVR and PAG.  Absolute areas (ABS) from  separate
-object modules are always overlayed and have been assembled at a
-specific address, these are not normally relocated (if a -b com-
-mand  is  used  on an absolute area the area will be relocated).
+object  modules are always overlaid and have been assembled at a
+specific address, these are not normally relocated (if a -a  op-
+tion  is  used  on an absolute area the area will be relocated).
 Relative areas (normally defined as REL|CON) have a base address
-of  0x0000  as read from the object files, the -b command speci-
-fies the beginning address of the area.  All subsequent relative
-areas  will  be  concatenated  with  proceeding  relative areas.
-Where specific ordering is desired, the first linker input  file
-should  have  the area definitions in the desired order.  At the
-completion of the area linking all area  addresses  and  lengths
-have  been determined.  The areas of type PAG are verified to be
-on a 256 byte boundary and that the length does not  exceed  256
-bytes.  Any errors are noted on stderr and in the map file.  
+of 0x0000 as read from the object files, the -a option specifies
+the beginning address of  the  area.   All  subsequent  relative
+areas will be concatenated with preceding relative areas.  Where
+specific ordering is desired, the first linker input file should
+have  the area definitions in the desired order.  At the comple-
+tion of the area linking all area  addresses  and  lengths  have
+been  determined.  The areas of type PAG are verified to be on a
+256 byte boundary and that the length does not exceed 256 bytes.
+Any errors are noted on stderr and in the map file.  
+
+The  linker  also  automatically  generates two symbols for each
+linked program area:  
+
+    'a_&ltarea&gt'      The starting address of the area.  
+
+    'l_&ltarea&gt'      The length of the area.  
+
+and two symbols for each area segment:  
+
+    'm_&ltarea&gt_n'    The boundary modulus of the area segment.  
+
+    's_&ltarea&gt_n'    The starting address of the area segment.  
+
+The  appended  '_n'  signifies  the area segment number within a
+linked area.  
+
+   These  symbols  are in general only useful diagnostically and
+are not visible externally.  However if the -m1 linker option is
+used these symbols will be output to the map file.  
 
    Next  the  global symbol definitions (-g option), if any, are
 processed.  The symbol definitions have been delayed until  this
@@ -285,7 +360,7 @@ printed.
 flagged as multiple definitions if their values are not  identi-
 cal.  
 
-   After  the  preceeding  processes are complete the linker may
+   After  the  preceding  processes  are complete the linker may
 output a map file (-m option).  This file provides the following
 information:  
 
@@ -299,7 +374,7 @@ information:
 
      5.  List of library modules linked 
 
-     6.  List of -b and -g definitions 
+     6.  List of -a, -b and -g definitions 
 
 
 
@@ -438,8 +513,8 @@ value.
 
 
             The value of the element specifies if the normal in-
-            teger bit is active (bit <7> is set, 0x80) and  what
-            destination  bit  (bits  <4:0>,  0  -  31) should be
+            teger bit is active (bit &lt7&gt is set, 0x80) and  what
+            destination  bit  (bits  &lt4:0&gt,  0  -  31) should be
             loaded with this normal integer bit.  
 
 </PRE></B></H4>
@@ -469,17 +544,28 @@ parameters have been set.
 <H4><B><PRE>
 <A NAME = "Area4"></A><FONT COLOR="#FF0000">Area Line</FONT>
 
-        A label size ss flags ff 
+        A label size ss flags ff [bank bb] [bndry mm] 
 
    The  area  line  defines the area label, the size (ss) of the
-area in bytes, and the area flags (ff).  The area flags  specify
-the ABS, REL, CON, OVR, and PAG parameters:  
+area in bytes, the area  flags  (ff),  the  optional  [bank  bb]
+specifies  the  bank  this area is a member of, and the optional
+[bndry mm] which specifies the boundary modulus  for  this  area
+segment.  The area flags specify the ABS, REL, CON, OVR, and PAG
+parameters:  
 
         OVR/CON  (0x04/0x00 i.e.  bit position 2) 
 
         ABS/REL  (0x08/0x00 i.e.  bit position 3) 
 
         PAG      (0x10 i.e.  bit position 4) 
+
+   The  bank label is optional and only specified if the area is
+to be included within a bank.  
+
+   When  this area (area segment) is linked and their is a boun-
+dary modulus specified then the code/data beginning address will
+be  increased to match the boundary modulus.  This will also in-
+crease the area (area segment) size by the same amount.  
 
 </PRE></B></H4>
 <H5><A HREF= #Index> => Section Index</A></H5>
@@ -528,8 +614,8 @@ current  values  were  assembled.  Relocation information is en-
 coded in groups of 4 bytes:  
 
      1.  n1 is the relocation mode and object format.  
-         1.  bits <1:0> specify the number of bytes to output 
-         2.  bits <2:3> normal(0x00) /   MSB   (0x0C) 
+         1.  bits &lt1:0&gt specify the number of bytes to output 
+         2.  bits &lt2:3&gt normal(0x00) /   MSB   (0x0C) 
                         signed(0x04) / unsigned(0x08) 
          3.  bit 4  normal(0x00)/page   '0' (0x10) reference 
          4.  bit 5  normal(0x00)/page 'nnn' (0x20) reference 
@@ -538,10 +624,10 @@ coded in groups of 4 bytes:
          6.  bit 7  relocatable area(0x00)/symbol(0x80) 
 
      2.  n2 is a byte index and a merge mode index 
-         1.  bits <3:0>  are a byte index into the corresponding
-             (i.e.  preceeding) T line data (i.e.  a pointer  to
+         1.  bits &lt3:0&gt  are a byte index into the corresponding
+             (i.e.  preceding) T line data (i.e.  a  pointer  to
              the data to be updated by the relocation).  
-         2.  bits <7:4> are an index into a selected merge mode.
+         2.  bits &lt7:4&gt are an index into a selected merge mode.
              Currently mode 0 simply specifies to  use  standard
              byte processing modes and merging is ignored.  
 
@@ -551,7 +637,7 @@ coded in groups of 4 bytes:
 
 
 The groups of 4 bytes are repeated for each item requiring relo-
-cation in the preceeding T line.  
+cation in the preceding T line.  
 
 </PRE></B></H4>
 <H5><A HREF= #Index> => Section Index</A></H5>
@@ -665,7 +751,6 @@ fining (Defin) the symbol:
          file        module      area        offset
   Refby  t           Pagetest    PROGRAM     0006
   Defin  t           Pagetest    DIRECT      0100
-
 
 If the symbol is defined in the same module as the reference the
 linker is unable to report the symbol name.  The assembler list-
@@ -863,15 +948,14 @@ coded in groups of 4 bytes:
          1.  bit 0  word(0x00)/byte(0x01) 
          2.  bit 1  relocatable area(0x00)/symbol(0x02) 
          3.  bit 2  normal(0x00)/PC relative(0x04) relocation 
-         4.  bit 3  1-byte(0x00)/2-byte(0x08)  object format for
-             byte data 
+         4.  bit 3  1-byte(0x00)/2-byte(0x08)  object format
          5.  bit 4  signed(0x00)/unsigned(0x10) byte data 
          6.  bit 5  normal(0x00)/page '0'(0x20) reference 
          7.  bit 6  normal(0x00)/page 'nnn'(0x40) reference 
          8.  bit 7  LSB  byte(0x00)/MSB  byte(0x80)
 
      2.  n2  is  a byte index into the corresponding (i.e.  pre-
-         ceeding) T line data (i.e.  a pointer to the data to be
+         ceding) T line data (i.e.  a pointer to the data to  be
          updated  by  the  relocation).   The T line data may be
          1-byte or  2-byte  byte  data  format  or  2-byte  word
          format.  
@@ -882,7 +966,7 @@ coded in groups of 4 bytes:
 
 
 The groups of 4 bytes are repeated for each item requiring relo-
-cation in the preceeding T line.  
+cation in the preceding T line.  
 
 </PRE></B></H4>
 <H5><A HREF= #Index> => Section Index</A></H5>
@@ -956,8 +1040,7 @@ where PAGE0 is the paged area.
 
    During  Pass  two the linker reads the T, R, and P lines per-
 forming the necessary relocations and  outputting  the  absolute
-code.  Various errors may be reported during this process 
-
+code.  Various errors may be reported during this process. 
 
 The P line processing can produce only one possible error:  
 
@@ -1025,10 +1108,10 @@ area to locate the offending code.
 </B></H3>
 
 <H4><B><PRE>
-   The  hint file is an ascii file containing information needed
-by the linker to convert the listing file into a relocated list-
-ing  file.   Each  line  in the .hlr file coresponds to a single
-line in the listing file.  The text line usually contains 3 or 4
+   The hint file is an ascii file containing information to help
+the linker convert the listing file  into  a  relocated  listing
+file.   Each  line in the .hlr file corresponds to a single line
+in the listing file.  The text line  usually  contains  3  or  4
 parameters  in  the radix selected for the assembler as shown in
 the following table:  
 
@@ -1126,9 +1209,9 @@ Record Length Field  -  This   field   consists   of  two  ascii
 
 Load Address Field   -  This  field  consists  of the four ascii
                         characters which result from  converting
-                        the  the  binary value of the address in
-                        which to begin loading this record.  The
-                        order is as follows:  
+                        the binary value of the address in which
+                        to begin loading this record.  The order
+                        is as follows:  
 
                             High digit of high byte of address. 
                             Low digit of high byte of address.  
@@ -1137,19 +1220,24 @@ Load Address Field   -  This  field  consists  of the four ascii
 
                         In an End of File record this field con-
                         sists of either four ascii zeros or  the
-                        program  entry  address.
+                        program  entry address.  (Note:  The use
+                        of the end of file record to  specify  a
+                        start  address for a 16-Bit addresses is
+                        not part of the official Intel  specifi-
+                        cation.) 
 
 Record Type Field    -  This  field  identifies the record type,
-                        which is either 0 for data records or  1
-                        for  an End of File record.  It consists
-                        of two ascii characters, with  the  high
-                        digit of the record type first, followed
-                        by the low digit of the record type.  
+                        which is either 0 for data, 1 for an End
+                        of  File, or 5 for an Extended Start Ad-
+                        dress record.  It consists of two  ascii
+                        characters,  with  the high digit of the
+                        record type first, followed by  the  low
+                        digit of the record type.  
 
 Data Field           -  This  field consists of the actual data,
                         converted to two ascii characters,  high
                         digit first.  There are no data bytes in
-                        the End of File record.  
+                        the standard End of File record.  
 
 Checksum Field       -  The  checksum  field is the 8 bit binary
                         sum of the record length field, the load
@@ -1163,65 +1251,6 @@ Checksum Field       -  The  checksum  field is the 8 bit binary
 <H5><A HREF="aslink.htm#Index">  Return to the Linker Index</A></H5>
 
 <IMG width=576 height=5 border=0 SRC="rnbow.gif">
-<A NAME = "IntelI86"></A>
-<H3><B>
-<IMG SRC = "green.gif" ALT = "-">... Intel I86 Output Format (24 or 32-Bit)</A>
-</B></H3>
-
-<H4><B><PRE>
-Record Mark Field    -  This  field  signifies  the  start  of a
-                        record, and consists of an  ascii  colon
-                        (:).  
-
-Record Length Field  -  This   field   consists   of  two  ascii
-                        characters which indicate the number  of
-                        data   bytes   in   this   record.   The
-                        characters are the result of  converting
-                        the  number  of  bytes  in binary to two
-                        ascii characters, high digit first.   An
-                        End  of  File  record contains two ascii
-                        zeros in this field.  
-
-Load Address Field   -  This  field  consists  of the four ascii
-                        characters which result from  converting
-                        the  the  binary value of the address in
-                        which to begin loading this record.  The
-                        order is as follows:  
-
-                            High digit of high byte of address. 
-                            Low digit of high byte of address.  
-                            High digit of low byte of address.  
-                            Low digit of low byte of address.  
-
-                        In an End of File record this field con-
-                        sists of either four ascii zeros or  the
-                        program  entry  address.
-
-Record Type Field    -  This  field  identifies the record type,
-                        which is either 0 for  data  records,  1
-                        for  an  End  of File record, or 4 for a
-                        segment  record.   It  consists  of  two
-                        ascii characters, with the high digit of
-                        the record type first, followed  by  the
-                        low digit of the record type.  
-
-Data Field           -  This  field consists of the actual data,
-                        converted to two ascii characters,  high
-                        digit first.  There are no data bytes in
-                        the End of File record.  
-
-Checksum Field       -  The  checksum  field is the 8 bit binary
-                        sum of the record length field, the load
-                        address  field,  the  record type field,
-                        and the data field.  This  sum  is  then
-                        negated  (2's  complement) and converted
-                        to  two  ascii  characters,  high  digit
-                        first.
-
-</PRE></B></H4>
-<H5><A HREF="aslink.htm#Index">  Return to the Linker Index</A></H5>
-
-<IMG width=576 height=5 border=0 SRC="rnbow.gif">
 <A NAME = "MotorolaS1"></A>
 <H3><B>
 <IMG SRC = "green.gif" ALT = "-">... Motorola S1-S9 Output Format (16-Bit)</A>
@@ -1229,8 +1258,8 @@ Checksum Field       -  The  checksum  field is the 8 bit binary
 
 <H4><B><PRE>
 Record Type Field    -  This  field  signifies  the  start  of a
-                        record and  identifies  the  the  record
-                        type as follows:  
+                        record and identifies the record type as
+                        follows:  
 
                             Ascii S1 - Data Record 
                             Ascii S9 - End of File Record 
@@ -1243,9 +1272,9 @@ Record Length Field  -  This  field  specifies the record length
 
 Load Address Field   -  This  field  consists  of the four ascii
                         characters which result from  converting
-                        the  the  binary value of the address in
-                        which to begin loading this record.  The
-                        order is as follows:  
+                        the binary value of the address in which
+                        to begin loading this record.  The order
+                        is as follows:  
 
                             High digit of high byte of address. 
                             Low digit of high byte of address.  
@@ -1279,8 +1308,8 @@ Checksum Field       -  The  checksum  field is the 8 bit binary
 
 <H4><B><PRE>
 Record Type Field    -  This  field  signifies  the  start  of a
-                        record and  identifies  the  the  record
-                        type as follows:  
+                        record and  dentifies the record type as
+                        follows:  
 
                             Ascii S2 - Data Record 
                             Ascii S8 - End of File Record 
@@ -1293,9 +1322,9 @@ Record Length Field  -  This  field  specifies the record length
 
 Load Address Field   -  This  field  consists  of  the six ascii
                         characters which result from  converting
-                        the  the  binary value of the address in
-                        which to begin loading this record.  The
-                        order is as follows:  
+                        the binary value of the address in which
+                        to begin loading this record.  The order
+                        is as follows:  
 
                             High digit of 3rd byte of address.  
                             Low digit of 3rd byte of address.  
@@ -1331,8 +1360,8 @@ Checksum Field       -  The  checksum  field is the 8 bit binary
 
 <H4><B><PRE>
 Record Type Field    -  This  field  signifies  the  start  of a
-                        record and  identifies  the  the  record
-                        type as follows:  
+                        record and identifies the  record type as
+                        follows:  
 
                             Ascii S3 - Data Record 
                             Ascii S7 - End of File Record 
@@ -1345,9 +1374,9 @@ Record Length Field  -  This  field  specifies the record length
 
 Load Address Field   -  This  field  consists of the eight ascii
                         characters which result from  converting
-                        the  the  binary value of the address in
-                        which to begin loading this record.  The
-                        order is as follows:  
+                        the binary value of the address in which
+                        to begin loading this record.  The order
+                        is as follows:  
 
                             High digit of 4th byte of address.  
                             Low digit of 4th byte of address.  
@@ -1412,7 +1441,7 @@ Data Field           -  This field consists of the actual binary
 
    After  the  last  code  segment,  a final record like the one
 above is placed.  In this final segment, the Record Preamble  is
-$FF,  the Record Length Field is $0000 and the Load Adress Field
+$FF, the Record Length Field is $0000 and the Load Address Field
 is the execution address.  
 
 </PRE></B></H4>
@@ -1430,6 +1459,6 @@ is the execution address.
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: September 2023</B></P></H6>
 </BODY> 
 </HTML>

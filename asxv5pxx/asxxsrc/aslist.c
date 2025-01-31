@@ -1,7 +1,7 @@
 /* aslist.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -231,6 +231,14 @@ list()
 	}
 
 	/*
+	 * Extra Cycle Digits
+	 */
+	if (cycldgts <= 2) { cycldgts = 2; } else
+	if (cycldgts >= 4) { cycldgts = 4; } else {
+		cycldgts = 3;
+	}
+
+	/*
 	 * Paging Control
 	 */
 	paging = !pflag && ((lnlist & LIST_PAG) || (uflag == 1)) ? 1 : 0;
@@ -269,71 +277,57 @@ list()
 	 * ON ERROR override listing
 	 */
 	if ((ep != eb) && (listing & LIST_ERR)) {
-		listing = LIST_ASM | LIST_ME;
-	}
-
-	switch (lmode) {
-	case SLIST:
-	case ALIST:
-	case BLIST:
-		if (asmc->objtyp == T_MACRO) {
-			if (listing & LIST_ME) {
-				listing |= LIST_ASM;
-			} else {
-				if ((ep != eb) && (listing & LIST_ERR)) {
-					; /* Use listing mode in effect. */
+		listing |= LIST_ASM;
+	} else {
+		/*
+		 * In a MACRO test for LIST_ME, LIST_MEB, and LIST_MEL overrides
+		 */
+		switch (lmode) {
+		case SLIST:
+		case ALIST:
+		case BLIST:
+		case CLIST:
+		case ELIST:
+			if (asmc->objtyp == T_MACRO) {
+				/* Priority 1
+				 * LIST_MEL - Location and Binary
+				 *            With Listing Mode
+				 */
+				if (listing & LIST_MEL) {
+					listing |= (LIST_LOC | LIST_BIN);
+				} else
+				/* Priority 2
+				 * LIST_MEB - Location and Binary Only
+				 */
+				if (listing & LIST_MEB) {
+					listing &= ~LIST_ASM;
+					listing |= (LIST_LOC | LIST_BIN);
+				} else 
+				/* Priority 3
+				 * LIST_ME - Enables Listing Mode
+				 */
+				if (listing & LIST_ME) {
+					;
 				} else {
+				/* Priority 4
+				 * Default - Listing inhibited
+				 */
+					listing = LIST_NONE;
 					if ((cp - cb) || (rflag > 1)) {
 						listhlr(HLR_NLST, lmode, (int) (cp - cb));
 					}
 					return;
 				}
 			}
-		}
-		break;
-
-	case ELIST:
-		if (asmc->objtyp == T_MACRO) {
-			if (listing & LIST_ME) {
-				listing |= LIST_ASM;
-			} else {
-				if ((ep != eb) && (listing & LIST_ERR)) {
-					; /* Use listing mode in effect. */
-				} else {
-					if ((cp - cb) || (rflag > 1)) {
-						listhlr(HLR_NLST, lmode, (int) (cp - cb));
-					}
-					return;
-				}
+			listing &= LIST_NORM;
+			break;
+	
+		default:
+			if ((cp - cb) || (rflag > 1)) {
+				listhlr(HLR_NLST, lmode, (int) (cp - cb));
 			}
+			return;
 		}
-		break;
-
-	case CLIST:
-		if (asmc->objtyp == T_MACRO) {
-			if (listing & LIST_ME) {
-				listing |= LIST_ASM;
-			} else
-			if ((listing & LIST_MEB) && ((int) (cp - cb))) {
-				listing = LIST_BIN;
-			} else {
-				if ((ep != eb) && (listing & LIST_ERR)) {
-					; /* Use listing mode in effect. */
-				} else {
-					if ((cp - cb) || (rflag > 1)) {
-						listhlr(HLR_NLST, lmode, (int) (cp - cb));
-					}
-					return;
-				}
-			}
-		}
-		break;
-
-	default:
-		if ((cp - cb) || (rflag > 1)) {
-			listhlr(HLR_NLST, lmode, (int) (cp - cb));
-		}
-		return;
 	}
 
 	/*
@@ -502,7 +496,7 @@ list()
 				/*
 				 * If we list cycles decrease maximum bytes on this line.
 				 */
-				nl = (!cflag && !(opcycles & OPCY_NONE) && (listing & LIST_CYC)) ? (n-1) : n;
+				nl = (!cflag && !(opcycles & CYCL_NONE) && (listing & LIST_CYC)) ? (n-1) : n;
 				nl = (nb > nl) ? nl : nb;
 	 			list1(wp, wpt, nl);
 				wp += nl;
@@ -595,7 +589,7 @@ list()
 	 * LIST_CYC - Output opcode cycle count with listing.
 	 */
 	if (listing & LIST_CYC) {
-		if (!cflag && !(opcycles & OPCY_NONE)) {
+		if (!cflag && !(opcycles & CYCL_NONE)) {
 			switch(lmode) {
 			default:
 			case SLIST:
@@ -615,8 +609,14 @@ list()
 					fprintf(lfp, " ");
 				}
 				op = a;
-				fprintf(lfp, "%c%2d%c", CYCNT_BGN, opcycles, CYCNT_END);
-				op += b;
+				switch(cycldgts) {
+				default:
+				case 2:	frmt = "%c%2d%c";	break;
+				case 3:	frmt = "%c%3d%c";	break;
+				case 4:	frmt = "%c%4d%c";	break;
+				}
+				fprintf(lfp, frmt, CYCNT_BGN, opcycles, CYCNT_END);
+				op += b + (cycldgts - 2);
 				break;
 			}
 		}
@@ -641,6 +641,7 @@ list()
 			case 3:
 			case 4: a = 34; b = 5; break;
 			}
+			a += (cycldgts - 2);
 			for (i=0; i<(a-op); i++) {
 				fprintf(lfp, " ");
 			}
@@ -670,6 +671,7 @@ list()
 			case 3:
 			case 4: a = 40; break;
 			}
+			a += (cycldgts - 2);
 			for (i=0; i<(a-op); i++) {
 				fprintf(lfp, " ");
 			}
@@ -758,7 +760,7 @@ list()
 	}
 }
 
-/*)Function	VOID	list1(wp, wpt, n)
+/*)Function	VOID	list1(wp, wpt, nb)
  *
  *		int	nb		number of bytes listed per line
  *		int *	wp		pointer to data bytes
@@ -993,6 +995,7 @@ int flag;
 	char *frmt;
 	char np[80];
 	char tp[80];
+	int n;
 
 	if (lop++ >= NLPP) {
 		if (flag) {
@@ -1000,26 +1003,19 @@ int flag;
 			 *12345678901234567890123456789012345678901234567890123456789012345678901234567890
 			 *ASxxxx Assembler Vxx.xx  (Motorola 6809)                                Page 1
 			 */
+			sprintf(tp, "ASxxxx Assembler %s  (%s)", VERSION, cpu);
+			sprintf(np, "Page %u", ++page);
 		 	/*
 			 * Total string length is 78 characters.
 			 */
-			sprintf(tp, "ASxxxx Assembler %s  (%s)", VERSION, cpu);
-			sprintf(np, "%-78s", tp);
-			/*
-			 * Right justify page number in string.
-			 */
-			sprintf(tp, "Page %u", ++page);
-			strncpy(&np[strlen(np) - strlen(tp)], tp, strlen(tp));
+			n = 78 - strlen(tp) - strlen(np);
 			/*
 			 * Output string.
 			 */
-			fprintf(fp, "\f%s\n", np);
+			fprintf(fp, "\f%s%*s%s\n", tp, n, " " ,np);
 			/*
 			 *12345678901234567890123456789012345678901234567890123456789012345678901234567890
 			 *Hexadecimal [16-Bits]                                 Sun Sep 15 17:22:25 2013
-			 */
-		 	/*
-			 * Total string length is 78 characters.
 			 */
 			switch(xflag) {
 			default:
@@ -1028,18 +1024,18 @@ int flag;
 			case 2:	frmt = "Decimal [%d-Bits]"; break;
 			}
 			sprintf(tp, frmt, 8 * a_bytes);
-			sprintf(np, "%-78s", tp);
-			/*
-			 * Right justify current time in string.
+			sprintf(np, "%.24s", ctime(&curtim));
+		 	/*
+			 * Total string length is 78 characters.
 			 */
-			strncpy(&np[strlen(np) - 24], ctime(&curtim), 24);
+			n = 78 - strlen(tp) - strlen(np);
 			/*
 			 * Output string.
 			 */
-			fprintf(fp, "%s\n", np);
+			fprintf(fp, "%s%*s%s\n", tp, n, " ", np);
 			fprintf(fp, "%s\n", tb);
 			fprintf(fp, "%s\n\n", stb);
-			if (fp == lfp) {
+			if ((fp == lfp) && (asmc != NULL)) {
 				for (lop=1; lop<6; lop++) {
 					listhlr(LIST_SRC, SLIST, 0);
 				}

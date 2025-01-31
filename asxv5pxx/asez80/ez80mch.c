@@ -1,7 +1,7 @@
 /* ez80mch.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -43,8 +43,8 @@ int	m_mode;
 #define	OPCY_SDP	((char) (0xFF))
 #define	OPCY_ERR	((char) (0xFE))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	OPCY_AMOD	((char) (0xFD))
 
@@ -227,6 +227,12 @@ struct mne *mp;
 	int needPreamble, m_aerr;
 	int opc1, opc2, opc3;
 
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
+
 	clrexpr(&e1);
 	clrexpr(&e2);
 	op = (int) mp->m_valu;
@@ -340,7 +346,7 @@ struct mne *mp;
 
 	if (m_aerr) {
 		while (getnb()) { ; }
-		aerr();
+		xerr('a', "An unsupported instruction or addressing mode.");
 		return;
 	}
 
@@ -364,7 +370,7 @@ struct mne *mp;
 			if ((v1 = admode(CND)) != 0) {
 				outab(op | (v1<<3));
 			} else {
-				qerr();
+				xerr('a', "Invalid condition code.");
 			}
 		} else {
 			/*
@@ -393,13 +399,13 @@ struct mne *mp;
 			outab(op | (v1<<4));
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid register or register pair.");
 		break;
 
 	case S_RST:
 		v1 = (int) absexpr();
 		if (v1 & ~0x38) {
-			aerr();
+			xerr('a', "Valid RST values are N * 0x08, N = 0 -> 7.");
 			v1 = 0;
 		}
 		outab(op|v1);
@@ -409,7 +415,7 @@ struct mne *mp;
 		expr(&e1, 0);
 		abscheck(&e1);
 		if (e1.e_addr > 2) {
-			aerr();
+			xerr('a', "Valid interrupt modes are 0, 1, and 2.");
 			e1.e_addr = 0;
 		}
 		outab(op);
@@ -428,7 +434,7 @@ struct mne *mp;
 		 * bit  b,r
 		 */
 		if (sf && (t2 == S_R8)) {	/* No Opcode Suffixes Allowed */
-			aerr();
+			xerr('a', "Opcode suffixes are invalid.");
 		}
 		/*
 		 * b
@@ -437,7 +443,7 @@ struct mne *mp;
 		 *	time the value will be merged with op.
 		 */
 		if (genopm(0xCB, op, &e1, &e2, 0) || t1) {
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		break;
 
@@ -450,10 +456,10 @@ struct mne *mp;
 		 * rl  r
 		 */
 		if (sf && (t1 == S_R8)) {	/* No Opcode Suffixes Allowed */
-			aerr();
+			xerr('a', "Opcode suffixes are invalid.");
 		}
 		if (genop(0xCB, op, &e1, 0)) {
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		break;
 
@@ -486,7 +492,7 @@ struct mne *mp;
 			 * op  a,iyh
 			 */
 			if ((t1 != S_R8) || (e1.e_addr != A))
-				aerr();
+				xerr('a', "A second argument requires the first to be A.");
 			comma(1);
 			clrexpr(&e1);
 			t1 = addr(&e1);
@@ -499,7 +505,7 @@ struct mne *mp;
 			if ((v1 == IXL) || (v1 == IYL))
 				++v2;
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			/*
 			 * op  a,ixl
@@ -523,7 +529,7 @@ struct mne *mp;
 				outab(op + v2);
 				break;
 			} else {
-				aerr();
+				xerr('a', "Valid argument is IXL, IXH, IYL, or IYH.");
 				break;
 			}
 		}
@@ -541,10 +547,10 @@ struct mne *mp;
 		 * op  a,n	[a,#n]
 		 */
 		if (sf && ((t1 == S_R8) || (t1 == S_IMMED))) {	/* No Opcode Suffixes Allowed */
-			aerr();
+			xerr('a', "Opcode suffixes are invalid.");
 		}
 		if (genop(0, op, &e1, 1)) {
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		}
 		break;
 
@@ -583,7 +589,7 @@ struct mne *mp;
 				break;
 			}
 			if (rf != S_ADD) {
-				aerr();
+				xerr('a', "ADC and SUBC are invalid.");
 				break;
 			}
 			/*
@@ -615,10 +621,10 @@ struct mne *mp;
 		}
 		if ((t1 == S_R8X) || (t2 == S_R8X)) {
 			if ((t1 == S_R8X) && t2) {
-				aerr();
+				xerr('a', "Only a single argument allowed.");
 				break;
 			} else if ((t2 == S_R8X) && e1.e_addr != A) {
-				aerr();
+				xerr('a', "A second argument requires the first to be A.");
 				break;
 			}
 			if (t1 == S_R8X) {
@@ -630,7 +636,7 @@ struct mne *mp;
 			if ((v1 == IXL) || (v1 == IYL))
 				++v2;
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			/*
 			 * op  a,ixl
@@ -664,10 +670,10 @@ struct mne *mp;
 			 * op  n	[#n]
 			 */
 			if (sf && ((t1 == S_R8) || (t1 == S_IMMED))) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			if (genop(0, op, &e1, 1))
-				aerr();
+				xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
 		if ((t1 == S_R8) && (e1.e_addr == A)) {
@@ -679,13 +685,13 @@ struct mne *mp;
 			 * op  a,n	[a,#n]
 			 */
 			if (sf && ((t2 == S_R8) || (t2 == S_IMMED))) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			if (genop(0, op, &e2, 1))
-				aerr();
+				xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_LD:
@@ -720,11 +726,11 @@ struct mne *mp;
 				    ((v1 == D) && (v2 == D)) ||		/* ld d,d ==>> 0x52 */
 				    ((v1 == E) && (v2 == E))) {		/* ld e,e ==>> 0x5b */
 					outab(0x00);			/* nop */
-					aerr();
+					xerr('a', "Arguments B,B / C,C / D,D / E,E are invalid.");
 					break;
 				}
 				if (sf) {	/* No Opcode Suffixes Allowed */
-					aerr();
+					xerr('a', "Opcode suffixes are invalid.");
 				}
 				genop(0, op | (v1<<3), &e2, 0);
 				break;
@@ -734,7 +740,7 @@ struct mne *mp;
 			 */
 			if (t2 == S_IMMED) {
 				if (sf) {	/* No Opcode Suffixes Allowed */
-					aerr();
+					xerr('a', "Opcode suffixes are invalid.");
 				}
 				outab((v1<<3) | 0x06);
 				outrb(&e2,0);
@@ -752,7 +758,7 @@ struct mne *mp;
 				if ((sf == M_IS)  || (sf == M_IL)  ||
 				    (sf == M_SIS) || (sf == M_LIL) ||
 				    (sf == M_SIL) || (sf == M_LIS)) {
-					aerr();
+					xerr('a', "Only .S and .L suffixes allowed.");
 				}
 				break;
 			}
@@ -772,7 +778,7 @@ struct mne *mp;
 			if ((sf == M_S)   || (sf == M_L)   ||
 			    (sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+					xerr('a', "Only .SIS and .LIL suffixes allowed.");
 			}
 			v1 = gixiy(v1);
 			outab(0x01 | (v1<<4));
@@ -793,10 +799,10 @@ struct mne *mp;
 			if ((sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIS) || (sf == M_LIL) ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .S and .L suffixes allowed.");
 			}
 			if (v1 == SP) {
-				aerr();
+				xerr('a', "SP is not allowed.");
 				break;
 			}
 			outab(0xED);
@@ -824,10 +830,10 @@ struct mne *mp;
 			if ((sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIS) || (sf == M_LIL) ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .S and .L suffixes allowed.");
 			}
 			if (v2 == SP) {
-				aerr();
+				xerr('a', "SP is not allowed.");
 				break;
 			}
 			outab(0xED);
@@ -855,10 +861,10 @@ struct mne *mp;
 			if ((sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIS) || (sf == M_LIL) ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .S and .L suffixes allowed.");
 			}
 			if (v1 == SP) {
-				aerr();
+				xerr('a', "SP is not allowed.");
 				break;
 			}
 			if (t2 == S_IDIX) {
@@ -897,10 +903,10 @@ struct mne *mp;
 			if ((sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIS) || (sf == M_LIL) ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .S and .L suffixes allowed.");
 			}
 			if (v2 == SP) {
-				aerr();
+				xerr('a', "SP is not allowed.");
 				break;
 			}
 			if (t1 == S_IDIX) {
@@ -940,7 +946,7 @@ struct mne *mp;
 			if ((sf == M_S)   || (sf == M_L)   ||
 			    (sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .SIS and .LIL suffixes allowed.");
 			}
 			if (gixiy(v1) == HL) {
 				outab(0x2A);
@@ -966,7 +972,7 @@ struct mne *mp;
 			if ((sf == M_S)   || (sf == M_L)   ||
 			    (sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .SIS and .LIL suffixes allowed.");
 			}
 			if (gixiy(v2) == HL) {
 				outab(0x22);
@@ -987,7 +993,7 @@ struct mne *mp;
 			if ((sf == M_S)   || (sf == M_L)   ||
 			    (sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .SIS and .LIL suffixes allowed.");
 			}
 			outab(0x3A);
 			glilsis(m_mode, sf, &e2);
@@ -1003,7 +1009,7 @@ struct mne *mp;
 			if ((sf == M_S)   || (sf == M_L)   ||
 			    (sf == M_SIS) || (sf == M_LIL) ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .IS and .IL suffixes allowed.");
 			}
 			outab(0x32);
 			glilsis(m_mode, sf, &e1);
@@ -1021,7 +1027,7 @@ struct mne *mp;
 			if ((sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIS) || (sf == M_LIL) ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .S and .L suffixes allowed.");
 			}
 			outab(0x70|v2);
 			if (t1 != S_IDHL)
@@ -1040,10 +1046,10 @@ struct mne *mp;
 			if ((sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIS) || (sf == M_LIL) ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .S and .L suffixes allowed.");
 			}
 			if ((t1 == S_IDHL) && ((e1.e_base.e_ap != NULL) || (e1.e_addr != 0)))
-				aerr();
+				xerr('a', "Indexed offset is invalid.");
 			outab(0x36);
 			if (t1 != S_IDHL)
 				outrb(&e1, R_SGND);
@@ -1063,11 +1069,11 @@ struct mne *mp;
 		 */
 		if ((t1 == S_R8X) && (t2 == S_R8)) {
 			if ((v2 == H) || (v2 == L)) {
-				aerr();
+				xerr('a', "H and L are invalid.");
 				break;
 			}
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			/*
 			 * ld  R,a
@@ -1078,7 +1084,7 @@ struct mne *mp;
 					outab(0xED);
 					outab(v1);
 				} else {
-					aerr();
+					xerr('a', "Second argument must be A.");
 				}
 				break;
 			} else
@@ -1090,7 +1096,7 @@ struct mne *mp;
 					outab(0xED);
 					outab(0x6D);
 				} else {
-					aerr();
+					xerr('a', "Second argument must be A.");
 				}
 				break;
 			} else
@@ -1129,11 +1135,11 @@ struct mne *mp;
 		 */
 		if ((t1 == S_R8) && (t2 == S_R8X)) {
 			if ((v1 == H) || (v1 == L)) {
-				aerr();
+				xerr('a', "H and L are invalid.");
 				break;
 			}
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			/*
 			 * ld  a,R
@@ -1144,7 +1150,7 @@ struct mne *mp;
 					outab(0xED);
 					outab(v2|0x10);
 				} else {
-					aerr();
+					xerr('a', "Second argument must be A.");
 				}
 				break;
 			} else
@@ -1156,7 +1162,7 @@ struct mne *mp;
 					outab(0xED);
 					outab(0x6E);
 				} else {
-					aerr();
+					xerr('a', "Second argument must be A.");
 				}
 				break;
 			} else
@@ -1193,19 +1199,19 @@ struct mne *mp;
 		 */
 		if ((t1 == S_R8X) && (t2 == S_R8X)) {
 			if ((v1 == I) || (v1 == R) || (v1 == MB)) {
-				aerr();
+				xerr('a', "I, R, and MB are invalid first arguments.");
 				break;
 			}
 			if ((v2 == I) || (v2 == R) || (v2 == MB)) {
-				aerr();
+				xerr('a', "I, R, and MB are invalid second arguments.");
 				break;
 			}
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			if ((v1 == IXH) || (v1 == IXL)) {
 				if ((v2 == IYH) || (v2 == IYL)) {
-					aerr();
+					xerr('a', "IYH and IYL are invalid second arguments.");
 					break;
 				} else {
 					outab(0xDD);
@@ -1213,7 +1219,7 @@ struct mne *mp;
 			} else
 			if ((v1 == IYH) || (v1 == IYL)) {
 				if ((v2 == IXH) || (v2 == IXL)) {
-					aerr();
+					xerr('a', "IXH and IXL are invalid second arguments.");
 					break;
 				} else {
 					outab(0xFD);
@@ -1244,7 +1250,7 @@ struct mne *mp;
 			if ((sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIS) || (sf == M_LIL) ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .S and .L suffixes allowed.");
 			}
 			if ((t2 == S_RX) && (gixiy(v2) == HL)) {
 				outab(0xF9);
@@ -1262,7 +1268,7 @@ struct mne *mp;
 			if ((sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIS) || (sf == M_LIL) ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .S and .L suffixes allowed.");
 			}
 			if ((t2 == S_IDBC) || (t2 == S_IDDE)) {
 				outab(0x0A | ((t2-S_INDR)<<4));
@@ -1280,7 +1286,7 @@ struct mne *mp;
 			if ((sf == M_IS)  || (sf == M_IL)  ||
 			    (sf == M_SIS) || (sf == M_LIL) ||
 			    (sf == M_SIL) || (sf == M_LIS)) {
-				aerr();
+				xerr('a', "Only .S and .L suffixes allowed.");
 			}
 			if ((t1 == S_IDBC) || (t1 == S_IDDE)) {
 				outab(0x02 | ((t1-S_INDR)<<4));
@@ -1292,7 +1298,7 @@ struct mne *mp;
 		 */
 		if ((v1 == HL) && (v2 == I)) {
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			outab(0xED);
 			outab(0xD7);
@@ -1303,7 +1309,7 @@ struct mne *mp;
 		 */
 		if ((v2 == HL) && (v1 == I)) {
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			outab(0xED);
 			outab(0xC7);
@@ -1317,7 +1323,7 @@ struct mne *mp;
 		 */
 		if ((t1 == S_R8X) && (t2 == S_IMMED)) {
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			if ((v1 == IXH) || (v1 == IXL)) {
 				outab(0xDD);
@@ -1334,7 +1340,7 @@ struct mne *mp;
 			outrb(&e2, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_EX:
@@ -1360,7 +1366,7 @@ struct mne *mp;
 			 */
 			if (t1 == S_RX) {
 				if (sf) {	/* No Opcode Suffixes Allowed */
-					aerr();
+					xerr('a', "Opcode suffixes are invalid.");
 				}
 				if ((v1 == DE) && (v2 == HL)) {
 					outab(0xEB);
@@ -1373,12 +1379,12 @@ struct mne *mp;
 		 */
 		if ((t1 == S_RXX) && (t2 == S_RXX)) {
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			outab(0x08);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_IN:
@@ -1414,7 +1420,7 @@ struct mne *mp;
 				break;
 			}
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_IN0:
@@ -1442,7 +1448,7 @@ struct mne *mp;
 				break;
 			}
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_DEC:
@@ -1454,7 +1460,7 @@ struct mne *mp;
 		 */
 		if (t1 == S_R8) {
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			outab(op|(v1<<3));
 			break;
@@ -1464,7 +1470,7 @@ struct mne *mp;
 		 */
 		if (t1 == S_IDHL) {
 			if ((e1.e_base.e_ap != NULL) || (e1.e_addr != 0))
-				aerr();
+				xerr('a', "Indexed offset is invalid.");
 			outab(op|0x30);
 			break;
 		}
@@ -1507,7 +1513,7 @@ struct mne *mp;
 			if ((v1 == IXL) || (v1 == IYL))
 				v2 += 8;
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			if ((v1 == IXH) || (v1 == IXL)) {
 				outab(0xDD);
@@ -1520,7 +1526,7 @@ struct mne *mp;
 				break;
 			}
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_DJNZ:
@@ -1532,7 +1538,7 @@ struct mne *mp;
 			if ((v1 &= 0xFF) <= 3) {
 				op += (v1+1)<<3;
 			} else {
-				aerr();
+				xerr('a', "PE, PO, P, and M are invalid.");
 			}
 			comma(1);
 		}
@@ -1541,10 +1547,9 @@ struct mne *mp;
 		 */
 		expr(&e2, 0);
 		outab(op);
-		if (mchpcr(&e2)) {
-			v2 = (int) (e2.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e2, &v2, 1)) {
 			if ((v2 < -128) || (v2 > 127))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outab(v2);
 		} else {
 			outrb(&e2, R_PCR);
@@ -1618,12 +1623,12 @@ struct mne *mp;
 			case MM_ADL:
 				switch(sf) {
 				case M_S:
-					aerr();
+					xerr('a', ".S and .L suffixes are invalid in ADL mode.");
 				case M_SIS:
 					outrwm(&e1, R_Z80, 0);
 					break;
 				case M_L:
-					aerr();
+					xerr('a', ".S and .L suffixes are invalid in ADL mode.");
 				case M_LIL:
 				default:
 					outr3b(&e1, R_ADL);
@@ -1633,12 +1638,12 @@ struct mne *mp;
 			case MM_Z80:
 				switch(sf) {
 				case M_L:
-					aerr();
+					xerr('a', ".S and .L suffixes are invalid in Z80 mode.");
 				case M_LIL:
 					outr3b(&e1, R_ADL);
 					break;
 				case M_S:
-					aerr();
+					xerr('a', ".S and .L suffixes are invalid in Z80 mode.");
 				case M_SIS:
 				default:
 					outrwm(&e1, R_Z80|R_PAGX1, 0);
@@ -1657,11 +1662,11 @@ struct mne *mp;
 		 */
 		if ((t1 == S_IDHL) || (t1 == S_IDIX) || (t1 == S_IDIY)) {
 			if ((e1.e_base.e_ap != NULL) || (e1.e_addr != 0)) {
-				aerr();
+				xerr('a', "Indexed offset is invalid.");
 				break;
 			}
 			if ((sf == M_SIS) || (sf == M_LIL)) {
-				aerr();
+				xerr('a', ".SIS and .LIL suffixes are invalid.");
 				break;
 			}
 			if (needPreamble) {
@@ -1683,7 +1688,7 @@ struct mne *mp;
 			outab(0xE9);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_MLT:
@@ -1693,13 +1698,13 @@ struct mne *mp;
 		 */
 		if ((t1 == S_RX) && ((v1 = (int) e1.e_addr) <= SP)) {
 			if (sf && (v1 != SP)) {
-				aerr();
+				xerr('a', "Only SP allows .S and .L suffixes.");
 			}
 			outab(0xED);
 			outab(op | (v1<<4));
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_TST:
@@ -1718,7 +1723,7 @@ struct mne *mp;
 			 * op  a,n	[a,#n]
 			 */
 			if ((t1 != S_R8) || (e1.e_addr != A))
-				aerr();
+				xerr('a', "First argument must be A.");
 			comma(1);
 			clrexpr(&e1);
 			t1 = addr(&e1);
@@ -1738,7 +1743,7 @@ struct mne *mp;
 		 */
 		if (t1 == S_R8) {
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			outab(0xED);
 			outab(op | ((int) (e1.e_addr<<3)));
@@ -1749,14 +1754,14 @@ struct mne *mp;
 		 */
 		if (t1 == S_IMMED) {
 			if (sf) {	/* No Opcode Suffixes Allowed */
-				aerr();
+				xerr('a', "Opcode suffixes are invalid.");
 			}
 			outab(0xED);
 			outab(0x64);
 			outrb(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_TSTIO:
@@ -1772,7 +1777,7 @@ struct mne *mp;
 			outrb(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_LEA:
@@ -1788,7 +1793,7 @@ struct mne *mp;
 				expr(&e2, 0);
 			} else {
 				while (getnb()) { ; }
-				aerr();
+				xerr('a', "Missing argument ?");
 			}
 			outab(0xED);
 			/*
@@ -1832,7 +1837,7 @@ struct mne *mp;
 			outrb(&e2, R_SGND);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_PEA:
@@ -1849,7 +1854,7 @@ struct mne *mp;
 				expr(&e1, 0);
 			} else {
 				while (getnb()) { ; }
-				aerr();
+				xerr('a', "Missing argument ?");
 			}
 			outab(0xED);
 			if (t1 == S_IDIY)
@@ -1858,7 +1863,7 @@ struct mne *mp;
 			outrb(&e1, R_SGND);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_AMOD:
@@ -1887,7 +1892,7 @@ struct mne *mp;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Interna; Opcode Error.");
 		break;
 	}
 
@@ -2189,6 +2194,11 @@ struct mne *mp;
 			}
 		}
 	}
+	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*
@@ -2321,7 +2331,7 @@ struct expr *esp;
 			break;
 		case M_IL:
 		case M_LIL:
-			aerr();
+			xerr('a', ".IL and .LIL suffixes are invalid in ADL mode.");
 			break;
 		default:
 			outr3b(esp, R_ADL);
@@ -2332,7 +2342,7 @@ struct expr *esp;
 		switch(sfx) {
 		case M_IS:
 		case M_SIS:
-			aerr();
+			xerr('a', ".IS and .SIS suffixes are invalid in Z80 mode.");
 			break;
 		case M_IL:
 		case M_LIL:
@@ -2353,10 +2363,28 @@ struct expr *esp;
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - n);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - n);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {

@@ -1,3 +1,3 @@
-ascheck -loqcff m6809t.mac
+ascheck -loqcfft m6809t.mac
 aslink  -mqsu m6809t
 

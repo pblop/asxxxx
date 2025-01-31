@@ -1,7 +1,7 @@
 /* i8085.h */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -64,7 +64,7 @@
 /*
  * Other
  */
-#define	S_FLAG	70
+#define	S_CPU	70
 
 /*
  * Registers.
@@ -79,6 +79,14 @@
 #define	A	7
 #define	SP	8
 #define	PSW	9
+
+/*
+ * Machines
+ */
+#define	X_8085	0
+#define	X_8085X	1
+#define	X_8080	2
+
 
 	/* machine dependent functions */
 

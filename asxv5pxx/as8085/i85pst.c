@@ -1,7 +1,7 @@
 /* i85pst.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -97,34 +97,19 @@ struct	mode	*modep[16] = {
  */
 struct	mne	mne[] = {
 
-	/* machine */
+	/* assembler */
 
-	/* system */
-
-    {	NULL,	"CSEG",		S_ATYP,		0,	A_CSEG|A_1BYTE	},
-    {	NULL,	"DSEG",		S_ATYP,		0,	A_DSEG|A_1BYTE	},
-
-	/* system */
-
-    {	NULL,	"BANK",		S_ATYP,		0,	A_BNK	},
-    {	NULL,	"CON",		S_ATYP,		0,	A_CON	},
-    {	NULL,	"OVR",		S_ATYP,		0,	A_OVR	},
-    {	NULL,	"REL",		S_ATYP,		0,	A_REL	},
-    {	NULL,	"ABS",		S_ATYP,		0,	A_ABS	},
-    {	NULL,	"NOPAG",	S_ATYP,		0,	A_NOPAG	},
-    {	NULL,	"PAG",		S_ATYP,		0,	A_PAG	},
-
-    {	NULL,	"BASE",		S_BTYP,		0,	B_BASE	},
-    {	NULL,	"SIZE",		S_BTYP,		0,	B_SIZE	},
-    {	NULL,	"FSFX",		S_BTYP,		0,	B_FSFX	},
-    {	NULL,	"MAP",		S_BTYP,		0,	B_MAP	},
-
+    {	NULL,	".enabl",	S_OPTN,		0,	O_ENBL	},
+    {	NULL,	".dsabl",	S_OPTN,		0,	O_DSBL	},
     {	NULL,	".page",	S_PAGE,		0,	0	},
     {	NULL,	".title",	S_HEADER,	0,	O_TITLE	},
     {	NULL,	".sbttl",	S_HEADER,	0,	O_SBTTL	},
     {	NULL,	".module",	S_MODUL,	0,	0	},
-    {	NULL,	".include",	S_INCL,		0,	0	},
+    {	NULL,	".include",	S_INCL,		0,	I_CODE	},
+    {	NULL,	".incbin",	S_INCL,		0,	I_BNRY	},
     {	NULL,	".area",	S_AREA,		0,	0	},
+    {	NULL,	".psharea",	S_AREA,		0,	O_PSH	},
+    {	NULL,	".poparea",	S_AREA,		0,	O_POP	},
     {	NULL,	".bank",	S_BANK,		0,	0	},
     {	NULL,	".org",		S_ORG,		0,	0	},
     {	NULL,	".radix",	S_RADIX,	0,	0	},
@@ -177,8 +162,10 @@ struct	mne	mne[] = {
     {	NULL,	".fdb",		S_DATA,		0,	O_2BYTE	},
 /*    {	NULL,	".3byte",	S_DATA,		0,	O_3BYTE	},	*/
 /*    {	NULL,	".triple",	S_DATA,		0,	O_3BYTE	},	*/
+/*    {	NULL,	".dl",		S_DATA,		0,	O_4BYTE	},	*/
 /*    {	NULL,	".4byte",	S_DATA,		0,	O_4BYTE	},	*/
 /*    {	NULL,	".quad",	S_DATA,		0,	O_4BYTE	},	*/
+/*    {	NULL,	".long",	S_DATA,		0,	O_4BYTE	},	*/
     {	NULL,	".blkb",	S_BLK,		0,	O_1BYTE	},
     {	NULL,	".ds",		S_BLK,		0,	O_1BYTE	},
     {	NULL,	".rmb",		S_BLK,		0,	O_1BYTE	},
@@ -186,6 +173,7 @@ struct	mne	mne[] = {
     {	NULL,	".blkw",	S_BLK,		0,	O_2BYTE	},
 /*    {	NULL,	".blk3",	S_BLK,		0,	O_3BYTE	},	*/
 /*    {	NULL,	".blk4",	S_BLK,		0,	O_4BYTE	},	*/
+/*    {	NULL,	".blkl",	S_BLK,		0,	O_4BYTE	},	*/
     {	NULL,	".ascii",	S_ASCIX,	0,	O_ASCII	},
     {	NULL,	".ascis",	S_ASCIX,	0,	O_ASCIS	},
     {	NULL,	".asciz",	S_ASCIX,	0,	O_ASCIZ	},
@@ -208,6 +196,9 @@ struct	mne	mne[] = {
 /*    {	NULL,	".16bit",	S_BITS,		0,	O_2BYTE	},	*/
 /*    {	NULL,	".24bit",	S_BITS,		0,	O_3BYTE	},	*/
 /*    {	NULL,	".32bit",	S_BITS,		0,	O_4BYTE	},	*/
+    {	NULL,	".trace",	S_TRACE,	0,	O_TRC	},
+    {	NULL,	".ntrace",	S_TRACE,	0,	O_NTRC	},
+/*    {	NULL,	"_______",	S_CONST,	0,	VALUE	},	*/
     {	NULL,	".end",		S_END,		0,	0	},
 
 	/* Macro Processor */
@@ -227,6 +218,12 @@ struct	mne	mne[] = {
     {	NULL,	".nval",	S_MACRO,	0,	O_NVAL	},
 
     {	NULL,	".mdelete",	S_MACRO,	0,	O_MDEL	},
+
+	/* Machines */
+
+    {	NULL,	".8085",	S_CPU,		0,	X_8085	},
+    {	NULL,	".8085x",	S_CPU,		0,	X_8085X	},
+    {	NULL,	".8080",	S_CPU,		0,	X_8080	},
 
 	/* 8080/8085 */
 
@@ -337,7 +334,27 @@ struct	mne	mne[] = {
 
     {	NULL,	"mvi",		S_MVI,		0,	0006	},
 
-	/* Undocumented 8085 Opcodes */
+	/*
+	 * Undocumented 8085 Instructions
+	 *
+	 *	Overflow Flag:	Bit 1 Of Flag Register
+	 *
+	 *	X5 Flag:	Bit 5 of Flag Register Indicating
+	 *			Overflow / Underflow From INX/DCX 
+	 *
+	 * DSUB		HL - BC -> HL
+	 * ARHL		Rotate HL Right
+	 * RDEL		Rotate DE Left
+	 * RSTV		Restart On Overflow @0x0020
+	 * SHLX		HL -> [DE]
+	 * LHLX		[DE] -> HL
+	 *
+	 * LDHI		HL + #Byte -> DE
+	 * LDSI		SP + #Byte -> DE
+	 *
+	 * JNK / JNX5	Jump If NOT X5
+	 * JK / JX5	Jump If X5
+	 */
 
     {	NULL,	"dsub",		S_INH,		0,	0010    },
     {	NULL,	"arhl",		S_INH,		0,	0020    },
@@ -349,6 +366,8 @@ struct	mne	mne[] = {
     {	NULL,	"ldhi",		S_ADI,		0,	0050	},
     {	NULL,	"ldsi",		S_ADI,		0,	0070	},
 
+    {	NULL,	"jnk",		S_JMP,		0,	0335	},
     {	NULL,	"jnx5",		S_JMP,		0,	0335	},
+    {	NULL,	"jk",		S_JMP,		0,	0375	},
     {	NULL,	"jx5",		S_JMP,		S_EOL,	0375	}
 };

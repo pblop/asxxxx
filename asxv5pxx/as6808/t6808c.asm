@@ -1,7 +1,7 @@
 	.title	AS6808 Assembler Control
 
 	;***********************************************************
-	; 	Overide T6806.ASM Stand Alone Option
+	; 	Overide T6808.ASM Stand Alone Option
 	;***********************************************************
 
 	I$C$D	=:	0

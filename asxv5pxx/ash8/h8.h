@@ -1,7 +1,7 @@
 /* h8.h */
 
 /*
- *  Copyright (C) 1994-2014  Alan R. Baldwin
+ *  Copyright (C) 1994-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -64,7 +64,8 @@
 /*
  * Direct Page (last 256 bytes)
  */
-#define	S_SDP		49
+#define	S_SDP		48
+#define	S_PGD		49
 
 /*
  * H8 Instruction types
@@ -95,8 +96,6 @@
  */
 extern int aindx;
 
-extern char *dpcode[];
-
 struct	sdp
 {
 	a_uint	s_addr;
@@ -124,16 +123,16 @@ extern struct adsym ccr_reg[];
 extern	int		addr(struct expr *esp);
 extern	int		addr1(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
 	/* h8mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine(struct mne *mp);
 extern	VOID		normbyte(struct expr *esp);
 extern	VOID		usgnbyte(struct expr *esp);
 extern	VOID		pagebyte(struct expr *esp);
 extern	int		abstype(struct expr *esp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 extern	int		setbit(int b);
 extern	int		getbit(void);
@@ -144,10 +143,10 @@ extern	int		getbit(void);
 extern	int		addr();
 extern	int		addr1();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
 	/* h8mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine();
 extern	VOID		normbyte();
 extern	VOID		usgnbyte();

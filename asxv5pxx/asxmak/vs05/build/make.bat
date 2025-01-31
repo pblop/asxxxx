@@ -7,7 +7,10 @@ REM
 REM This definition is valid for Visual Studio 2005
 REM installed in the default location.
 REM
+REM Running On 32-Bit System
 SET VC$BUILD="C:\Program Files\Microsoft Visual Studio 8\VC\vcpackages\vcbuild.exe"
+REM Running On A 64-Bit System
+REM SET VC$BUILD="C:\Program Files (x86)\Microsoft Visual Studio 8\VC\vcpackages\vcbuild.exe"
 REM
 
 if %1.==/?. goto ERROR
@@ -17,220 +20,67 @@ if %1.==clean. goto EXIT
 goto ASXXXX
 
 :ALL
-cd as1802
-@echo on
-%VC$BUILD% /rebuild as1802.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as2650
-@echo on
-%VC$BUILD% /rebuild as2650.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as430
-@echo on
-%VC$BUILD% /rebuild as430.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6100
-@echo on
-%VC$BUILD% /rebuild as6100.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as61860
-@echo on
-%VC$BUILD% /rebuild as61860.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6500
-@echo on
-%VC$BUILD% /rebuild as6500.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6800
-@echo on
-%VC$BUILD% /rebuild as6800.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6801
-@echo on
-%VC$BUILD% /rebuild as6801.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6804
-@echo on
-%VC$BUILD% /rebuild as6804.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6805
-@echo on
-%VC$BUILD% /rebuild as6805.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6808
-@echo on
-%VC$BUILD% /rebuild as6808.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6809
-@echo on
-%VC$BUILD% /rebuild as6809.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6811
-@echo on
-%VC$BUILD% /rebuild as6811.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6812
-@echo on
-%VC$BUILD% /rebuild as6812.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as6816
-@echo on
-%VC$BUILD% /rebuild as6816.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as740
-@echo on
-%VC$BUILD% /rebuild as740.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as78k0s
-@echo on
-%VC$BUILD% /rebuild as78k0s.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as8048
-@echo on
-%VC$BUILD% /rebuild as8048.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as8051
-@echo on
-%VC$BUILD% /rebuild as8051.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as8085
-@echo on
-%VC$BUILD% /rebuild as8085.vcproj "Release|Win32"
-@echo off
-cd ..
-cd as8xcxxx
-@echo on
-%VC$BUILD% /rebuild as8xcxxx.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asavr
-@echo on
-%VC$BUILD% /rebuild asavr.vcproj "Release|Win32"
-@echo off
-cd ..
-cd ascheck
-@echo on
-%VC$BUILD% /rebuild ascheck.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asez80
-@echo on
-%VC$BUILD% /rebuild asez80.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asf2mc8
-@echo on
-%VC$BUILD% /rebuild asf2mc8.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asf8
-@echo on
-%VC$BUILD% /rebuild asf8.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asgb
-@echo on
-%VC$BUILD% /rebuild asgb.vcproj "Release|Win32"
-@echo off
-cd ..
-cd ash8
-@echo on
-%VC$BUILD% /rebuild ash8.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asm8c
-@echo on
-%VC$BUILD% /rebuild asm8c.vcproj "Release|Win32"
-@echo off
-cd ..
-cd aspic
-@echo on
-%VC$BUILD% /rebuild aspic.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asrab
-@echo on
-%VC$BUILD% /rebuild asrab.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asscmp
-@echo on
-%VC$BUILD% /rebuild asscmp.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asst6
-@echo on
-%VC$BUILD% /rebuild asst6.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asst7
-@echo on
-%VC$BUILD% /rebuild asst7.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asst8
-@echo on
-%VC$BUILD% /rebuild asst8.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asz8
-@echo on
-%VC$BUILD% /rebuild asz8.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asz80
-@echo on
-%VC$BUILD% /rebuild asz80.vcproj "Release|Win32"
-@echo off
-cd ..
-cd aslink
-@echo on
-%VC$BUILD% /rebuild aslink.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asxcnv
-@echo on
-%VC$BUILD% /rebuild asxcnv.vcproj "Release|Win32"
-@echo off
-cd ..
-cd asxscn
-@echo on
-%VC$BUILD% /rebuild asxscn.vcproj "Release|Win32"
-@echo off
-cd ..
-cd s19os9
-@echo on
-%VC$BUILD% /rebuild s19os9.vcproj "Release|Win32"
-@echo off
-cd ..
+call _bldproj as1802
+call _bldproj as2650
+call _bldproj as4040
+call _bldproj as430
+call _bldproj as6100
+call _bldproj as61860
+call _bldproj as6500
+call _bldproj as6800
+call _bldproj as6801
+call _bldproj as6804
+call _bldproj as6805
+call _bldproj as6808
+call _bldproj as6809
+call _bldproj as6811
+call _bldproj as6812
+call _bldproj as6816
+call _bldproj as68cf
+call _bldproj as68k
+call _bldproj as740
+call _bldproj as78k0
+call _bldproj as78k0s
+call _bldproj as8008
+call _bldproj as8008s
+call _bldproj as8048
+call _bldproj as8051
+call _bldproj as8085
+call _bldproj as89lp
+call _bldproj as8x300
+call _bldproj as8xcxxx
+call _bldproj asavr
+call _bldproj ascheck
+call _bldproj ascop4
+call _bldproj ascop8
+call _bldproj asez8
+call _bldproj asez80
+call _bldproj asf2mc8
+call _bldproj asf8
+call _bldproj asgb
+call _bldproj ash8
+call _bldproj asm8c
+call _bldproj aspdp11
+call _bldproj aspic
+call _bldproj asrab
+call _bldproj asrs08
+call _bldproj asscmp
+call _bldproj asst6
+call _bldproj asst7
+call _bldproj asst8
+call _bldproj assx
+call _bldproj asz8
+call _bldproj asz80
+call _bldproj asz280
+call _bldproj aslink
+call _bldproj asxcnv
+call _bldproj asxscn
+call _bldproj s19os9
 goto EXIT
 
 :ASXXXX
-cd %1
-if not exist %1.vcproj goto ERROR
-@echo on
-%VC$BUILD% /rebuild %1.vcproj "Release|Win32"
-@echo off
-cd ..
+if not exist %1 goto ERROR
+call _bldproj %1
 goto EXIT
 
 :ERROR
@@ -241,13 +91,15 @@ echo Valid arguments are:
 echo --------  --------  --------  --------  --------  --------
 echo all       ==        'blank'
 echo --------  --------  --------  --------  --------  --------
-echo as1802    as2650    as430     as6100    as61860   as6500
-echo as6800    as6801    as6804    as6805    as6808    as6809
-echo as6811    as6812    as6816    as740     as78k0s   as8048
-echo as8051    as8085    as8xcxxx  asavr     ascheck   asez80
-echo asf2mc8   asf8      asgb      ash8      asm8c     aspic
-echo asrab     asscmp    asst6     asst7     asst8     asz8
-echo asz80     
+echo as1802    as2650    as4040    as430     as6100    as61860
+echo as6500    as6800    as6801    as6804    as6805    as6808
+echo as6809    as6811    as6812    as6816    as68k     as68cf
+echo as740     as78k0    as78k0s   as8008    as8008s   as8048
+echo as8051    as8085    as89lp    as8x300   as8xcxxx  asavr
+echo ascheck   ascop4    ascop8    asez8     asez80    asf2mc8
+echo asf8      asgb      ash8      asm8c     aspdp11   aspic
+echo asrab     asrs08    asscmp    asst6     asst7     asst8
+echo assx      asz8      asz80     asz280
 echo --------  --------  --------  --------  --------  --------
 echo aslink    asxcnv    asxscn    s19os9
 echo --------  --------  --------  --------  --------  --------

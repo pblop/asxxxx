@@ -1,7 +1,7 @@
 /* PtoA.h */
 
 /*
- *  Copyright (C) 2002-2009  Alan R. Baldwin
+ *  Copyright (C) 2002-2019  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -23,6 +23,11 @@
  */
 
 #define	VERSION	"V05.00"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <setjmp.h>
+#include <string.h>
 
 /* DECUS C void definition */
 /* File/extension seperator */
@@ -127,8 +132,8 @@ extern struct def
 	char		*d_define;	/* string to substitute for defined string */
 };
 
-struct	def	defk[];			/* key word definitions list */
-struct	def	defs[];			/* substitution definitions list */
+extern	struct	def	defk[];		/* key word definitions list */
+extern	struct	def	defs[];		/* substitution definitions list */
 
 
 /* pictoasx functions */

@@ -1,0 +1,17 @@
+.nlist
+	; jsrp Instruction Macro
+
+	.macro jsrp A
+	  .nval	.pc.,.
+	  .pc. = .pc. >> 6
+	  .nval	.a.,'A
+	  .ifeq	2-.pc.
+	    .list (src)
+	.error 1	; jsrp intruction not allowed in page 2
+	    .nlist
+	  .else
+	    .list (meb)
+	    .byte 0x80 | (.a. & 0x3F)
+	    .nlist
+	  .endif
+	.endm

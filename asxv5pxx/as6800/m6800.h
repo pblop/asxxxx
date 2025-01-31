@@ -1,7 +1,7 @@
 /* m6800.h */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -85,6 +85,7 @@ struct adsym
  * Set Direct Pointer
  */
 #define	S_SDP	80
+#define	S_PGD	81
 
 
 	/* machine dependent functions */
@@ -95,12 +96,12 @@ struct adsym
 extern	struct	adsym	abx[];
 extern	int		addr(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
 	/* m00mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine(struct mne *mp);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 
 #else
@@ -109,10 +110,10 @@ extern	VOID		minit(void);
 extern	struct	adsym	abx[];
 extern	int		addr();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
 	/* m00mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine();
 extern	int		mchpcr();
 extern	VOID		minit();

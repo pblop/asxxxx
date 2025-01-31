@@ -148,7 +148,7 @@ newsym()
 	char id[NCPS];
 
 	if (headp == NULL) {
-		fprintf(stderr, "No header defined\n");
+		fprintf(stderr, "?ASlink-Error-No header defined\n");
 		lkexit(ER_FATAL);
 	}
 	/*
@@ -160,7 +160,7 @@ newsym()
 	if (c == 'R') {
 		tsp->s_type |= S_REF;
 		if (eval()) {
-			fprintf(stderr, "Non zero S_REF\n");
+			fprintf(stderr, "?ASlink-Error-Non zero S_REF\n");
 			lkerr++;
 		}
 	} else
@@ -169,7 +169,7 @@ newsym()
 		if (tsp->s_type & S_DEF) {
 			if (tsp->s_addr != ev) {
 				fprintf(stderr,
-					"Multiple definition of %s\n", id);
+					"?ASlink-Error-Multiple definition of %s\n", id);
 				lkerr++;
 			}
 		}
@@ -181,7 +181,7 @@ newsym()
 		tsp->s_type |= S_DEF;
 		tsp->m_id = hp->m_id;
 	} else {
-		fprintf(stderr, "Invalid symbol type %c for %s\n", c, id);
+		fprintf(stderr, "?ASlink-Error-Invalid symbol type %c for %s\n", c, id);
 		lkexit(ER_FATAL);
 	}
 	/*
@@ -195,7 +195,7 @@ newsym()
 			return(tsp);
 		}
 	}
-	fprintf(stderr, "Header symbol list overflow\n");
+	fprintf(stderr, "?ASlink-Error-Header symbol list overflow\n");
 	lkexit(ER_FATAL);
 	return(NULL);
 }
@@ -642,7 +642,7 @@ unsigned int n;
 		bytes -= n;
 	}
 	if (p == NULL) {
-		fprintf(stderr, "Out of space!\n");
+		fprintf(stderr, "?ASlink-Error-Out of space!\n");
 		lkexit(ER_FATAL);
 	}
 	for (i=0,q=p; i<n; i++) {
@@ -758,7 +758,7 @@ unsigned int n;
 	unsigned int i;
 
 	if ((p = (char *) malloc(n)) == NULL) {
-		fprintf(stderr, "Out of space!\n");
+		fprintf(stderr, "?ASlink-Error-Out of space!\n");
 		lkexit(ER_FATAL);
 	}
 	for (i=0,q=p; i<n; i++) {

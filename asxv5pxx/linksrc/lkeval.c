@@ -147,7 +147,7 @@ int n;
 		if ((p = oprio(c)) <= n)
 			break;
 		if ((c == '>' || c == '<') && c != get()) {
-			fprintf(stderr, "Invalid expression");
+			fprintf(stderr, "?ASlink-Error-Invalid expression");
 			lkerr++;
 			return(v);
 		}
@@ -264,12 +264,13 @@ term()
 	struct sym *sp;
 	char id[NCPS];
 
+	r = 10;
 	c = getnb();
-	if (c == '#') { c = getnb(); }
+	while (c == '+' || c == '#') { c = getnb(); }
 	if (c == '(') {
 		v = expr(0);
 		if (getnb() != ')') {
-			fprintf(stderr, "Missing delimiter");
+			fprintf(stderr, "?ASlink-Error-Missing delimiter");
 			lkerr++;
 		}
 		return(v);
@@ -299,8 +300,38 @@ term()
 			v >>= 8;
 		return(v&0377);
 	}
+	if (c == '$') {
+		c = get();
+		if (c == '%' || c == '&' || c == '#' || c == '$') {
+			switch (c) {
+				case '%':
+					r = 2;
+					break;
+				case '&':
+					r = 8;
+					break;
+				case '#':
+					r = 10;
+					break;
+				case '$':
+					r = 16;				
+					break;
+				default:
+					break;
+			}
+			c = get();
+			v = 0;
+			while ((n = digit(c, r)) >= 0) {
+				v = r*v + n;
+				c = get();
+			}
+			unget(c);
+			return((v & s_mask) ? v | ~v_mask : v & v_mask);
+		}
+		unget(c);
+		c = '$';
+	}
 	if (ctype[c] & DIGIT) {
-		r = 10;
 		if (c == '0') {
 			c = get();
 			switch (c) {
@@ -344,14 +375,14 @@ term()
 	if (ctype[c] & LETTER) {
 		getid(id, c);
 		if ((sp = lkpsym(id, 0)) == NULL) {
-			fprintf(stderr, "Undefined symbol %s\n", id);
+			fprintf(stderr, "?ASlink-Error-Undefined symbol %s\n", id);
 			lkerr++;
 			return(0);
 		} else {
 			return(symval(sp));
 		}
 	}
-	fprintf(stderr, "Unknown operator %c\n", c);
+	fprintf(stderr, "?ASlink-Error-Unknown operator %c\n", c);
 	lkerr++;
 	return(0);
 }

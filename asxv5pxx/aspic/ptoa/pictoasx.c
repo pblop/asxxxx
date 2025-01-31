@@ -1,7 +1,7 @@
 /* pictoasx.c */
 
 /*
- *  Copyright (C) 2002-2009  Alan R. Baldwin
+ *  Copyright (C) 2002-2019  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -21,16 +21,6 @@
  * 721 Berkeley St.
  * Kent, Ohio  44240
  */
-
-#include <stdio.h>
-#include <setjmp.h>
-#include <string.h>
-
-#ifdef WIN32
-#include <stdlib.h>
-#else
-#include <alloc.h>
-#endif
 
 #include "ptoa.h"
 

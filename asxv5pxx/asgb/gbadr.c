@@ -1,7 +1,7 @@
 /* gbadr.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2022  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -47,6 +47,18 @@ addr(esp)
 struct expr *esp;
 {
 	int c, mode, indx;
+	char *p;
+
+	/* fix order of '<', '>', and '#' */
+	p = ip;
+	if (((c = getnb()) == '<') || (c == '>')) {
+		p = ip-1;
+		if (getnb() == '#') {
+			*p = *(ip-1);
+			*(ip-1) = c;
+		}
+	}
+	ip = p;
 
 	if ((c = getnb()) == '#') {
 		expr(esp, 0);
@@ -62,17 +74,22 @@ struct expr *esp;
 		if ((indx = admode(R16X)) != 0) {
 			mode = S_R16X;
 			aerr();
+		} else
+		if ((c = getnb()) == '*') {
+			mode = S_IDIR;
+			expr(esp, 0);
+			esp->e_mode = mode;
 		} else {
+			unget(c);
 			mode = S_INDM;
 			expr(esp, 0);
 			esp->e_mode = mode;
 		}
 		if (indx) {
-			esp->e_mode = mode + (indx&0xFF);
-			esp->e_base.e_ap = NULL;
+			esp->e_mode = mode + (indx & 0xFF);
 		}
 		if ((c = getnb()) != RTIND)
-			qerr();
+			xerr('q', "Missing ')'.");
 	} else {
 		unget(c);
 		if ((indx = admode(R8)) != 0) {
@@ -83,19 +100,40 @@ struct expr *esp;
 		} else	
 		if ((indx = admode(R16X)) != 0) {
 			mode = S_R16X;
+		} else
+		if ((c = getnb()) == '*') {
+			expr(esp, 0);
+			esp->e_mode = S_DIR;
 		} else {
-			mode = S_USER;
+			unget(c);
+			mode = S_EXT;
 			expr(esp, 0);
 			esp->e_mode = mode;
 		}
 		if (indx) {
-			esp->e_addr = indx&0xFF;
+			esp->e_addr = indx & 0xFF;
 			esp->e_mode = mode;
-			esp->e_base.e_ap = NULL;
 		}
 	}
 	return (esp->e_mode);
 }
+
+/*
+ * When building a table that has variations of a common
+ * symbol always start with the most complex symbol first.
+ * for example if x, x+, and x++ are in the same table
+ * the order should be x++, x+, and then x.  The search
+ * order is then most to least complex.
+ */
+
+/*
+ * When searching symbol tables that contain characters
+ * not of type LTR16, eg with '-' or '+', always search
+ * the more complex symbol tables first. For example:
+ * searching for x+ will match the first part of x++,
+ * a false match if the table with x+ is searched
+ * before the table with x++.
+ */
 
 /*
  * Enter admode() to search a specific addressing mode table
@@ -146,24 +184,10 @@ char *str;
 	}
 
 	if (!*str)
-		if (any(*ptr," \t\n,);")) {
+		if (!(ctype[*ptr & 0x007F] & LTR16)) {
 			ip = ptr;
 			return(1);
 		}
-	return(0);
-}
-
-/*
- *      any --- does str contain c?
- */
-int
-any(c,str)
-int c;
-char *str;
-{
-	while (*str)
-		if(*str++ == c)
-			return(1);
 	return(0);
 }
 
@@ -183,18 +207,19 @@ struct	adsym	R8[] = {
 };
 
 struct	adsym	R16[] = {
+    {   "hl-",  HLD|0400},
+    {	"hld",	HLD|0400},
+    {   "hl+",  HLI|0400},
+    {	"hli",	HLI|0400},
     {	"bc",	BC|0400	},
     {	"de",	DE|0400	},
     {	"hl",	HL|0400	},
     {	"sp",	SP|0400	},
-    {	"hld",	HLD|0400},
-    {	"hli",	HLI|0400},
     {	"",	0000	}
 };
 
 struct	adsym	R16X[] = {
     {	"af",	AF|0400	},
-    {	"af'",	AF|0400	},
     {	"",	0000	}
 };
 

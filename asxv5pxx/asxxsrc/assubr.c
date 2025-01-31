@@ -1,7 +1,7 @@
 /* assubr.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2022  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,7 @@
  *		VOID	qerr()
  *		VOID	rerr()
  *		char *	geterr()
+ *		VOID	xerr()
  *
  *	assubr.c contains the local array of *error[]
  */
@@ -44,7 +45,31 @@
  *
  *		int	c		error type character
  *
- *	The function err() logs the error code character
+ *	The legacy function err() reports errors using
+ *	the default error descriptions by calling xerr()
+ *	with a NULL string.
+  *
+ *	functions called:
+ *		VOID	xerr()		assubr.c
+ *
+ *	side effects:
+ *		The error code may be inserted into the
+ *		error code array eb[].
+ */
+
+VOID
+err(c)
+int c;
+{
+	xerr(c, NULL);
+}
+
+/*)Function	VOID	xerr(c, str)
+ *
+ *		int	c		error type character
+ *		char *	str		the error message string
+ *
+ *	The function xerr() logs the error code character
  *	suppressing duplicate errors.  If the error code
  *	is 'q' then the parse of the current assembler-source
  *	text line is terminated.
@@ -55,18 +80,22 @@
  *	global variables:
  *		int	aserr		error counter
  *		char	eb[]		array of generated error codes
+ *		char *	ex[]		array of error string pointers
  *
  *	functions called:
  *		VOID	longjmp()	c_library
  *
  *	side effects:
  *		The error code may be inserted into the
- *		error code array eb[] or the parse terminated.
+ *		error code array eb[], a pointer to the
+ *		optional error message inserted into the
+ *		array ex[], or the parse terminated.
  */
 
 VOID
-err(c)
+xerr(c, str)
 int c;
+char *str;
 {
 	char *p;
 
@@ -76,6 +105,7 @@ int c;
 		if (*p++ == c)
 			return;
 	if (p < &eb[NERR]) {
+		ex[(int) (p-eb)] = str;
 		*p++ = c;
 		ep = p;
 	}
@@ -86,45 +116,83 @@ int c;
 /*)Function	VOID	diag()
  *
  *	The function diag() prints any error codes and
- *	the source line number to the stderr output device.
+ *	the source line number to the stderr output device
+ *	and to the listing file.
+  *	
  *
  *	local variables:
  *		char *	p		pointer to error code array eb[]
+ *		int	flag		set if not an internal error message
+ *		FILE *	fp		output handle
  *
  *	global variables:
  *		char	eb[]		array of generated error codes
  *		char *	ep		pointer into error list
+ *		char *	il		pointer to input line text
+ *		int	kflag		disable output to .lst file
  *		int	incline		include file line number
  *		int	srcline		source file line number
- *		FILE *	stderr		c_library
+ *		FILE *	stderr		console error output (c_library)
+ *		FILE *	lfp		.lst file handle
  *
  *	functions called:
  *		int	fprintf()	c_library
  *		char *	geterr()	assubr.c
  *		int	getlnm()	assubr.c
+ *		VOID	listhlr()	aslist.c
  *
  *	side effects:
- *		none
+ *		Error strings output to stderr and the
+ *		listing file.
  */
 
 VOID
 diag()
 {
 	char *p,*errstr;
+	FILE *fp;
 
-	if (eb != ep) {
-		p = eb;
-		fprintf(stderr, "?ASxxxx-Error-<");
-		while (p < ep) {
-			fprintf(stderr, "%c", *p++);
+	fp = stderr;
+	while (fp != NULL) {
+		if (eb != ep) {
+			p = eb;
+			fprintf(fp, "?ASxxxx-Error-<");
+			while (p < ep) {
+				fprintf(fp, "%c", *p);
+				p++;
+			}
+			fprintf(fp, "> in line ");
+			fprintf(fp, "%d", getlnm());
+			fprintf(fp, " of %s\n", afn);
+			if (fp == lfp) {
+				listhlr(LIST_SRC, SLIST, 0);
+			}
+			p = eb;
+			while (p < ep) {
+				if ((p == eb) && (fp == stderr)) {
+					fprintf(fp, "              <%c> '%d %s'\n", *p, getlnm(), il);
+				}
+				if ((ex[(int) (p-eb)] != NULL) && (*ex[(int) (p-eb)] != 0)) {
+					fprintf(fp, "              <%c> %s\n", *p, ex[(int) (p-eb)]);
+					if (fp == lfp) {
+						listhlr(LIST_SRC, SLIST, 0);
+					}
+				} else
+				if ((errstr = geterr(*p)) != NULL) {
+					fprintf(fp, "              %s\n", errstr);
+					if (fp == lfp) {
+						listhlr(LIST_SRC, SLIST, 0);
+					}
+				}
+				p++;
+			}
 		}
-		fprintf(stderr, "> in line ");
-		fprintf(stderr, "%d", getlnm());
-		fprintf(stderr, " of %s\n", afn);
-		p = eb;
-		while (p < ep) {
-			if ((errstr = geterr(*p++)) != NULL) {
-				fprintf(stderr, "              %s\n", errstr);
+		if (fp == lfp) { fp = NULL; }
+		if (fp == stderr) {
+			if (kflag) {
+				fp = NULL;
+			} else {
+				fp = lfp;
 			}
 		}
 	}
@@ -180,14 +248,17 @@ qerr()
 }
 
 /*
- * ASxxxx assembler errors
+ * Default ASxxxx assembler errors
  */
 char *errors[] = {
 	"<.> use \". = . + <arg>\" not \". = <arg>\"",
 	"<a> machine specific addressing or addressing mode error",
 	"<b> address / direct page boundary error",
+	"<c> .bndry offset error",
 	"<d> direct page addressing error",
-	"<i> .include file error or an .if/.endif mismatch",
+	"<e> .error/.assume programmed error",
+	"<i> .include/.incbin file error or an .if/.endif mismatch",
+	"<k> numerical conversion error",
 	"<m> multiple definitions error or macro recursion error",
 	"<n> .endm, .mexit, or .narg outside of a macro",
 	"<o> .org in REL area or directive / mnemonic error",
@@ -233,8 +304,7 @@ int c;
 			return(errors[i]);
 		}
 	}
-	sprintf(erb, "<e> %.*s", (int) (sizeof(erb)-5), ib);
-	return(erb);
+	return(NULL);
 }
 
 

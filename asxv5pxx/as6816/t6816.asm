@@ -11,14 +11,16 @@
 	imm16	=	0x2345
 	ind8	=	0x12
 	ind16	=	0x3456
+	ind20	=	0x078901
 	ix	=	0x06
 	iy	=	0x07
 	ixiy	=	0x89
 	mask8	=	0x78
 	mask16	=	0x9ABC
 
-	address	=	0x1122
 	bnk	=	0x03
+	addr16	=	0x1122
+	addr20	=	0x034455
 
 	.globl	ebnk
 	.globl	eixiy
@@ -29,6 +31,7 @@
 	.globl	num16
 	.globl	offset8
 	.globl	offset16
+	.globl	offset20
 
 	aba			;37 0B
 	abx			;37 4F
@@ -37,6 +40,8 @@
 	ace			;37 22
 	aced			;37 23
 
+	adca	#imm8		;73 01
+	adca	#num8		;73r00
 	adca	,x		;43 00
 	adca	,y		;53 00
 	adca	,z		;63 00
@@ -55,8 +60,6 @@
 	adca	ind8,x		;43 12
 	adca	ind8,y		;53 12
 	adca	ind8,z		;63 12
-	adca	#imm8		;73 01
-	adca	#num8		;73r00
 	adca	offset16,x16	;17 43s00r00
 	adca	offset16,y16	;17 53s00r00
 	adca	offset16,z16	;17 63s00r00
@@ -69,12 +72,14 @@
 	adca	ind16,x		;17 43 34 56
 	adca	ind16,y		;17 53 34 56
 	adca	ind16,z		;17 63 34 56
-	adca	address		;17 73 11 22
-	adca	external	;17 73s00r00
+	adca	addr16		;17 73 11 22
+	adca	external	;17 73v00u00
 	adca	e,x		;27 43
 	adca	e,y		;27 53
 	adca	e,z		;27 63
 
+	adcb	#imm8		;F3 01
+	adcb	#num8		;F3r00
 	adcb	,x		;C3 00
 	adcb	,y		;D3 00
 	adcb	,z		;E3 00
@@ -93,8 +98,6 @@
 	adcb	ind8,x		;C3 12
 	adcb	ind8,y		;D3 12
 	adcb	ind8,z		;E3 12
-	adcb	#imm8		;F3 01
-	adcb	#num8		;F3r00
 	adcb	offset16,x16	;17 C3s00r00
 	adcb	offset16,y16	;17 D3s00r00
 	adcb	offset16,z16	;17 E3s00r00
@@ -107,12 +110,14 @@
 	adcb	ind16,x		;17 C3 34 56
 	adcb	ind16,y		;17 D3 34 56
 	adcb	ind16,z		;17 E3 34 56
-	adcb	address		;17 F3 11 22
-	adcb	external	;17 F3s00r00
+	adcb	addr16		;17 F3 11 22
+	adcb	external	;17 F3v00u00
 	adcb	e,x		;27 C3
 	adcb	e,y		;27 D3
 	adcb	e,z		;27 E3
 
+	adcd	#imm16		;37 B3 23 45
+	adcd	#num16		;37 B3s00r00
 	adcd	,x		;83 00
 	adcd	,y		;93 00
 	adcd	,z		;A3 00
@@ -131,8 +136,6 @@
 	adcd	ind8,x		;83 12
 	adcd	ind8,y		;93 12
 	adcd	ind8,z		;A3 12
-	adcd	#imm16		;37 B3 23 45
-	adcd	#num16		;37 B3s00r00
 	adcd	offset16,x16	;37 C3s00r00
 	adcd	offset16,y16	;37 D3s00r00
 	adcd	offset16,z16	;37 E3s00r00
@@ -145,8 +148,8 @@
 	adcd	ind16,x		;37 C3 34 56
 	adcd	ind16,y		;37 D3 34 56
 	adcd	ind16,z		;37 E3 34 56
-	adcd	address		;37 F3 11 22
-	adcd	external	;37 F3s00r00
+	adcd	addr16		;37 F3 11 22
+	adcd	external	;37 F3v00u00
 	adcd	e,x		;27 83
 	adcd	e,y		;27 93
 	adcd	e,z		;27 A3
@@ -171,9 +174,11 @@
 	adce	ind16,x		;37 43 34 56
 	adce	ind16,y		;37 53 34 56
 	adce	ind16,z		;37 63 34 56
-	adce	address		;37 73 11 22
-	adce	external	;37 73s00r00
+	adce	addr16		;37 73 11 22
+	adce	external	;37 73v00u00
 
+	adda	#imm8		;71 01
+	adda	#num8		;71r00
 	adda	,x		;41 00
 	adda	,y		;51 00
 	adda	,z		;61 00
@@ -192,8 +197,6 @@
 	adda	ind8,x		;41 12
 	adda	ind8,y		;51 12
 	adda	ind8,z		;61 12
-	adda	#imm8		;71 01
-	adda	#num8		;71r00
 	adda	offset16,x16	;17 41s00r00
 	adda	offset16,y16	;17 51s00r00
 	adda	offset16,z16	;17 61s00r00
@@ -206,12 +209,14 @@
 	adda	ind16,x		;17 41 34 56
 	adda	ind16,y		;17 51 34 56
 	adda	ind16,z		;17 61 34 56
-	adda	address		;17 71 11 22
-	adda	external	;17 71s00r00
+	adda	addr16		;17 71 11 22
+	adda	external	;17 71v00u00
 	adda	e,x		;27 41
 	adda	e,y		;27 51
 	adda	e,z		;27 61
 
+	addb	#imm8		;F1 01
+	addb	#num8		;F1r00
 	addb	,x		;C1 00
 	addb	,y		;D1 00
 	addb	,z		;E1 00
@@ -230,8 +235,6 @@
 	addb	ind8,x		;C1 12
 	addb	ind8,y		;D1 12
 	addb	ind8,z		;E1 12
-	addb	#imm8		;F1 01
-	addb	#num8		;F1r00
 	addb	offset16,x16	;17 C1s00r00
 	addb	offset16,y16	;17 D1s00r00
 	addb	offset16,z16	;17 E1s00r00
@@ -244,14 +247,16 @@
 	addb	ind16,x		;17 C1 34 56
 	addb	ind16,y		;17 D1 34 56
 	addb	ind16,z		;17 E1 34 56
-	addb	address		;17 F1 11 22
-	addb	external	;17 F1s00r00
+	addb	addr16		;17 F1 11 22
+	addb	external	;17 F1v00u00
 	addb	e,x		;27 C1
 	addb	e,y		;27 D1
 	addb	e,z		;27 E1
 
 	addd	#imm8		;FC 01
 	addd	#num8		;37 B1s00r00
+	addd	#imm16		;37 B1 23 45
+	addd	#num16		;37 B1s00r00
 	addd	,x		;81 00
 	addd	,y		;91 00
 	addd	,z		;A1 00
@@ -270,8 +275,6 @@
 	addd	ind8,x		;81 12
 	addd	ind8,y		;91 12
 	addd	ind8,z		;A1 12
-	addd	#imm16		;37 B1 23 45
-	addd	#num16		;37 B1s00r00
 	addd	offset16,x16	;37 C1s00r00
 	addd	offset16,y16	;37 D1s00r00
 	addd	offset16,z16	;37 E1s00r00
@@ -284,11 +287,14 @@
 	addd	ind16,x		;37 C1 34 56
 	addd	ind16,y		;37 D1 34 56
 	addd	ind16,z		;37 E1 34 56
-	addd	address		;37 F1 11 22
-	addd	external	;37 F1s00r00
+	addd	addr16		;37 F1 11 22
+	addd	external	;37 F1v00u00
 	addd	e,x		;27 81
 	addd	e,y		;27 91
 	addd	e,z		;27 A1
+
+	addd.b	#imm8		;FC 01
+	addd.b	#num8		;FCr00
 
 	adde	#imm8		;7C 01
 	adde	#num8		;37 31s00r00
@@ -312,8 +318,11 @@
 	adde	ind16,x		;37 41 34 56
 	adde	ind16,y		;37 51 34 56
 	adde	ind16,z		;37 61 34 56
-	adde	address		;37 71 11 22
-	adde	external	;37 71s00r00
+	adde	addr16		;37 71 11 22
+	adde	external	;37 71v00u00
+
+	adde.b	#imm8		;7C 01
+	adde.b	#num8		;7Cr00
 
 	ade			;27 78
 	adx			;37 CD
@@ -323,26 +332,40 @@
 	aey			;37 5D
 	aez			;37 6D
 
+	ais.b	#imm8		;3F 01
+	ais.b	#num8		;3Fr00
+
 	ais	#imm8		;3F 01
 	ais	#num8		;37 3Fs00r00
 	ais	#imm16		;37 3F 23 45
 	ais	#num16		;37 3Fs00r00
+
+	aix.b	#imm8		;3C 01
+	aix.b	#num8		;3Cr00
 
 	aix	#imm8		;3C 01
 	aix	#num8		;37 3Cs00r00
 	aix	#imm16		;37 3C 23 45
 	aix	#num16		;37 3Cs00r00
 
+	aiy.b	#imm8		;3D 01
+	aiy.b	#num8		;3Dr00
+
 	aiy	#imm8		;3D 01
 	aiy	#num8		;37 3Ds00r00
 	aiy	#imm16		;37 3D 23 45
 	aiy	#num16		;37 3Ds00r00
+
+	aiz.b	#imm8		;3E 01
+	aiz.b	#num8		;3Er00
 
 	aiz	#imm8		;3E 01
 	aiz	#num8		;37 3Es00r00
 	aiz	#imm16		;37 3E 23 45
 	aiz	#num16		;37 3Es00r00
 
+	anda	#imm8		;76 01
+	anda	#num8		;76r00
 	anda	,x		;46 00
 	anda	,y		;56 00
 	anda	,z		;66 00
@@ -361,8 +384,6 @@
 	anda	ind8,x		;46 12
 	anda	ind8,y		;56 12
 	anda	ind8,z		;66 12
-	anda	#imm8		;76 01
-	anda	#num8		;76r00
 	anda	offset16,x16	;17 46s00r00
 	anda	offset16,y16	;17 56s00r00
 	anda	offset16,z16	;17 66s00r00
@@ -375,12 +396,14 @@
 	anda	ind16,x		;17 46 34 56
 	anda	ind16,y		;17 56 34 56
 	anda	ind16,z		;17 66 34 56
-	anda	address		;17 76 11 22
-	anda	external	;17 76s00r00
+	anda	addr16		;17 76 11 22
+	anda	external	;17 76v00u00
 	anda	e,x		;27 46
 	anda	e,y		;27 56
 	anda	e,z		;27 66
 
+	andb	#imm8		;F6 01
+	andb	#num8		;F6r00
 	andb	,x		;C6 00
 	andb	,y		;D6 00
 	andb	,z		;E6 00
@@ -399,8 +422,6 @@
 	andb	ind8,x		;C6 12
 	andb	ind8,y		;D6 12
 	andb	ind8,z		;E6 12
-	andb	#imm8		;F6 01
-	andb	#num8		;F6r00
 	andb	offset16,x16	;17 C6s00r00
 	andb	offset16,y16	;17 D6s00r00
 	andb	offset16,z16	;17 E6s00r00
@@ -413,12 +434,14 @@
 	andb	ind16,x		;17 C6 34 56
 	andb	ind16,y		;17 D6 34 56
 	andb	ind16,z		;17 E6 34 56
-	andb	address		;17 F6 11 22
-	andb	external	;17 F6s00r00
+	andb	addr16		;17 F6 11 22
+	andb	external	;17 F6v00u00
 	andb	e,x		;27 C6
 	andb	e,y		;27 D6
 	andb	e,z		;27 E6
 
+	andd	#imm16		;37 B6 23 45
+	andd	#num16		;37 B6s00r00
 	andd	,x		;86 00
 	andd	,y		;96 00
 	andd	,z		;A6 00
@@ -437,8 +460,6 @@
 	andd	ind8,x		;86 12
 	andd	ind8,y		;96 12
 	andd	ind8,z		;A6 12
-	andd	#imm16		;37 B6 23 45
-	andd	#num16		;37 B6s00r00
 	andd	offset16,x16	;37 C6s00r00
 	andd	offset16,y16	;37 D6s00r00
 	andd	offset16,z16	;37 E6s00r00
@@ -451,8 +472,8 @@
 	andd	ind16,x		;37 C6 34 56
 	andd	ind16,y		;37 D6 34 56
 	andd	ind16,z		;37 E6 34 56
-	andd	address		;37 F6 11 22
-	andd	external	;37 F6s00r00
+	andd	addr16		;37 F6 11 22
+	andd	external	;37 F6v00u00
 	andd	e,x		;27 86
 	andd	e,y		;27 96
 	andd	e,z		;27 A6
@@ -477,13 +498,13 @@
 	ande	ind16,x		;37 46 34 56
 	ande	ind16,y		;37 56 34 56
 	ande	ind16,z		;37 66 34 56
-	ande	address		;37 76 11 22
-	ande	external	;37 76s00r00
+	ande	addr16		;37 76 11 22
+	ande	external	;37 76v00u00
 
 	andp	#imm8		;37 3A 00 01
-	andp	#num8		;37 3As00r00
+	andp	#num8		;37 3Av00u00
 	andp	#imm16		;37 3A 23 45
-	andp	#num16		;37 3As00r00
+	andp	#num16		;37 3Av00u00
 
 	asl	,x		;04 00
 	asl	,y		;14 00
@@ -515,8 +536,8 @@
 	asl	ind16,x		;17 04 34 56
 	asl	ind16,y		;17 14 34 56
 	asl	ind16,z		;17 24 34 56
-	asl	address		;17 34 11 22
-	asl	external	;17 34s00r00
+	asl	addr16		;17 34 11 22
+	asl	external	;17 34v00u00
 
 	asla			;37 04
 	aslb			;37 14
@@ -542,8 +563,8 @@
 	aslw	ind16,x		;27 04 34 56
 	aslw	ind16,y		;27 14 34 56
 	aslw	ind16,z		;27 24 34 56
-	aslw	address		;27 34 11 22
-	aslw	external	;27 34s00r00
+	aslw	addr16		;27 34 11 22
+	aslw	external	;27 34v00u00
 
 	asr	,x		;0D 00
 	asr	,y		;1D 00
@@ -575,8 +596,8 @@
 	asr	ind16,x		;17 0D 34 56
 	asr	ind16,y		;17 1D 34 56
 	asr	ind16,z		;17 2D 34 56
-	asr	address		;17 3D 11 22
-	asr	external	;17 3Ds00r00
+	asr	addr16		;17 3D 11 22
+	asr	external	;17 3Dv00u00
 
 	asra			;37 0D
 	asrb			;37 1D
@@ -602,8 +623,8 @@
 	asrw	ind16,x		;27 0D 34 56
 	asrw	ind16,y		;27 1D 34 56
 	asrw	ind16,z		;27 2D 34 56
-	asrw	address		;27 3D 11 22
-	asrw	external	;27 3Ds00r00
+	asrw	addr16		;27 3D 11 22
+	asrw	external	;27 3Dv00u00
 
 	bclr	,x,#mask8		;17 08 78 00
 	bclr	,y,#mask8		;17 18 78 00
@@ -635,8 +656,8 @@
 	bclr	ind16,x,#mask8		;08 78 34 56
 	bclr	ind16,y,#mask8		;18 78 34 56
 	bclr	ind16,z,#mask8		;28 78 34 56
-	bclr	address,#mask8		;38 78 11 22
-	bclr	external,#mask8		;38 78s00r00
+	bclr	addr16,#mask8		;38 78 11 22
+	bclr	external,#mask8		;38 78v00u00
 
 	bclr	,x,#emsk8		;17 08u00 00
 	bclr	,y,#emsk8		;17 18u00 00
@@ -668,50 +689,50 @@
 	bclr	ind16,x,#emsk8		;08u00 34 56
 	bclr	ind16,y,#emsk8		;18u00 34 56
 	bclr	ind16,z,#emsk8		;28u00 34 56
-	bclr	address,#emsk8		;38u00 11 22
-	bclr	external,#emsk8		;38u00s00r00
+	bclr	addr16,#emsk8		;38u00 11 22
+	bclr	external,#emsk8		;38u00v00u00
 
-	bclrw	,x,#mask16		;27 08 9A BC 00 00
-	bclrw	,y,#mask16		;27 18 9A BC 00 00
-	bclrw	,z,#mask16		;27 28 9A BC 00 00
-	bclrw	,x16,#mask16		;27 08 9A BC 00 00
-	bclrw	,y16,#mask16		;27 18 9A BC 00 00
-	bclrw	,z16,#mask16		;27 28 9A BC 00 00
-	bclrw	offset16,x16,#mask16	;27 08 9A BCs00r00
-	bclrw	offset16,y16,#mask16	;27 18 9A BCs00r00
-	bclrw	offset16,z16,#mask16	;27 28 9A BCs00r00
-	bclrw	offset16,x,#mask16	;27 08 9A BCs00r00
-	bclrw	offset16,y,#mask16	;27 18 9A BCs00r00
-	bclrw	offset16,z,#mask16	;27 28 9A BCs00r00
-	bclrw	ind16,x16,#mask16	;27 08 9A BC 34 56
-	bclrw	ind16,y16,#mask16	;27 18 9A BC 34 56
-	bclrw	ind16,z16,#mask16	;27 28 9A BC 34 56
-	bclrw	ind16,x,#mask16		;27 08 9A BC 34 56
-	bclrw	ind16,y,#mask16		;27 18 9A BC 34 56
-	bclrw	ind16,z,#mask16		;27 28 9A BC 34 56
-	bclrw	address,#mask16		;27 38 9A BC 11 22
-	bclrw	external,#mask16	;27 38 9A BCs00r00
+	bclrw	,x,#mask16		;27 08 00 00 9A BC
+	bclrw	,y,#mask16		;27 18 00 00 9A BC
+	bclrw	,z,#mask16		;27 28 00 00 9A BC
+	bclrw	,x16,#mask16		;27 08 00 00 9A BC
+	bclrw	,y16,#mask16		;27 18 00 00 9A BC
+	bclrw	,z16,#mask16		;27 28 00 00 9A BC
+	bclrw	offset16,x16,#mask16	;27 08s00r00 9A BC
+	bclrw	offset16,y16,#mask16	;27 18s00r00 9A BC
+	bclrw	offset16,z16,#mask16	;27 28s00r00 9A BC
+	bclrw	offset16,x,#mask16	;27 08s00r00 9A BC
+	bclrw	offset16,y,#mask16	;27 18s00r00 9A BC
+	bclrw	offset16,z,#mask16	;27 28s00r00 9A BC
+	bclrw	ind16,x16,#mask16	;27 08 34 56 9A BC
+	bclrw	ind16,y16,#mask16	;27 18 34 56 9A BC
+	bclrw	ind16,z16,#mask16	;27 28 34 56 9A BC
+	bclrw	ind16,x,#mask16		;27 08 34 56 9A BC
+	bclrw	ind16,y,#mask16		;27 18 34 56 9A BC
+	bclrw	ind16,z,#mask16		;27 28 34 56 9A BC
+	bclrw	addr16,#mask16		;27 38 11 22 9A BC
+	bclrw	external,#mask16	;27 38v00u00 9A BC
 
-	bclrw	,x,#emsk16		;27 08s00r00 00 00
-	bclrw	,y,#emsk16		;27 18s00r00 00 00
-	bclrw	,z,#emsk16		;27 28s00r00 00 00
-	bclrw	,x16,#emsk16		;27 08s00r00 00 00
-	bclrw	,y16,#emsk16		;27 18s00r00 00 00
-	bclrw	,z16,#emsk16		;27 28s00r00 00 00
-	bclrw	offset16,x16,#emsk16	;27 08s00r00s00r00
-	bclrw	offset16,y16,#emsk16	;27 18s00r00s00r00
-	bclrw	offset16,z16,#emsk16	;27 28s00r00s00r00
-	bclrw	offset16,x,#emsk16	;27 08s00r00s00r00
-	bclrw	offset16,y,#emsk16	;27 18s00r00s00r00
-	bclrw	offset16,z,#emsk16	;27 28s00r00s00r00
-	bclrw	ind16,x16,#emsk16	;27 08s00r00 34 56
-	bclrw	ind16,y16,#emsk16	;27 18s00r00 34 56
-	bclrw	ind16,z16,#emsk16	;27 28s00r00 34 56
-	bclrw	ind16,x,#emsk16		;27 08s00r00 34 56
-	bclrw	ind16,y,#emsk16		;27 18s00r00 34 56
-	bclrw	ind16,z,#emsk16		;27 28s00r00 34 56
-	bclrw	address,#emsk16		;27 38s00r00 11 22
-	bclrw	external,#emsk16	;27 38s00r00s00r00
+	bclrw	,x,#emsk16		;27 08 00 00v00u00
+	bclrw	,y,#emsk16		;27 18 00 00v00u00
+	bclrw	,z,#emsk16		;27 28 00 00v00u00
+	bclrw	,x16,#emsk16		;27 08 00 00v00u00
+	bclrw	,y16,#emsk16		;27 18 00 00v00u00
+	bclrw	,z16,#emsk16		;27 28 00 00v00u00
+	bclrw	offset16,x16,#emsk16	;27 08s00r00v00u00
+	bclrw	offset16,y16,#emsk16	;27 18s00r00v00u00
+	bclrw	offset16,z16,#emsk16	;27 28s00r00v00u00
+	bclrw	offset16,x,#emsk16	;27 08s00r00v00u00
+	bclrw	offset16,y,#emsk16	;27 18s00r00v00u00
+	bclrw	offset16,z,#emsk16	;27 28s00r00v00u00
+	bclrw	ind16,x16,#emsk16	;27 08 34 56v00u00
+	bclrw	ind16,y16,#emsk16	;27 18 34 56v00u00
+	bclrw	ind16,z16,#emsk16	;27 28 34 56v00u00
+	bclrw	ind16,x,#emsk16		;27 08 34 56v00u00
+	bclrw	ind16,y,#emsk16		;27 18 34 56v00u00
+	bclrw	ind16,z,#emsk16		;27 28 34 56v00u00
+	bclrw	addr16,#emsk16		;27 38 11 22v00u00
+	bclrw	external,#emsk16	;27 38v00u00v00u00
 
 	bgnd			;37 A6
 
@@ -737,27 +758,39 @@
 	bvc	.+0x12		;B8 0C
 	bvs	.+0x12		;B9 0C
 
-	bcc	external	;B4pFC
-	bcs	external	;B5pFC
-	beq	external	;B7pFC
-	bge	external	;BCpFC
-	bgt	external	;BEpFC
-	bhi	external	;B2pFC
-	bhis	external	;B4pFC
-	bhs	external	;B4pFC
-	ble	external	;BFpFC
-	blo	external	;B5pFC
-	blos	external	;B3pFC
-	bls	external	;B3pFC
-	blt	external	;BDpFC
-	bmi	external	;BBpFC
-	bne	external	;B6pFC
-	bpl	external	;BApFC
-	bra	external	;B0pFC
-	brn	external	;B1pFC
-	bsr	external	;36pFC
-	bvc	external	;B8pFC
-	bvs	external	;B9pFC
+	.globl	bx01,	xbx01,	bx02,	xbx02
+	.globl	bx03,	xbx03,	bx04,	xbx04
+	.globl	bx05,	xbx05,	bx06,	xbx06
+	.globl	bx07,	xbx07,	bx08,	xbx08
+	.globl	bx09,	xbx09,	bx10,	xbx10
+	.globl	bx11,	xbx11,	bx12,	xbx12
+	.globl	bx13,	xbx13,	bx14,	xbx14
+	.globl	bx15,	xbx15,	bx16,	xbx16
+	.globl	bx17,	xbx17,	bx18,	xbx08
+	.globl	bx19,	xbx19,	bx20,	xbx20
+	.globl	bx21,	xbx21
+
+bx01:	bcc	xbx01		;B4pFC
+bx02:	bcs	xbx02		;B5pFC
+bx03:	beq	xbx03		;B7pFC
+bx04:	bge	xbx04		;BCpFC
+bx05:	bgt	xbx05		;BEpFC
+bx06:	bhi	xbx06		;B2pFC
+bx07:	bhis	xbx07		;B4pFC
+bx08:	bhs	xbx08		;B4pFC
+bx09:	ble	xbx09		;BFpFC
+bx10:	blo	xbx10		;B5pFC
+bx11:	blos	xbx11		;B3pFC
+bx12:	bls	xbx12		;B3pFC
+bx13:	blt	xbx13		;BDpFC
+bx14:	bmi	xbx14		;BBpFC
+bx15:	bne	xbx15		;B6pFC
+bx16:	bpl	xbx16		;BApFC
+bx17:	bra	xbx17		;B0pFC
+bx18:	brn	xbx18		;B1pFC
+bx19:	bsr	xbx19		;36pFC
+bx20:	bvc	xbx20		;B8pFC
+bx21:	bvs	xbx21		;B9pFC
 
 short:	bcc	short		;B4 FA
 	bcs	short		;B5 F8
@@ -781,6 +814,8 @@ short:	bcc	short		;B4 FA
 	bvc	short		;B8 D4
 	bvs	short		;B9 D2
 
+	bita	#imm8		;79 01
+	bita	#num8		;79r00
 	bita	,x		;49 00
 	bita	,y		;59 00
 	bita	,z		;69 00
@@ -799,8 +834,6 @@ short:	bcc	short		;B4 FA
 	bita	ind8,x		;49 12
 	bita	ind8,y		;59 12
 	bita	ind8,z		;69 12
-	bita	#imm8		;79 01
-	bita	#num8		;79r00
 	bita	offset16,x16	;17 49s00r00
 	bita	offset16,y16	;17 59s00r00
 	bita	offset16,z16	;17 69s00r00
@@ -813,12 +846,14 @@ short:	bcc	short		;B4 FA
 	bita	ind16,x		;17 49 34 56
 	bita	ind16,y		;17 59 34 56
 	bita	ind16,z		;17 69 34 56
-	bita	address		;17 79 11 22
-	bita	external	;17 79s00r00
+	bita	addr16		;17 79 11 22
+	bita	external	;17 79v00u00
 	bita	e,x		;27 49
 	bita	e,y		;27 59
 	bita	e,z		;27 69
 
+	bitb	#imm8		;F9 01
+	bitb	#num8		;F9r00
 	bitb	,x		;C9 00
 	bitb	,y		;D9 00
 	bitb	,z		;E9 00
@@ -837,8 +872,6 @@ short:	bcc	short		;B4 FA
 	bitb	ind8,x		;C9 12
 	bitb	ind8,y		;D9 12
 	bitb	ind8,z		;E9 12
-	bitb	#imm8		;F9 01
-	bitb	#num8		;F9r00
 	bitb	offset16,x16	;17 C9s00r00
 	bitb	offset16,y16	;17 D9s00r00
 	bitb	offset16,z16	;17 E9s00r00
@@ -851,8 +884,8 @@ short:	bcc	short		;B4 FA
 	bitb	ind16,x		;17 C9 34 56
 	bitb	ind16,y		;17 D9 34 56
 	bitb	ind16,z		;17 E9 34 56
-	bitb	address		;17 F9 11 22
-	bitb	external	;17 F9s00r00
+	bitb	addr16		;17 F9 11 22
+	bitb	external	;17 F9v00u00
 	bitb	e,x		;27 C9
 	bitb	e,y		;27 D9
 	bitb	e,z		;27 E9
@@ -866,9 +899,9 @@ short:	bcc	short		;B4 FA
 	brclr	,x16,#mask8,.+0x16		;0A 78 00 00 00 10
 	brclr	,y16,#mask8,.+0x16		;1A 78 00 00 00 10
 	brclr	,z16,#mask8,.+0x16		;2A 78 00 00 00 10
-	brclr	offset8,x8,#mask8,.+0x16	;CB 78u00 10
-	brclr	offset8,y8,#mask8,.+0x16	;DB 78u00 10
-	brclr	offset8,z8,#mask8,.+0x16	;EB 78u00 10
+	brclr	offset8,x8,#mask8,.+0x16	;CB 78r00 10
+	brclr	offset8,y8,#mask8,.+0x16	;DB 78r00 10
+	brclr	offset8,z8,#mask8,.+0x16	;EB 78r00 10
 	brclr	ind8,x8,#mask8,.+0x16		;CB 78 12 10
 	brclr	ind8,y8,#mask8,.+0x16		;DB 78 12 10
 	brclr	ind8,z8,#mask8,.+0x16		;EB 78 12 10
@@ -887,8 +920,8 @@ short:	bcc	short		;B4 FA
 	brclr	ind16,x,#mask8,.+0x16		;0A 78 34 56 00 10
 	brclr	ind16,y,#mask8,.+0x16		;1A 78 34 56 00 10
 	brclr	ind16,z,#mask8,.+0x16		;2A 78 34 56 00 10
-	brclr	address,#mask8,.+0x16		;3A 78 11 22 00 10
-	brclr	external,#mask8,.+0x16		;3A 78s00r00 00 10
+	brclr	addr16,#mask8,.+0x16		;3A 78 11 22 00 10
+	brclr	external,#mask8,.+0x16		;3A 78v00u00 00 10
 
 	brclr	,x,#emsk8,.+0x16		;CBu00 00 10
 	brclr	,y,#emsk8,.+0x16		;DBu00 00 10
@@ -899,9 +932,9 @@ short:	bcc	short		;B4 FA
 	brclr	,x16,#emsk8,.+0x16		;0Au00 00 00 00 10
 	brclr	,y16,#emsk8,.+0x16		;1Au00 00 00 00 10
 	brclr	,z16,#emsk8,.+0x16		;2Au00 00 00 00 10
-	brclr	offset8,x8,#emsk8,.+0x16	;CBu00u00 10
-	brclr	offset8,y8,#emsk8,.+0x16	;DBu00u00 10
-	brclr	offset8,z8,#emsk8,.+0x16	;EBu00u00 10
+	brclr	offset8,x8,#emsk8,.+0x16	;CBu00r00 10
+	brclr	offset8,y8,#emsk8,.+0x16	;DBu00r00 10
+	brclr	offset8,z8,#emsk8,.+0x16	;EBu00r00 10
 	brclr	ind8,x8,#emsk8,.+0x16		;CBu00 12 10
 	brclr	ind8,y8,#emsk8,.+0x16		;DBu00 12 10
 	brclr	ind8,z8,#emsk8,.+0x16		;EBu00 12 10
@@ -920,12 +953,12 @@ short:	bcc	short		;B4 FA
 	brclr	ind16,x,#emsk8,.+0x16		;0Au00 34 56 00 10
 	brclr	ind16,y,#emsk8,.+0x16		;1Au00 34 56 00 10
 	brclr	ind16,z,#emsk8,.+0x16		;2Au00 34 56 00 10
-	brclr	address,#emsk8,.+0x16		;3Au00 11 22 00 10
-	brclr	external,#emsk8,.+0x16		;3Au00s00r00 00 10
+	brclr	addr16,#emsk8,.+0x16		;3Au00 11 22 00 10
+	brclr	external,#emsk8,.+0x16		;3Au00v00u00 00 10
 
-brclr1: brclr	offset8,x8,#mask8,brclr1	;CB 78u00 FA
-	brclr	offset8,y8,#mask8,brclr1	;DB 78u00 F6
-	brclr	offset8,z8,#mask8,brclr1	;EB 78u00 F2
+brclr1: brclr	offset8,x8,#mask8,brclr1	;CB 78r00 FA
+	brclr	offset8,y8,#mask8,brclr1	;DB 78r00 F6
+	brclr	offset8,z8,#mask8,brclr1	;EB 78r00 F2
 	brclr	ind8,x8,#mask8,brclr1		;CB 78 12 EE
 	brclr	ind8,y8,#mask8,brclr1		;DB 78 12 EA
 	brclr	ind8,z8,#mask8,brclr1		;EB 78 12 E6
@@ -944,32 +977,45 @@ brclr1: brclr	offset8,x8,#mask8,brclr1	;CB 78u00 FA
 	brclr	ind16,x,#mask8,brclr1		;0A 78 34 56 FF A0
 	brclr	ind16,y,#mask8,brclr1		;1A 78 34 56 FF 9A
 	brclr	ind16,z,#mask8,brclr1		;2A 78 34 56 FF 94
-	brclr	address,#mask8,brclr1		;3A 78 11 22 FF 8E
-	brclr	external,#mask8,brclr1		;3A 78s00r00 FF 88
+	brclr	addr16,#mask8,brclr1		;3A 78 11 22 FF 8E
+	brclr	external,#mask8,brclr1		;3A 78v00u00 FF 88
 
-	brclr	offset8,x8,#emsk8,external	;CBu00u00pFE
-	brclr	offset8,y8,#emsk8,external	;DBu00u00pFE
-	brclr	offset8,z8,#emsk8,external	;EBu00u00pFE
-	brclr	ind8,x8,#emsk8,external		;CBu00 12pFE
-	brclr	ind8,y8,#emsk8,external		;DBu00 12pFE
-	brclr	ind8,z8,#emsk8,external		;EBu00 12pFE
-	brclr	ind8,x,#emsk8,external		;0Au00 00 12q00p00
-	brclr	ind8,y,#emsk8,external		;1Au00 00 12q00p00
-	brclr	ind8,z,#emsk8,external		;2Au00 00 12q00p00
-	brclr	offset16,x16,#emsk8,external	;0Au00s00r00q00p00
-	brclr	offset16,y16,#emsk8,external	;1Au00s00r00q00p00
-	brclr	offset16,z16,#emsk8,external	;2Au00s00r00q00p00
-	brclr	offset16,x,#emsk8,external	;0Au00s00r00q00p00
-	brclr	offset16,y,#emsk8,external	;1Au00s00r00q00p00
-	brclr	offset16,z,#emsk8,external	;2Au00s00r00q00p00
-	brclr	ind16,x16,#emsk8,external	;0Au00 34 56q00p00
-	brclr	ind16,y16,#emsk8,external	;1Au00 34 56q00p00
-	brclr	ind16,z16,#emsk8,external	;2Au00 34 56q00p00
-	brclr	ind16,x,#emsk8,external		;0Au00 34 56q00p00
-	brclr	ind16,y,#emsk8,external		;1Au00 34 56q00p00
-	brclr	ind16,z,#emsk8,external		;2Au00 34 56q00p00
-	brclr	address,#emsk8,external		;3Au00 11 22q00p00
-	brclr	external,#emsk8,external	;3Au00s00r00q00p00
+	.globl	bc01,	xbc01,	bc02,	xbc02
+	.globl	bc03,	xbc03,	bc04,	xbc04
+	.globl	bc05,	xbc05,	bc06,	xbc06
+	.globl	bc07,	xbc07,	bc08,	xbc08
+	.globl	bc09,	xbc09,	bc10,	xbc10
+	.globl	bc11,	xbc11,	bc12,	xbc12
+	.globl	bc13,	xbc13,	bc14,	xbc14
+	.globl	bc15,	xbc15,	bc16,	xbc16
+	.globl	bc17,	xbc17,	bc18,	xbc18
+	.globl	bc19,	xbc19,	bc20,	xbc20
+	.globl	bc21,	xbc21,	bc22,	xbc22
+	.globl	bc23,	xbc23
+
+bc01:	brclr	offset8,x8,#emsk8,xbc01		;CBu00r00pFE
+bc02:	brclr	offset8,y8,#emsk8,xbc02		;DBu00r00pFE
+bc03:	brclr	offset8,z8,#emsk8,xbc03		;EBu00r00pFE
+bc04:	brclr	ind8,x8,#emsk8,xbc04		;CBu00 12pFE
+bc05:	brclr	ind8,y8,#emsk8,xbc05		;DBu00 12pFE
+bc06:	brclr	ind8,z8,#emsk8,xbc06		;EBu00 12pFE
+bc07:	brclr	ind8,x,#emsk8,xbc07		;0Au00 00 12q00p00
+bc08:	brclr	ind8,y,#emsk8,xbc08		;1Au00 00 12q00p00
+bc09:	brclr	ind8,z,#emsk8,xbc09		;2Au00 00 12q00p00
+bc10:	brclr	offset16,x16,#emsk8,xbc10	;0Au00s00r00q00p00
+bc11:	brclr	offset16,y16,#emsk8,xbc11	;1Au00s00r00q00p00
+bc12:	brclr	offset16,z16,#emsk8,xbc12	;2Au00s00r00q00p00
+bc13:	brclr	offset16,x,#emsk8,xbc13		;0Au00s00r00q00p00
+bc14:	brclr	offset16,y,#emsk8,xbc14		;1Au00s00r00q00p00
+bc15:	brclr	offset16,z,#emsk8,xbc15		;2Au00s00r00q00p00
+bc16:	brclr	ind16,x16,#emsk8,xbc16		;0Au00 34 56q00p00
+bc17:	brclr	ind16,y16,#emsk8,xbc17		;1Au00 34 56q00p00
+bc18:	brclr	ind16,z16,#emsk8,xbc18		;2Au00 34 56q00p00
+bc19:	brclr	ind16,x,#emsk8,xbc19		;0Au00 34 56q00p00
+bc20:	brclr	ind16,y,#emsk8,xbc20		;1Au00 34 56q00p00
+bc21:	brclr	ind16,z,#emsk8,xbc21		;2Au00 34 56q00p00
+bc22:	brclr	addr16,#emsk8,xbc22		;3Au00 11 22q00p00
+bc23:	brclr	external,#emsk8,xbc23		;3Au00v00u00q00p00
 
 	brclr	ind8,x,#emsk8,.+0x0106		;0Au00 00 12 01 00
 	brclr	ind8,y,#emsk8,.+0x0106		;1Au00 00 12 01 00
@@ -986,8 +1032,8 @@ brclr1: brclr	offset8,x8,#mask8,brclr1	;CB 78u00 FA
 	brclr	ind16,x,#emsk8,.+0x0106		;0Au00 34 56 01 00
 	brclr	ind16,y,#emsk8,.+0x0106		;1Au00 34 56 01 00
 	brclr	ind16,z,#emsk8,.+0x0106		;2Au00 34 56 01 00
-	brclr	address,#emsk8,.+0x0106		;3Au00 11 22 01 00
-	brclr	external,#emsk8,.+0x0106	;3Au00s00r00 01 00
+	brclr	addr16,#emsk8,.+0x0106		;3Au00 11 22 01 00
+	brclr	external,#emsk8,.+0x0106	;3Au00v00u00 01 00
 
 	brset	,x,#mask8,.+0x16		;8B 78 00 10
 	brset	,y,#mask8,.+0x16		;9B 78 00 10
@@ -998,9 +1044,9 @@ brclr1: brclr	offset8,x8,#mask8,brclr1	;CB 78u00 FA
 	brset	,x16,#mask8,.+0x16		;0B 78 00 00 00 10
 	brset	,y16,#mask8,.+0x16		;1B 78 00 00 00 10
 	brset	,z16,#mask8,.+0x16		;2B 78 00 00 00 10
-	brset	offset8,x8,#mask8,.+0x16	;8B 78u00 10
-	brset	offset8,y8,#mask8,.+0x16	;9B 78u00 10
-	brset	offset8,z8,#mask8,.+0x16	;AB 78u00 10
+	brset	offset8,x8,#mask8,.+0x16	;8B 78r00 10
+	brset	offset8,y8,#mask8,.+0x16	;9B 78r00 10
+	brset	offset8,z8,#mask8,.+0x16	;AB 78r00 10
 	brset	ind8,x8,#mask8,.+0x16		;8B 78 12 10
 	brset	ind8,y8,#mask8,.+0x16		;9B 78 12 10
 	brset	ind8,z8,#mask8,.+0x16		;AB 78 12 10
@@ -1019,8 +1065,8 @@ brclr1: brclr	offset8,x8,#mask8,brclr1	;CB 78u00 FA
 	brset	ind16,x,#mask8,.+0x16		;0B 78 34 56 00 10
 	brset	ind16,y,#mask8,.+0x16		;1B 78 34 56 00 10
 	brset	ind16,z,#mask8,.+0x16		;2B 78 34 56 00 10
-	brset	address,#mask8,.+0x16		;3B 78 11 22 00 10
-	brset	external,#mask8,.+0x16		;3B 78s00r00 00 10
+	brset	addr16,#mask8,.+0x16		;3B 78 11 22 00 10
+	brset	external,#mask8,.+0x16		;3B 78v00u00 00 10
 
 	brset	,x,#emsk8,.+0x16		;8Bu00 00 10
 	brset	,y,#emsk8,.+0x16		;9Bu00 00 10
@@ -1031,9 +1077,9 @@ brclr1: brclr	offset8,x8,#mask8,brclr1	;CB 78u00 FA
 	brset	,x16,#emsk8,.+0x16		;0Bu00 00 00 00 10
 	brset	,y16,#emsk8,.+0x16		;1Bu00 00 00 00 10
 	brset	,z16,#emsk8,.+0x16		;2Bu00 00 00 00 10
-	brset	offset8,x8,#emsk8,.+0x16	;8Bu00u00 10
-	brset	offset8,y8,#emsk8,.+0x16	;9Bu00u00 10
-	brset	offset8,z8,#emsk8,.+0x16	;ABu00u00 10
+	brset	offset8,x8,#emsk8,.+0x16	;8Bu00r00 10
+	brset	offset8,y8,#emsk8,.+0x16	;9Bu00r00 10
+	brset	offset8,z8,#emsk8,.+0x16	;ABu00r00 10
 	brset	ind8,x8,#emsk8,.+0x16		;8Bu00 12 10
 	brset	ind8,y8,#emsk8,.+0x16		;9Bu00 12 10
 	brset	ind8,z8,#emsk8,.+0x16		;ABu00 12 10
@@ -1052,12 +1098,12 @@ brclr1: brclr	offset8,x8,#mask8,brclr1	;CB 78u00 FA
 	brset	ind16,x,#emsk8,.+0x16		;0Bu00 34 56 00 10
 	brset	ind16,y,#emsk8,.+0x16		;1Bu00 34 56 00 10
 	brset	ind16,z,#emsk8,.+0x16		;2Bu00 34 56 00 10
-	brset	address,#emsk8,.+0x16		;3Bu00 11 22 00 10
-	brset	external,#emsk8,.+0x16		;3Bu00s00r00 00 10
+	brset	addr16,#emsk8,.+0x16		;3Bu00 11 22 00 10
+	brset	external,#emsk8,.+0x16		;3Bu00v00u00 00 10
 
-brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
-	brset	offset8,y8,#mask8,brset1	;9B 78u00 F6
-	brset	offset8,z8,#mask8,brset1	;AB 78u00 F2
+brset1: brset	offset8,x8,#mask8,brset1	;8B 78r00 FA
+	brset	offset8,y8,#mask8,brset1	;9B 78r00 F6
+	brset	offset8,z8,#mask8,brset1	;AB 78r00 F2
 	brset	ind8,x8,#mask8,brset1		;8B 78 12 EE
 	brset	ind8,y8,#mask8,brset1		;9B 78 12 EA
 	brset	ind8,z8,#mask8,brset1		;AB 78 12 E6
@@ -1076,32 +1122,45 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	brset	ind16,x,#mask8,brset1		;0B 78 34 56 FF A0
 	brset	ind16,y,#mask8,brset1		;1B 78 34 56 FF 9A
 	brset	ind16,z,#mask8,brset1		;2B 78 34 56 FF 94
-	brset	address,#mask8,brset1		;3B 78 11 22 FF 8E
-	brset	external,#mask8,brset1		;3B 78s00r00 FF 88
+	brset	addr16,#mask8,brset1		;3B 78 11 22 FF 8E
+	brset	external,#mask8,brset1		;3B 78v00u00 FF 88
 
-	brset	offset8,x8,#emsk8,external	;8Bu00u00pFE
-	brset	offset8,y8,#emsk8,external	;9Bu00u00pFE
-	brset	offset8,z8,#emsk8,external	;ABu00u00pFE
-	brset	ind8,x8,#emsk8,external		;8Bu00 12pFE
-	brset	ind8,y8,#emsk8,external		;9Bu00 12pFE
-	brset	ind8,z8,#emsk8,external		;ABu00 12pFE
-	brset	ind8,x,#emsk8,external		;0Bu00 00 12q00p00
-	brset	ind8,y,#emsk8,external		;1Bu00 00 12q00p00
-	brset	ind8,z,#emsk8,external		;2Bu00 00 12q00p00
-	brset	offset16,x16,#emsk8,external	;0Bu00s00r00q00p00
-	brset	offset16,y16,#emsk8,external	;1Bu00s00r00q00p00
-	brset	offset16,z16,#emsk8,external	;2Bu00s00r00q00p00
-	brset	offset16,x,#emsk8,external	;0Bu00s00r00q00p00
-	brset	offset16,y,#emsk8,external	;1Bu00s00r00q00p00
-	brset	offset16,z,#emsk8,external	;2Bu00s00r00q00p00
-	brset	ind16,x16,#emsk8,external	;0Bu00 34 56q00p00
-	brset	ind16,y16,#emsk8,external	;1Bu00 34 56q00p00
-	brset	ind16,z16,#emsk8,external	;2Bu00 34 56q00p00
-	brset	ind16,x,#emsk8,external		;0Bu00 34 56q00p00
-	brset	ind16,y,#emsk8,external		;1Bu00 34 56q00p00
-	brset	ind16,z,#emsk8,external		;2Bu00 34 56q00p00
-	brset	address,#emsk8,external		;3Bu00 11 22q00p00
-	brset	external,#emsk8,external	;3Bu00s00r00q00p00
+	.globl	bs01,	xbs01,	bs02,	xbs02
+	.globl	bs03,	xbs03,	bs04,	xbs04
+	.globl	bs05,	xbs05,	bs06,	xbs06
+	.globl	bs07,	xbs07,	bs08,	xbs08
+	.globl	bs09,	xbs09,	bs10,	xbs10
+	.globl	bs11,	xbs11,	bs12,	xbs12
+	.globl	bs13,	xbs13,	bs14,	xbs14
+	.globl	bs15,	xbs15,	bs16,	xbs16
+	.globl	bs17,	xbs17,	bs18,	xbs18
+	.globl	bs19,	xbs19,	bs20,	xbs20
+	.globl	bs21,	xbs21,	bs22,	xbs22
+	.globl	bs23,	xbs23
+
+bs01:	brset	offset8,x8,#emsk8,xbs01		;8Bu00r00pFE
+bs02:	brset	offset8,y8,#emsk8,xbs02		;9Bu00r00pFE
+bs03:	brset	offset8,z8,#emsk8,xbs03		;ABu00r00pFE
+bs04:	brset	ind8,x8,#emsk8,xbs04		;8Bu00 12pFE
+bs05:	brset	ind8,y8,#emsk8,xbs05		;9Bu00 12pFE
+bs06:	brset	ind8,z8,#emsk8,xbs06		;ABu00 12pFE
+bs07:	brset	ind8,x,#emsk8,xbs07		;0Bu00 00 12q00p00
+bs08:	brset	ind8,y,#emsk8,xbs08		;1Bu00 00 12q00p00
+bs09:	brset	ind8,z,#emsk8,xbs09		;2Bu00 00 12q00p00
+bs10:	brset	offset16,x16,#emsk8,xbs10	;0Bu00s00r00q00p00
+bs11:	brset	offset16,y16,#emsk8,xbs11	;1Bu00s00r00q00p00
+bs12:	brset	offset16,z16,#emsk8,xbs12	;2Bu00s00r00q00p00
+bs13:	brset	offset16,x,#emsk8,xbs13		;0Bu00s00r00q00p00
+bs14:	brset	offset16,y,#emsk8,xbs14		;1Bu00s00r00q00p00
+bs15:	brset	offset16,z,#emsk8,xbs15		;2Bu00s00r00q00p00
+bs16:	brset	ind16,x16,#emsk8,xbs16		;0Bu00 34 56q00p00
+bs17:	brset	ind16,y16,#emsk8,xbs17		;1Bu00 34 56q00p00
+bs18:	brset	ind16,z16,#emsk8,xbs18		;2Bu00 34 56q00p00
+bs19:	brset	ind16,x,#emsk8,xbs19		;0Bu00 34 56q00p00
+bs20:	brset	ind16,y,#emsk8,xbs20		;1Bu00 34 56q00p00
+bs21:	brset	ind16,z,#emsk8,xbs21		;2Bu00 34 56q00p00
+bs22:	brset	addr16,#emsk8,xbs22		;3Bu00 11 22q00p00
+bs23:	brset	external,#emsk8,xbs23		;3Bu00v00u00q00p00
 
 	brset	ind8,x,#emsk8,.+0x0106		;0Bu00 00 12 01 00
 	brset	ind8,y,#emsk8,.+0x0106		;1Bu00 00 12 01 00
@@ -1118,8 +1177,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	brset	ind16,x,#emsk8,.+0x0106		;0Bu00 34 56 01 00
 	brset	ind16,y,#emsk8,.+0x0106		;1Bu00 34 56 01 00
 	brset	ind16,z,#emsk8,.+0x0106		;2Bu00 34 56 01 00
-	brset	address,#emsk8,.+0x0106		;3Bu00 11 22 01 00
-	brset	external,#emsk8,.+0x0106	;3Bu00s00r00 01 00
+	brset	addr16,#emsk8,.+0x0106		;3Bu00 11 22 01 00
+	brset	external,#emsk8,.+0x0106	;3Bu00v00u00 01 00
 
 	bset	,x,#mask8		;17 09 78 00
 	bset	,y,#mask8		;17 19 78 00
@@ -1151,8 +1210,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	bset	ind16,x,#mask8		;09 78 34 56
 	bset	ind16,y,#mask8		;19 78 34 56
 	bset	ind16,z,#mask8		;29 78 34 56
-	bset	address,#mask8		;39 78 11 22
-	bset	external,#mask8		;39 78s00r00
+	bset	addr16,#mask8		;39 78 11 22
+	bset	external,#mask8		;39 78v00u00
 
 	bset	,x,#emsk8		;17 09u00 00
 	bset	,y,#emsk8		;17 19u00 00
@@ -1184,50 +1243,50 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	bset	ind16,x,#emsk8		;09u00 34 56
 	bset	ind16,y,#emsk8		;19u00 34 56
 	bset	ind16,z,#emsk8		;29u00 34 56
-	bset	address,#emsk8		;39u00 11 22
-	bset	external,#emsk8		;39u00s00r00
+	bset	addr16,#emsk8		;39u00 11 22
+	bset	external,#emsk8		;39u00v00u00
 
-	bsetw	,x,#mask16		;27 09 9A BC 00 00
-	bsetw	,y,#mask16		;27 19 9A BC 00 00
-	bsetw	,z,#mask16		;27 29 9A BC 00 00
-	bsetw	,x16,#mask16		;27 09 9A BC 00 00
-	bsetw	,y16,#mask16		;27 19 9A BC 00 00
-	bsetw	,z16,#mask16		;27 29 9A BC 00 00
-	bsetw	offset16,x16,#mask16	;27 09 9A BCs00r00
-	bsetw	offset16,y16,#mask16	;27 19 9A BCs00r00
-	bsetw	offset16,z16,#mask16	;27 29 9A BCs00r00
-	bsetw	offset16,x,#mask16	;27 09 9A BCs00r00
-	bsetw	offset16,y,#mask16	;27 19 9A BCs00r00
-	bsetw	offset16,z,#mask16	;27 29 9A BCs00r00
-	bsetw	ind16,x16,#mask16	;27 09 9A BC 34 56
-	bsetw	ind16,y16,#mask16	;27 19 9A BC 34 56
-	bsetw	ind16,z16,#mask16	;27 29 9A BC 34 56
-	bsetw	ind16,x,#mask16		;27 09 9A BC 34 56
-	bsetw	ind16,y,#mask16		;27 19 9A BC 34 56
-	bsetw	ind16,z,#mask16		;27 29 9A BC 34 56
-	bsetw	address,#mask16		;27 39 9A BC 11 22
-	bsetw	external,#mask16	;27 39 9A BCs00r00
+	bsetw	,x,#mask16		;27 09 00 00 9A BC
+	bsetw	,y,#mask16		;27 19 00 00 9A BC
+	bsetw	,z,#mask16		;27 29 00 00 9A BC
+	bsetw	,x16,#mask16		;27 09 00 00 9A BC
+	bsetw	,y16,#mask16		;27 19 00 00 9A BC
+	bsetw	,z16,#mask16		;27 29 00 00 9A BC
+	bsetw	offset16,x16,#mask16	;27 09s00r00 9A BC
+	bsetw	offset16,y16,#mask16	;27 19s00r00 9A BC
+	bsetw	offset16,z16,#mask16	;27 29s00r00 9A BC
+	bsetw	offset16,x,#mask16	;27 09s00r00 9A BC
+	bsetw	offset16,y,#mask16	;27 19s00r00 9A BC
+	bsetw	offset16,z,#mask16	;27 29s00r00 9A BC
+	bsetw	ind16,x16,#mask16	;27 09 34 56 9A BC
+	bsetw	ind16,y16,#mask16	;27 19 34 56 9A BC
+	bsetw	ind16,z16,#mask16	;27 29 34 56 9A BC
+	bsetw	ind16,x,#mask16		;27 09 34 56 9A BC
+	bsetw	ind16,y,#mask16		;27 19 34 56 9A BC
+	bsetw	ind16,z,#mask16		;27 29 34 56 9A BC
+	bsetw	addr16,#mask16		;27 39 11 22 9A BC
+	bsetw	external,#mask16	;27 39v00u00 9A BC
 
-	bsetw	,x,#emsk16		;27 09s00r00 00 00
-	bsetw	,y,#emsk16		;27 19s00r00 00 00
-	bsetw	,z,#emsk16		;27 29s00r00 00 00
-	bsetw	,x16,#emsk16		;27 09s00r00 00 00
-	bsetw	,y16,#emsk16		;27 19s00r00 00 00
-	bsetw	,z16,#emsk16		;27 29s00r00 00 00
-	bsetw	offset16,x16,#emsk16	;27 09s00r00s00r00
-	bsetw	offset16,y16,#emsk16	;27 19s00r00s00r00
-	bsetw	offset16,z16,#emsk16	;27 29s00r00s00r00
-	bsetw	offset16,x,#emsk16	;27 09s00r00s00r00
-	bsetw	offset16,y,#emsk16	;27 19s00r00s00r00
-	bsetw	offset16,z,#emsk16	;27 29s00r00s00r00
-	bsetw	ind16,x16,#emsk16	;27 09s00r00 34 56
-	bsetw	ind16,y16,#emsk16	;27 19s00r00 34 56
-	bsetw	ind16,z16,#emsk16	;27 29s00r00 34 56
-	bsetw	ind16,x,#emsk16		;27 09s00r00 34 56
-	bsetw	ind16,y,#emsk16		;27 19s00r00 34 56
-	bsetw	ind16,z,#emsk16		;27 29s00r00 34 56
-	bsetw	address,#emsk16		;27 39s00r00 11 22
-	bsetw	external,#emsk16	;27 39s00r00s00r00
+	bsetw	,x,#emsk16		;27 09 00 00v00u00
+	bsetw	,y,#emsk16		;27 19 00 00v00u00
+	bsetw	,z,#emsk16		;27 29 00 00v00u00
+	bsetw	,x16,#emsk16		;27 09 00 00v00u00
+	bsetw	,y16,#emsk16		;27 19 00 00v00u00
+	bsetw	,z16,#emsk16		;27 29 00 00v00u00
+	bsetw	offset16,x16,#emsk16	;27 09s00r00v00u00
+	bsetw	offset16,y16,#emsk16	;27 19s00r00v00u00
+	bsetw	offset16,z16,#emsk16	;27 29s00r00v00u00
+	bsetw	offset16,x,#emsk16	;27 09s00r00v00u00
+	bsetw	offset16,y,#emsk16	;27 19s00r00v00u00
+	bsetw	offset16,z,#emsk16	;27 29s00r00v00u00
+	bsetw	ind16,x16,#emsk16	;27 09 34 56v00u00
+	bsetw	ind16,y16,#emsk16	;27 19 34 56v00u00
+	bsetw	ind16,z16,#emsk16	;27 29 34 56v00u00
+	bsetw	ind16,x,#emsk16		;27 09 34 56v00u00
+	bsetw	ind16,y,#emsk16		;27 19 34 56v00u00
+	bsetw	ind16,z,#emsk16		;27 29 34 56v00u00
+	bsetw	addr16,#emsk16		;27 39 11 22v00u00
+	bsetw	external,#emsk16	;27 39v00u00v00u00
 
 	cba			;37 1B
 
@@ -1261,8 +1320,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	clr	ind16,x		;17 05 34 56
 	clr	ind16,y		;17 15 34 56
 	clr	ind16,z		;17 25 34 56
-	clr	address		;17 35 11 22
-	clr	external	;17 35s00r00
+	clr	addr16		;17 35 11 22
+	clr	external	;17 35v00u00
 
 	clra			;37 05
 	clrb			;37 15
@@ -1288,9 +1347,11 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	clrw	ind16,x		;27 05 34 56
 	clrw	ind16,y		;27 15 34 56
 	clrw	ind16,z		;27 25 34 56
-	clrw	address		;27 35 11 22
-	clrw	external	;27 35s00r00
+	clrw	addr16		;27 35 11 22
+	clrw	external	;27 35v00u00
 
+	cmpa	#imm8		;78 01
+	cmpa	#num8		;78r00
 	cmpa	,x		;48 00
 	cmpa	,y		;58 00
 	cmpa	,z		;68 00
@@ -1309,8 +1370,6 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cmpa	ind8,x		;48 12
 	cmpa	ind8,y		;58 12
 	cmpa	ind8,z		;68 12
-	cmpa	#imm8		;78 01
-	cmpa	#num8		;78r00
 	cmpa	offset16,x16	;17 48s00r00
 	cmpa	offset16,y16	;17 58s00r00
 	cmpa	offset16,z16	;17 68s00r00
@@ -1323,12 +1382,14 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cmpa	ind16,x		;17 48 34 56
 	cmpa	ind16,y		;17 58 34 56
 	cmpa	ind16,z		;17 68 34 56
-	cmpa	address		;17 78 11 22
-	cmpa	external	;17 78s00r00
+	cmpa	addr16		;17 78 11 22
+	cmpa	external	;17 78v00u00
 	cmpa	e,x		;27 48
 	cmpa	e,y		;27 58
 	cmpa	e,z		;27 68
 
+	cmpb	#imm8		;F8 01
+	cmpb	#num8		;F8r00
 	cmpb	,x		;C8 00
 	cmpb	,y		;D8 00
 	cmpb	,z		;E8 00
@@ -1347,8 +1408,6 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cmpb	ind8,x		;C8 12
 	cmpb	ind8,y		;D8 12
 	cmpb	ind8,z		;E8 12
-	cmpb	#imm8		;F8 01
-	cmpb	#num8		;F8r00
 	cmpb	offset16,x16	;17 C8s00r00
 	cmpb	offset16,y16	;17 D8s00r00
 	cmpb	offset16,z16	;17 E8s00r00
@@ -1361,8 +1420,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cmpb	ind16,x		;17 C8 34 56
 	cmpb	ind16,y		;17 D8 34 56
 	cmpb	ind16,z		;17 E8 34 56
-	cmpb	address		;17 F8 11 22
-	cmpb	external	;17 F8s00r00
+	cmpb	addr16		;17 F8 11 22
+	cmpb	external	;17 F8v00u00
 	cmpb	e,x		;27 C8
 	cmpb	e,y		;27 D8
 	cmpb	e,z		;27 E8
@@ -1397,8 +1456,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	com	ind16,x		;17 00 34 56
 	com	ind16,y		;17 10 34 56
 	com	ind16,z		;17 20 34 56
-	com	address		;17 30 11 22
-	com	external	;17 30s00r00
+	com	addr16		;17 30 11 22
+	com	external	;17 30v00u00
 
 	coma			;37 00
 	comb			;37 10
@@ -1423,9 +1482,11 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	comw	ind16,x		;27 00 34 56
 	comw	ind16,y		;27 10 34 56
 	comw	ind16,z		;27 20 34 56
-	comw	address		;27 30 11 22
-	comw	external	;27 30s00r00
+	comw	addr16		;27 30 11 22
+	comw	external	;27 30v00u00
 
+	cpd	#imm16		;37 B8 23 45
+	cpd	#num16		;37 B8s00r00
 	cpd	,x		;88 00
 	cpd	,y		;98 00
 	cpd	,z		;A8 00
@@ -1444,8 +1505,6 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cpd	ind8,x		;88 12
 	cpd	ind8,y		;98 12
 	cpd	ind8,z		;A8 12
-	cpd	#imm16		;37 B8 23 45
-	cpd	#num16		;37 B8s00r00
 	cpd	offset16,x16	;37 C8s00r00
 	cpd	offset16,y16	;37 D8s00r00
 	cpd	offset16,z16	;37 E8s00r00
@@ -1458,8 +1517,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cpd	ind16,x		;37 C8 34 56
 	cpd	ind16,y		;37 D8 34 56
 	cpd	ind16,z		;37 E8 34 56
-	cpd	address		;37 F8 11 22
-	cpd	external	;37 F8s00r00
+	cpd	addr16		;37 F8 11 22
+	cpd	external	;37 F8v00u00
 	cpd	e,x		;27 88
 	cpd	e,y		;27 98
 	cpd	e,z		;27 A8
@@ -1484,9 +1543,11 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cpe	ind16,x		;37 48 34 56
 	cpe	ind16,y		;37 58 34 56
 	cpe	ind16,z		;37 68 34 56
-	cpe	address		;37 78 11 22
-	cpe	external	;37 78s00r00
+	cpe	addr16		;37 78 11 22
+	cpe	external	;37 78v00u00
 
+	cps	#imm16		;37 7F 23 45
+	cps	#num16		;37 7Fs00r00
 	cps	,x		;4F 00
 	cps	,y		;5F 00
 	cps	,z		;6F 00
@@ -1505,8 +1566,6 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cps	ind8,x		;4F 12
 	cps	ind8,y		;5F 12
 	cps	ind8,z		;6F 12
-	cps	#imm16		;37 7F 23 45
-	cps	#num16		;37 7Fs00r00
 	cps	offset16,x16	;17 4Fs00r00
 	cps	offset16,y16	;17 5Fs00r00
 	cps	offset16,z16	;17 6Fs00r00
@@ -1519,9 +1578,11 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cps	ind16,x		;17 4F 34 56
 	cps	ind16,y		;17 5F 34 56
 	cps	ind16,z		;17 6F 34 56
-	cps	address		;17 7F 11 22
-	cps	external	;17 7Fs00r00
+	cps	addr16		;17 7F 11 22
+	cps	external	;17 7Fv00u00
 
+	cpx	#imm16		;37 7C 23 45
+	cpx	#num16		;37 7Cs00r00
 	cpx	,x		;4C 00
 	cpx	,y		;5C 00
 	cpx	,z		;6C 00
@@ -1540,8 +1601,6 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cpx	ind8,x		;4C 12
 	cpx	ind8,y		;5C 12
 	cpx	ind8,z		;6C 12
-	cpx	#imm16		;37 7C 23 45
-	cpx	#num16		;37 7Cs00r00
 	cpx	offset16,x16	;17 4Cs00r00
 	cpx	offset16,y16	;17 5Cs00r00
 	cpx	offset16,z16	;17 6Cs00r00
@@ -1554,9 +1613,11 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cpx	ind16,x		;17 4C 34 56
 	cpx	ind16,y		;17 5C 34 56
 	cpx	ind16,z		;17 6C 34 56
-	cpx	address		;17 7C 11 22
-	cpx	external	;17 7Cs00r00
+	cpx	addr16		;17 7C 11 22
+	cpx	external	;17 7Cv00u00
 
+	cpy	#imm16		;37 7D 23 45
+	cpy	#num16		;37 7Ds00r00
 	cpy	,x		;4D 00
 	cpy	,y		;5D 00
 	cpy	,z		;6D 00
@@ -1575,8 +1636,6 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cpy	ind8,x		;4D 12
 	cpy	ind8,y		;5D 12
 	cpy	ind8,z		;6D 12
-	cpy	#imm16		;37 7D 23 45
-	cpy	#num16		;37 7Ds00r00
 	cpy	offset16,x16	;17 4Ds00r00
 	cpy	offset16,y16	;17 5Ds00r00
 	cpy	offset16,z16	;17 6Ds00r00
@@ -1589,9 +1648,11 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cpy	ind16,x		;17 4D 34 56
 	cpy	ind16,y		;17 5D 34 56
 	cpy	ind16,z		;17 6D 34 56
-	cpy	address		;17 7D 11 22
-	cpy	external	;17 7Ds00r00
+	cpy	addr16		;17 7D 11 22
+	cpy	external	;17 7Dv00u00
 
+	cpz	#imm16		;37 7E 23 45
+	cpz	#num16		;37 7Es00r00
 	cpz	,x		;4E 00
 	cpz	,y		;5E 00
 	cpz	,z		;6E 00
@@ -1610,8 +1671,6 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cpz	ind8,x		;4E 12
 	cpz	ind8,y		;5E 12
 	cpz	ind8,z		;6E 12
-	cpz	#imm16		;37 7E 23 45
-	cpz	#num16		;37 7Es00r00
 	cpz	offset16,x16	;17 4Es00r00
 	cpz	offset16,y16	;17 5Es00r00
 	cpz	offset16,z16	;17 6Es00r00
@@ -1624,8 +1683,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	cpz	ind16,x		;17 4E 34 56
 	cpz	ind16,y		;17 5E 34 56
 	cpz	ind16,z		;17 6E 34 56
-	cpz	address		;17 7E 11 22
-	cpz	external	;17 7Es00r00
+	cpz	addr16		;17 7E 11 22
+	cpz	external	;17 7Ev00u00
 
 	daa			;37 21
 
@@ -1659,8 +1718,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	dec	ind16,x		;17 01 34 56
 	dec	ind16,y		;17 11 34 56
 	dec	ind16,z		;17 21 34 56
-	dec	address		;17 31 11 22
-	dec	external	;17 31s00r00
+	dec	addr16		;17 31 11 22
+	dec	external	;17 31v00u00
 
 	deca			;37 01
 	decb			;37 11
@@ -1683,14 +1742,16 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	decw	ind16,x		;27 01 34 56
 	decw	ind16,y		;27 11 34 56
 	decw	ind16,z		;27 21 34 56
-	decw	address		;27 31 11 22
-	decw	external	;27 31s00r00
+	decw	addr16		;27 31 11 22
+	decw	external	;27 31v00u00
 
 	ediv			;37 28
 	edivs			;37 29
 	emul			;37 25
 	emuls			;37 26
 
+	eora	#imm8		;74 01
+	eora	#num8		;74r00
 	eora	,x		;44 00
 	eora	,y		;54 00
 	eora	,z		;64 00
@@ -1709,8 +1770,6 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	eora	ind8,x		;44 12
 	eora	ind8,y		;54 12
 	eora	ind8,z		;64 12
-	eora	#imm8		;74 01
-	eora	#num8		;74r00
 	eora	offset16,x16	;17 44s00r00
 	eora	offset16,y16	;17 54s00r00
 	eora	offset16,z16	;17 64s00r00
@@ -1723,12 +1782,14 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	eora	ind16,x		;17 44 34 56
 	eora	ind16,y		;17 54 34 56
 	eora	ind16,z		;17 64 34 56
-	eora	address		;17 74 11 22
-	eora	external	;17 74s00r00
+	eora	addr16		;17 74 11 22
+	eora	external	;17 74v00u00
 	eora	e,x		;27 44
 	eora	e,y		;27 54
 	eora	e,z		;27 64
 
+	eorb	#imm8		;F4 01
+	eorb	#num8		;F4r00
 	eorb	,x		;C4 00
 	eorb	,y		;D4 00
 	eorb	,z		;E4 00
@@ -1747,8 +1808,6 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	eorb	ind8,x		;C4 12
 	eorb	ind8,y		;D4 12
 	eorb	ind8,z		;E4 12
-	eorb	#imm8		;F4 01
-	eorb	#num8		;F4r00
 	eorb	offset16,x16	;17 C4s00r00
 	eorb	offset16,y16	;17 D4s00r00
 	eorb	offset16,z16	;17 E4s00r00
@@ -1761,12 +1820,14 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	eorb	ind16,x		;17 C4 34 56
 	eorb	ind16,y		;17 D4 34 56
 	eorb	ind16,z		;17 E4 34 56
-	eorb	address		;17 F4 11 22
-	eorb	external	;17 F4s00r00
+	eorb	addr16		;17 F4 11 22
+	eorb	external	;17 F4v00u00
 	eorb	e,x		;27 C4
 	eorb	e,y		;27 D4
 	eorb	e,z		;27 E4
 
+	eord	#imm16		;37 B4 23 45
+	eord	#num16		;37 B4s00r00
 	eord	,x		;84 00
 	eord	,y		;94 00
 	eord	,z		;A4 00
@@ -1785,8 +1846,6 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	eord	ind8,x		;84 12
 	eord	ind8,y		;94 12
 	eord	ind8,z		;A4 12
-	eord	#imm16		;37 B4 23 45
-	eord	#num16		;37 B4s00r00
 	eord	offset16,x16	;37 C4s00r00
 	eord	offset16,y16	;37 D4s00r00
 	eord	offset16,z16	;37 E4s00r00
@@ -1799,8 +1858,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	eord	ind16,x		;37 C4 34 56
 	eord	ind16,y		;37 D4 34 56
 	eord	ind16,z		;37 E4 34 56
-	eord	address		;37 F4 11 22
-	eord	external	;37 F4s00r00
+	eord	addr16		;37 F4 11 22
+	eord	external	;37 F4v00u00
 	eord	e,x		;27 84
 	eord	e,y		;27 94
 	eord	e,z		;27 A4
@@ -1825,8 +1884,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	eore	ind16,x		;37 44 34 56
 	eore	ind16,y		;37 54 34 56
 	eore	ind16,z		;37 64 34 56
-	eore	address		;37 74 11 22
-	eore	external	;37 74s00r00
+	eore	addr16		;37 74 11 22
+	eore	external	;37 74v00u00
 
 	fdiv			;37 2B
 	fmuls			;37 27
@@ -1862,8 +1921,8 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	inc	ind16,x		;17 03 34 56
 	inc	ind16,y		;17 13 34 56
 	inc	ind16,z		;17 23 34 56
-	inc	address		;17 33 11 22
-	inc	external	;17 33s00r00
+	inc	addr16		;17 33 11 22
+	inc	external	;17 33v00u00
 
 	inca			;37 03
 	incb			;37 13
@@ -1886,68 +1945,26 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	incw	ind16,x		;27 03 34 56
 	incw	ind16,y		;27 13 34 56
 	incw	ind16,z		;27 23 34 56
-	incw	address		;27 33 11 22
-	incw	external	;27 33s00r00
+	incw	addr16		;27 33 11 22
+	incw	external	;27 33v00u00
 
-	jmp	#bnk,offset16,x16	;4B 03s00r00
-	jmp	#bnk,offset16,y16	;5B 03s00r00
-	jmp	#bnk,offset16,z16	;6B 03s00r00
-	jmp	#bnk,offset16,x		;4B 03s00r00
-	jmp	#bnk,offset16,y		;5B 03s00r00
-	jmp	#bnk,offset16,z		;6B 03s00r00
-	jmp	#bnk,ind16,x16		;4B 03 34 56
-	jmp	#bnk,ind16,y16		;5B 03 34 56
-	jmp	#bnk,ind16,z16		;6B 03 34 56
-	jmp	#bnk,ind16,x		;4B 03 34 56
-	jmp	#bnk,ind16,y		;5B 03 34 56
-	jmp	#bnk,ind16,z		;6B 03 34 56
-	jmp	#bnk,address		;70 03 11 22
-	jmp	#bnk,external		;70 03s00r00
+	jmp	offset20,x	;4BR00s00r00
+	jmp	offset20,y	;5BR00s00r00
+	jmp	offset20,z	;6BR00s00r00
+	jmp	ind20,x		;4B 07 89 01
+	jmp	ind20,y		;5B 07 89 01
+	jmp	ind20,z		;6B 07 89 01
+	jmp	addr20		;7A 03 44 55
+	jmp	external	;7AU00v00u00
 
-	jmp	ebnk,offset16,x16	;4Bu00s00r00
-	jmp	ebnk,offset16,y16	;5Bu00s00r00
-	jmp	ebnk,offset16,z16	;6Bu00s00r00
-	jmp	ebnk,offset16,x		;4Bu00s00r00
-	jmp	ebnk,offset16,y		;5Bu00s00r00
-	jmp	ebnk,offset16,z		;6Bu00s00r00
-	jmp	ebnk,ind16,x16		;4Bu00 34 56
-	jmp	ebnk,ind16,y16		;5Bu00 34 56
-	jmp	ebnk,ind16,z16		;6Bu00 34 56
-	jmp	ebnk,ind16,x		;4Bu00 34 56
-	jmp	ebnk,ind16,y		;5Bu00 34 56
-	jmp	ebnk,ind16,z		;6Bu00 34 56
-	jmp	ebnk,address		;70u00 11 22
-	jmp	ebnk,external		;70u00s00r00
-
-	jsr	#bnk,offset16,x16	;89 03s00r00
-	jsr	#bnk,offset16,y16	;99 03s00r00
-	jsr	#bnk,offset16,z16	;A9 03s00r00
-	jsr	#bnk,offset16,x		;89 03s00r00
-	jsr	#bnk,offset16,y		;99 03s00r00
-	jsr	#bnk,offset16,z		;A9 03s00r00
-	jsr	#bnk,ind16,x16		;89 03 34 56
-	jsr	#bnk,ind16,y16		;99 03 34 56
-	jsr	#bnk,ind16,z16		;A9 03 34 56
-	jsr	#bnk,ind16,x		;89 03 34 56
-	jsr	#bnk,ind16,y		;99 03 34 56
-	jsr	#bnk,ind16,z		;A9 03 34 56
-	jsr	#bnk,address		;FA 03 11 22
-	jsr	#bnk,external		;FA 03s00r00
-
-	jsr	ebnk,offset16,x16	;89u00s00r00
-	jsr	ebnk,offset16,y16	;99u00s00r00
-	jsr	ebnk,offset16,z16	;A9u00s00r00
-	jsr	ebnk,offset16,x		;89u00s00r00
-	jsr	ebnk,offset16,y		;99u00s00r00
-	jsr	ebnk,offset16,z		;A9u00s00r00
-	jsr	ebnk,ind16,x16		;89u00 34 56
-	jsr	ebnk,ind16,y16		;99u00 34 56
-	jsr	ebnk,ind16,z16		;A9u00 34 56
-	jsr	ebnk,ind16,x		;89u00 34 56
-	jsr	ebnk,ind16,y		;99u00 34 56
-	jsr	ebnk,ind16,z		;A9u00 34 56
-	jsr	ebnk,address		;FAu00 11 22
-	jsr	ebnk,external		;FAu00s00r00
+	jsr	offset20,x	;89R00s00r00
+	jsr	offset20,y	;99R00s00r00
+	jsr	offset20,z	;A9R00s00r00
+	jsr	ind20,x		;89 07 89 01
+	jsr	ind20,y		;99 07 89 01
+	jsr	ind20,z		;A9 07 89 01
+	jsr	addr20		;FA 03 44 55
+	jsr	external	;FAU00v00u00
 
 	lbcc	.+0x16		;37 84 00 10
 	lbcs	.+0x16		;37 85 00 10
@@ -1973,29 +1990,42 @@ brset1: brset	offset8,x8,#mask8,brset1	;8B 78u00 FA
 	lbvc	.+0x16		;37 88 00 10
 	lbvs	.+0x16		;37 89 00 10
 
-	lbcc	external	;37 84qFFpFE
-	lbcs	external	;37 85qFFpFE
-	lbeq	external	;37 87qFFpFE
-	lbev	external	;37 91qFFpFE
-	lbge	external	;37 8CqFFpFE
-	lbgt	external	;37 8EqFFpFE
-	lbhi	external	;37 82qFFpFE
-	lbhis	external	;37 84qFFpFE
-	lbhs	external	;37 84qFFpFE
-	lble	external	;37 8FqFFpFE
-	lblo	external	;37 85qFFpFE
-	lblos	external	;37 83qFFpFE
-	lbls	external	;37 83qFFpFE
-	lblt	external	;37 8DqFFpFE
-	lbmi	external	;37 8BqFFpFE
-	lbmv	external	;37 90qFFpFE
-	lbne	external	;37 86qFFpFE
-	lbpl	external	;37 8AqFFpFE
-	lbra	external	;37 80qFFpFE
-	lbrn	external	;37 81qFFpFE
-	lbsr	external	;27 F9qFFpFE
-	lbvc	external	;37 88qFFpFE
-	lbvs	external	;37 89qFFpFE
+	.globl	bn01,	xbn01,	bn02,	xbn02
+	.globl	bn03,	xbn03,	bn04,	xbn04
+	.globl	bn05,	xbn05,	bn06,	xbn06
+	.globl	bn07,	xbn07,	bn08,	xbn08
+	.globl	bn09,	xbn09,	bn10,	xbn10
+	.globl	bn11,	xbn11,	bn12,	xbn12
+	.globl	bn13,	xbn13,	bn14,	xbn14
+	.globl	bn15,	xbn15,	bn16,	xbn16
+	.globl	bn17,	xbn17,	bn18,	xbn18
+	.globl	bn19,	xbn19,	bn20,	xbn20
+	.globl	bn21,	xbn21,	bn22,	xbn22
+	.globl	bn23,	xbn23
+
+bn01:	lbcc	xbn01		;37 84qFFpFE
+bn02:	lbcs	xbn02		;37 85qFFpFE
+bn03:	lbeq	xbn03		;37 87qFFpFE
+bn04:	lbev	xbn04		;37 91qFFpFE
+bn05:	lbge	xbn05		;37 8CqFFpFE
+bn06:	lbgt	xbn06		;37 8EqFFpFE
+bn07:	lbhi	xbn07		;37 82qFFpFE
+bn08:	lbhis	xbn08		;37 84qFFpFE
+bn09:	lbhs	xbn09		;37 84qFFpFE
+bn10:	lble	xbn10		;37 8FqFFpFE
+bn11:	lblo	xbn11		;37 85qFFpFE
+bn12:	lblos	xbn12		;37 83qFFpFE
+bn13:	lbls	xbn13		;37 83qFFpFE
+bn14:	lblt	xbn14		;37 8DqFFpFE
+bn15:	lbmi	xbn15		;37 8BqFFpFE
+bn16:	lbmv	xbn16		;37 90qFFpFE
+bn17:	lbne	xbn17		;37 86qFFpFE
+bn18:	lbpl	xbn18		;37 8AqFFpFE
+bn19:	lbra	xbn19		;37 80qFFpFE
+bn20:	lbrn	xbn20		;37 81qFFpFE
+bn21:	lbsr	xbn21		;27 F9qFFpFE
+bn22:	lbvc	xbn22		;37 88qFFpFE
+bn23:	lbvs	xbn23		;37 89qFFpFE
 
 long:	lbcc	long		;37 84 FF FA
 	lbcs	long		;37 85 FF F6
@@ -2021,6 +2051,8 @@ long:	lbcc	long		;37 84 FF FA
 	lbvc	long		;37 88 FF A6
 	lbvs	long		;37 89 FF A2
 
+	ldaa	#imm8		;75 01
+	ldaa	#num8		;75r00
 	ldaa	,x		;45 00
 	ldaa	,y		;55 00
 	ldaa	,z		;65 00
@@ -2039,8 +2071,6 @@ long:	lbcc	long		;37 84 FF FA
 	ldaa	ind8,x		;45 12
 	ldaa	ind8,y		;55 12
 	ldaa	ind8,z		;65 12
-	ldaa	#imm8		;75 01
-	ldaa	#num8		;75r00
 	ldaa	offset16,x16	;17 45s00r00
 	ldaa	offset16,y16	;17 55s00r00
 	ldaa	offset16,z16	;17 65s00r00
@@ -2053,12 +2083,14 @@ long:	lbcc	long		;37 84 FF FA
 	ldaa	ind16,x		;17 45 34 56
 	ldaa	ind16,y		;17 55 34 56
 	ldaa	ind16,z		;17 65 34 56
-	ldaa	address		;17 75 11 22
-	ldaa	external	;17 75s00r00
+	ldaa	addr16		;17 75 11 22
+	ldaa	external	;17 75v00u00
 	ldaa	e,x		;27 45
 	ldaa	e,y		;27 55
 	ldaa	e,z		;27 65
 
+	ldab	#imm8		;F5 01
+	ldab	#num8		;F5r00
 	ldab	,x		;C5 00
 	ldab	,y		;D5 00
 	ldab	,z		;E5 00
@@ -2077,8 +2109,6 @@ long:	lbcc	long		;37 84 FF FA
 	ldab	ind8,x		;C5 12
 	ldab	ind8,y		;D5 12
 	ldab	ind8,z		;E5 12
-	ldab	#imm8		;F5 01
-	ldab	#num8		;F5r00
 	ldab	offset16,x16	;17 C5s00r00
 	ldab	offset16,y16	;17 D5s00r00
 	ldab	offset16,z16	;17 E5s00r00
@@ -2091,12 +2121,14 @@ long:	lbcc	long		;37 84 FF FA
 	ldab	ind16,x		;17 C5 34 56
 	ldab	ind16,y		;17 D5 34 56
 	ldab	ind16,z		;17 E5 34 56
-	ldab	address		;17 F5 11 22
-	ldab	external	;17 F5s00r00
+	ldab	addr16		;17 F5 11 22
+	ldab	external	;17 F5v00u00
 	ldab	e,x		;27 C5
 	ldab	e,y		;27 D5
 	ldab	e,z		;27 E5
 
+	ldd	#imm16		;37 B5 23 45
+	ldd	#num16		;37 B5s00r00
 	ldd	,x		;85 00
 	ldd	,y		;95 00
 	ldd	,z		;A5 00
@@ -2115,8 +2147,6 @@ long:	lbcc	long		;37 84 FF FA
 	ldd	ind8,x		;85 12
 	ldd	ind8,y		;95 12
 	ldd	ind8,z		;A5 12
-	ldd	#imm16		;37 B5 23 45
-	ldd	#num16		;37 B5s00r00
 	ldd	offset16,x16	;37 C5s00r00
 	ldd	offset16,y16	;37 D5s00r00
 	ldd	offset16,z16	;37 E5s00r00
@@ -2129,8 +2159,8 @@ long:	lbcc	long		;37 84 FF FA
 	ldd	ind16,x		;37 C5 34 56
 	ldd	ind16,y		;37 D5 34 56
 	ldd	ind16,z		;37 E5 34 56
-	ldd	address		;37 F5 11 22
-	ldd	external	;37 F5s00r00
+	ldd	addr16		;37 F5 11 22
+	ldd	external	;37 F5v00u00
 	ldd	e,x		;27 85
 	ldd	e,y		;27 95
 	ldd	e,z		;27 A5
@@ -2155,14 +2185,16 @@ long:	lbcc	long		;37 84 FF FA
 	lde	ind16,x		;37 45 34 56
 	lde	ind16,y		;37 55 34 56
 	lde	ind16,z		;37 65 34 56
-	lde	address		;37 75 11 22
-	lde	external	;37 75s00r00
+	lde	addr16		;37 75 11 22
+	lde	external	;37 75v00u00
 
-	lded	address		;27 71 11 22
-	lded	external	;27 71s00r00
+	lded	addr16		;27 71 11 22
+	lded	external	;27 71v00u00
 
 	ldhi			;27 B0
 
+	lds	#imm16		;37 BF 23 45
+	lds	#num16		;37 BFs00r00
 	lds	,x		;CF 00
 	lds	,y		;DF 00
 	lds	,z		;EF 00
@@ -2181,8 +2213,6 @@ long:	lbcc	long		;37 84 FF FA
 	lds	ind8,x		;CF 12
 	lds	ind8,y		;DF 12
 	lds	ind8,z		;EF 12
-	lds	#imm16		;37 BF 23 45
-	lds	#num16		;37 BFs00r00
 	lds	offset16,x16	;17 CFs00r00
 	lds	offset16,y16	;17 DFs00r00
 	lds	offset16,z16	;17 EFs00r00
@@ -2195,9 +2225,11 @@ long:	lbcc	long		;37 84 FF FA
 	lds	ind16,x		;17 CF 34 56
 	lds	ind16,y		;17 DF 34 56
 	lds	ind16,z		;17 EF 34 56
-	lds	address		;17 FF 11 22
-	lds	external	;17 FFs00r00
+	lds	addr16		;17 FF 11 22
+	lds	external	;17 FFv00u00
 
+	ldx	#imm16		;37 BC 23 45
+	ldx	#num16		;37 BCs00r00
 	ldx	,x		;CC 00
 	ldx	,y		;DC 00
 	ldx	,z		;EC 00
@@ -2216,8 +2248,6 @@ long:	lbcc	long		;37 84 FF FA
 	ldx	ind8,x		;CC 12
 	ldx	ind8,y		;DC 12
 	ldx	ind8,z		;EC 12
-	ldx	#imm16		;37 BC 23 45
-	ldx	#num16		;37 BCs00r00
 	ldx	offset16,x16	;17 CCs00r00
 	ldx	offset16,y16	;17 DCs00r00
 	ldx	offset16,z16	;17 ECs00r00
@@ -2230,9 +2260,11 @@ long:	lbcc	long		;37 84 FF FA
 	ldx	ind16,x		;17 CC 34 56
 	ldx	ind16,y		;17 DC 34 56
 	ldx	ind16,z		;17 EC 34 56
-	ldx	address		;17 FC 11 22
-	ldx	external	;17 FCs00r00
+	ldx	addr16		;17 FC 11 22
+	ldx	external	;17 FCv00u00
 
+	ldy	#imm16		;37 BD 23 45
+	ldy	#num16		;37 BDs00r00
 	ldy	,x		;CD 00
 	ldy	,y		;DD 00
 	ldy	,z		;ED 00
@@ -2251,8 +2283,6 @@ long:	lbcc	long		;37 84 FF FA
 	ldy	ind8,x		;CD 12
 	ldy	ind8,y		;DD 12
 	ldy	ind8,z		;ED 12
-	ldy	#imm16		;37 BD 23 45
-	ldy	#num16		;37 BDs00r00
 	ldy	offset16,x16	;17 CDs00r00
 	ldy	offset16,y16	;17 DDs00r00
 	ldy	offset16,z16	;17 EDs00r00
@@ -2265,9 +2295,11 @@ long:	lbcc	long		;37 84 FF FA
 	ldy	ind16,x		;17 CD 34 56
 	ldy	ind16,y		;17 DD 34 56
 	ldy	ind16,z		;17 ED 34 56
-	ldy	address		;17 FD 11 22
-	ldy	external	;17 FDs00r00
+	ldy	addr16		;17 FD 11 22
+	ldy	external	;17 FDv00u00
 
+	ldz	#imm16		;37 BE 23 45
+	ldz	#num16		;37 BEs00r00
 	ldz	,x		;CE 00
 	ldz	,y		;DE 00
 	ldz	,z		;EE 00
@@ -2286,8 +2318,6 @@ long:	lbcc	long		;37 84 FF FA
 	ldz	ind8,x		;CE 12
 	ldz	ind8,y		;DE 12
 	ldz	ind8,z		;EE 12
-	ldz	#imm16		;37 BE 23 45
-	ldz	#num16		;37 BEs00r00
 	ldz	offset16,x16	;17 CEs00r00
 	ldz	offset16,y16	;17 DEs00r00
 	ldz	offset16,z16	;17 EEs00r00
@@ -2300,8 +2330,8 @@ long:	lbcc	long		;37 84 FF FA
 	ldz	ind16,x		;17 CE 34 56
 	ldz	ind16,y		;17 DE 34 56
 	ldz	ind16,z		;17 EE 34 56
-	ldz	address		;17 FE 11 22
-	ldz	external	;17 FEs00r00
+	ldz	addr16		;17 FE 11 22
+	ldz	external	;17 FEv00u00
 
 	lpstop			;27 F1
 
@@ -2335,8 +2365,8 @@ long:	lbcc	long		;37 84 FF FA
 	lsl	ind16,x		;17 04 34 56
 	lsl	ind16,y		;17 14 34 56
 	lsl	ind16,z		;17 24 34 56
-	lsl	address		;17 34 11 22
-	lsl	external	;17 34s00r00
+	lsl	addr16		;17 34 11 22
+	lsl	external	;17 34v00u00
 
 	lsla			;37 04
 	lslb			;37 14
@@ -2362,8 +2392,8 @@ long:	lbcc	long		;37 84 FF FA
 	lslw	ind16,x		;27 04 34 56
 	lslw	ind16,y		;27 14 34 56
 	lslw	ind16,z		;27 24 34 56
-	lslw	address		;27 34 11 22
-	lslw	external	;27 34s00r00
+	lslw	addr16		;27 34 11 22
+	lslw	external	;27 34v00u00
 
 	lsr	,x		;0F 00
 	lsr	,y		;1F 00
@@ -2395,8 +2425,8 @@ long:	lbcc	long		;37 84 FF FA
 	lsr	ind16,x		;17 0F 34 56
 	lsr	ind16,y		;17 1F 34 56
 	lsr	ind16,z		;17 2F 34 56
-	lsr	address		;17 3F 11 22
-	lsr	external	;17 3Fs00r00
+	lsr	addr16		;17 3F 11 22
+	lsr	external	;17 3Fv00u00
 
 	lsra			;37 0F
 	lsrb			;37 1F
@@ -2421,126 +2451,72 @@ long:	lbcc	long		;37 84 FF FA
 	lsrw	ind16,x		;27 0F 34 56
 	lsrw	ind16,y		;27 1F 34 56
 	lsrw	ind16,z		;27 2F 34 56
-	lsrw	address		;27 3F 11 22
-	lsrw	external	;27 3Fs00r00
+	lsrw	addr16		;27 3F 11 22
+	lsrw	external	;27 3Fv00u00
 
 	mac	#ix,#iy		;7B 67
 	mac	#ixiy		;7B 89
-	mac	#eixiy		;7Br00
+	mac	#eixiy		;7Bu00
 
-	movb	address,offset8,x8	;32u00 11 22
-	movb	address,offset8,y8	;32u00 11 22
-	movb	address,offset8,z8	;32u00 11 22
-	movb	address,offset8,x	;32u00 11 22
-	movb	address,offset8,y	;32u00 11 22
-	movb	address,offset8,z	;32u00 11 22
-	movb	address,ind8,x8		;32 12 11 22
-	movb	address,ind8,y8		;32 12 11 22
-	movb	address,ind8,z8		;32 12 11 22
-	movb	address,ind8,x		;32 12 11 22
-	movb	address,ind8,y		;32 12 11 22
-	movb	address,ind8,z		;32 12 11 22
+	movb	addr16,offset8,x8	;32r00 11 22
+	movb	addr16,offset8,x	;32r00 11 22
+	movb	addr16,ind8,x8		;32 12 11 22
+	movb	addr16,ind8,x		;32 12 11 22
 
-	movb	external,offset8,x8	;32u00s00r00
-	movb	external,offset8,y8	;32u00s00r00
-	movb	external,offset8,z8	;32u00s00r00
-	movb	external,offset8,x	;32u00s00r00
-	movb	external,offset8,y	;32u00s00r00
-	movb	external,offset8,z	;32u00s00r00
-	movb	external,ind8,x8	;32 12s00r00
-	movb	external,ind8,y8	;32 12s00r00
-	movb	external,ind8,z8	;32 12s00r00
-	movb	external,ind8,x		;32 12s00r00
-	movb	external,ind8,y		;32 12s00r00
-	movb	external,ind8,z		;32 12s00r00
+	movb	external,offset8,x8	;32r00v00u00
+	movb	external,offset8,x	;32r00v00u00
+	movb	external,ind8,x8	;32 12v00u00
+	movb	external,ind8,x		;32 12v00u00
 
-	movb	offset8,x8,address	;30u00 11 22
-	movb	offset8,y8,address	;30u00 11 22
-	movb	offset8,z8,address	;30u00 11 22
-	movb	offset8,x,address	;30u00 11 22
-	movb	offset8,y,address	;30u00 11 22
-	movb	offset8,z,address	;30u00 11 22
-	movb	ind8,x8,address		;30 12 11 22
-	movb	ind8,y8,address		;30 12 11 22
-	movb	ind8,z8,address		;30 12 11 22
-	movb	ind8,x,address		;30 12 11 22
-	movb	ind8,y,address		;30 12 11 22
-	movb	ind8,z,address		;30 12 11 22
+	movb	offset8,x8,addr16	;30r00 11 22
+	movb	offset8,x,addr16	;30r00 11 22
+	movb	ind8,x8,addr16		;30 12 11 22
+	movb	ind8,x,addr16		;30 12 11 22
 
-	movb	offset8,x8,external	;30u00s00r00
-	movb	offset8,y8,external	;30u00s00r00
-	movb	offset8,z8,external	;30u00s00r00
-	movb	offset8,x,external	;30u00s00r00
-	movb	offset8,y,external	;30u00s00r00
-	movb	offset8,z,external	;30u00s00r00
-	movb	ind8,x8,external	;30 12s00r00
-	movb	ind8,y8,external	;30 12s00r00
-	movb	ind8,z8,external	;30 12s00r00
-	movb	ind8,x,external		;30 12s00r00
-	movb	ind8,y,external		;30 12s00r00
-	movb	ind8,z,external		;30 12s00r00
+	movb	offset8,x8,external	;30r00v00u00
+	movb	offset8,x,external	;30r00v00u00
+	movb	ind8,x8,external	;30 12v00u00
+	movb	ind8,x,external		;30 12v00u00
 
-	movb	address,external	;37 FE 11 22s00r00
-	movb	external,address	;37 FEs00r00 11 22
-	movb	address,address		;37 FE 11 22 11 22
-	movb	external,external	;37 FEs00r00s00r00
+	movb	addr16,external		;37 FE 11 22v00u00
+	movb	external,addr16		;37 FEv00u00 11 22
+	movb	addr16,addr16		;37 FE 11 22 11 22
+	movb	external,external	;37 FEv00u00v00u00
 
-	movw	address,offset8,x8	;33u00 11 22
-	movw	address,offset8,y8	;33u00 11 22
-	movw	address,offset8,z8	;33u00 11 22
-	movw	address,offset8,x	;33u00 11 22
-	movw	address,offset8,y	;33u00 11 22
-	movw	address,offset8,z	;33u00 11 22
-	movw	address,ind8,x8		;33 12 11 22
-	movw	address,ind8,y8		;33 12 11 22
-	movw	address,ind8,z8		;33 12 11 22
-	movw	address,ind8,x		;33 12 11 22
-	movw	address,ind8,y		;33 12 11 22
-	movw	address,ind8,z		;33 12 11 22
+	xmovb	addr16,external		;37 FE 11 22v00u00
+	xmovb	external,addr16		;37 FEv00u00 11 22
+	xmovb	addr16,addr16		;37 FE 11 22 11 22
+	xmovb	external,external	;37 FEv00u00v00u00
 
-	movw	external,offset8,x8	;33u00s00r00
-	movw	external,offset8,y8	;33u00s00r00
-	movw	external,offset8,z8	;33u00s00r00
-	movw	external,offset8,x	;33u00s00r00
-	movw	external,offset8,y	;33u00s00r00
-	movw	external,offset8,z	;33u00s00r00
-	movw	external,ind8,x8	;33 12s00r00
-	movw	external,ind8,y8	;33 12s00r00
-	movw	external,ind8,z8	;33 12s00r00
-	movw	external,ind8,x		;33 12s00r00
-	movw	external,ind8,y		;33 12s00r00
-	movw	external,ind8,z		;33 12s00r00
+	movw	addr16,offset8,x8	;33r00 11 22
+	movw	addr16,offset8,x	;33r00 11 22
+	movw	addr16,ind8,x8		;33 12 11 22
+	movw	addr16,ind8,x		;33 12 11 22
 
-	movw	offset8,x8,address	;31u00 11 22
-	movw	offset8,y8,address	;31u00 11 22
-	movw	offset8,z8,address	;31u00 11 22
-	movw	offset8,x,address	;31u00 11 22
-	movw	offset8,y,address	;31u00 11 22
-	movw	offset8,z,address	;31u00 11 22
-	movw	ind8,x8,address		;31 12 11 22
-	movw	ind8,y8,address		;31 12 11 22
-	movw	ind8,z8,address		;31 12 11 22
-	movw	ind8,x,address		;31 12 11 22
-	movw	ind8,y,address		;31 12 11 22
-	movw	ind8,z,address		;31 12 11 22
+	movw	external,offset8,x8	;33r00v00u00
+	movw	external,offset8,x	;33r00v00u00
+	movw	external,ind8,x8	;33 12v00u00
+	movw	external,ind8,x		;33 12v00u00
 
-	movw	offset8,x8,external	;31u00s00r00
-	movw	offset8,y8,external	;31u00s00r00
-	movw	offset8,z8,external	;31u00s00r00
-	movw	offset8,x,external	;31u00s00r00
-	movw	offset8,y,external	;31u00s00r00
-	movw	offset8,z,external	;31u00s00r00
-	movw	ind8,x8,external	;31 12s00r00
-	movw	ind8,y8,external	;31 12s00r00
-	movw	ind8,z8,external	;31 12s00r00
-	movw	ind8,x,external		;31 12s00r00
-	movw	ind8,y,external		;31 12s00r00
-	movw	ind8,z,external		;31 12s00r00
+	movw	offset8,x8,addr16	;31r00 11 22
+	movw	offset8,x,addr16	;31r00 11 22
+	movw	ind8,x8,addr16		;31 12 11 22
+	movw	ind8,x,addr16		;31 12 11 22
 
-	movw	address,external	;37 FF 11 22s00r00
-	movw	external,address	;37 FFs00r00 11 22
-	movw	address,address		;37 FF 11 22 11 22
-	movw	external,external	;37 FFs00r00s00r00
+	movw	offset8,x8,external	;31r00v00u00
+	movw	offset8,x,external	;31r00v00u00
+	movw	ind8,x8,external	;31 12v00u00
+	movw	ind8,x,external		;31 12v00u00
+
+	movw	addr16,external		;37 FF 11 22v00u00
+	movw	external,addr16		;37 FFv00u00 11 22
+	movw	addr16,addr16		;37 FF 11 22 11 22
+	movw	external,external	;37 FFv00u00v00u00
+
+	xmovw	addr16,external		;37 FF 11 22v00u00
+	xmovw	external,addr16		;37 FFv00u00 11 22
+	xmovw	addr16,addr16		;37 FF 11 22 11 22
+	xmovw	external,external	;37 FFv00u00v00u00
 
 	mul			;37 24
 
@@ -2574,8 +2550,8 @@ long:	lbcc	long		;37 84 FF FA
 	neg	ind16,x		;17 02 34 56
 	neg	ind16,y		;17 12 34 56
 	neg	ind16,z		;17 22 34 56
-	neg	address		;17 32 11 22
-	neg	external	;17 32s00r00
+	neg	addr16		;17 32 11 22
+	neg	external	;17 32v00u00
 
 	nega			;37 02
 	negb			;37 12
@@ -2600,11 +2576,13 @@ long:	lbcc	long		;37 84 FF FA
 	negw	ind16,x		;27 02 34 56
 	negw	ind16,y		;27 12 34 56
 	negw	ind16,z		;27 22 34 56
-	negw	address		;27 32 11 22
-	negw	external	;27 32s00r00
+	negw	addr16		;27 32 11 22
+	negw	external	;27 32v00u00
 
 	nop			;27 4C
 
+	oraa	#imm8		;77 01
+	oraa	#num8		;77r00
 	oraa	,x		;47 00
 	oraa	,y		;57 00
 	oraa	,z		;67 00
@@ -2623,8 +2601,6 @@ long:	lbcc	long		;37 84 FF FA
 	oraa	ind8,x		;47 12
 	oraa	ind8,y		;57 12
 	oraa	ind8,z		;67 12
-	oraa	#imm8		;77 01
-	oraa	#num8		;77r00
 	oraa	offset16,x16	;17 47s00r00
 	oraa	offset16,y16	;17 57s00r00
 	oraa	offset16,z16	;17 67s00r00
@@ -2637,12 +2613,14 @@ long:	lbcc	long		;37 84 FF FA
 	oraa	ind16,x		;17 47 34 56
 	oraa	ind16,y		;17 57 34 56
 	oraa	ind16,z		;17 67 34 56
-	oraa	address		;17 77 11 22
-	oraa	external	;17 77s00r00
+	oraa	addr16		;17 77 11 22
+	oraa	external	;17 77v00u00
 	oraa	e,x		;27 47
 	oraa	e,y		;27 57
 	oraa	e,z		;27 67
 
+	orab	#imm8		;F7 01
+	orab	#num8		;F7r00
 	orab	,x		;C7 00
 	orab	,y		;D7 00
 	orab	,z		;E7 00
@@ -2661,8 +2639,6 @@ long:	lbcc	long		;37 84 FF FA
 	orab	ind8,x		;C7 12
 	orab	ind8,y		;D7 12
 	orab	ind8,z		;E7 12
-	orab	#imm8		;F7 01
-	orab	#num8		;F7r00
 	orab	offset16,x16	;17 C7s00r00
 	orab	offset16,y16	;17 D7s00r00
 	orab	offset16,z16	;17 E7s00r00
@@ -2675,12 +2651,14 @@ long:	lbcc	long		;37 84 FF FA
 	orab	ind16,x		;17 C7 34 56
 	orab	ind16,y		;17 D7 34 56
 	orab	ind16,z		;17 E7 34 56
-	orab	address		;17 F7 11 22
-	orab	external	;17 F7s00r00
+	orab	addr16		;17 F7 11 22
+	orab	external	;17 F7v00u00
 	orab	e,x		;27 C7
 	orab	e,y		;27 D7
 	orab	e,z		;27 E7
 
+	ord	#imm16		;37 B7 23 45
+	ord	#num16		;37 B7s00r00
 	ord	,x		;87 00
 	ord	,y		;97 00
 	ord	,z		;A7 00
@@ -2699,8 +2677,6 @@ long:	lbcc	long		;37 84 FF FA
 	ord	ind8,x		;87 12
 	ord	ind8,y		;97 12
 	ord	ind8,z		;A7 12
-	ord	#imm16		;37 B7 23 45
-	ord	#num16		;37 B7s00r00
 	ord	offset16,x16	;37 C7s00r00
 	ord	offset16,y16	;37 D7s00r00
 	ord	offset16,z16	;37 E7s00r00
@@ -2713,8 +2689,8 @@ long:	lbcc	long		;37 84 FF FA
 	ord	ind16,x		;37 C7 34 56
 	ord	ind16,y		;37 D7 34 56
 	ord	ind16,z		;37 E7 34 56
-	ord	address		;37 F7 11 22
-	ord	external	;37 F7s00r00
+	ord	addr16		;37 F7 11 22
+	ord	external	;37 F7v00u00
 	ord	e,x		;27 87
 	ord	e,y		;27 97
 	ord	e,z		;27 A7
@@ -2739,13 +2715,13 @@ long:	lbcc	long		;37 84 FF FA
 	ore	ind16,x		;37 47 34 56
 	ore	ind16,y		;37 57 34 56
 	ore	ind16,z		;37 67 34 56
-	ore	address		;37 77 11 22
-	ore	external	;37 77s00r00
+	ore	addr16		;37 77 11 22
+	ore	external	;37 77v00u00
 
 	orp	#imm8		;37 3B 00 01
-	orp	#num8		;37 3Bs00r00
+	orp	#num8		;37 3Bv00u00
 	orp	#imm16		;37 3B 23 45
-	orp	#num16		;37 3Bs00r00
+	orp	#num16		;37 3Bv00u00
 
 	psha			;37 08
 	pshb			;37 18
@@ -2759,22 +2735,22 @@ long:	lbcc	long		;37 84 FF FA
 	pshm	d			;34 01
 	pshm	d,e			;34 03
 	pshm	d,e,x			;34 07
-	pshm	d,e,x,y			;34 0f
-	pshm	d,e,x,y,z		;34 1f
-	pshm	d,e,x,y,z,k		;34 3f
-	pshm	d,e,x,y,z,k,ccr		;34 7f
+	pshm	d,e,x,y			;34 0F
+	pshm	d,e,x,y,z		;34 1F
+	pshm	d,e,x,y,z,k		;34 3F
+	pshm	d,e,x,y,z,k,ccr		;34 7F
 
 	pulm	ccr			;35 01
 	pulm	ccr,k			;35 03
 	pulm	ccr,k,z			;35 07
-	pulm	ccr,k,z,y		;35 0f
-	pulm	ccr,k,z,y,x		;35 1f
-	pulm	ccr,k,z,y,x,e		;35 3f
-	pulm	ccr,k,z,y,x,e,d		;35 7f
+	pulm	ccr,k,z,y		;35 0F
+	pulm	ccr,k,z,y,x		;35 1F
+	pulm	ccr,k,z,y,x,e		;35 3F
+	pulm	ccr,k,z,y,x,e,d		;35 7F
 
 	rmac	#ix,#iy		;FB 67
 	rmac	#ixiy		;FB 89
-	rmac	#eixiy		;FBr00
+	rmac	#eixiy		;FBu00
 
 	rol	,x		;0C 00
 	rol	,y		;1C 00
@@ -2806,8 +2782,8 @@ long:	lbcc	long		;37 84 FF FA
 	rol	ind16,x		;17 0C 34 56
 	rol	ind16,y		;17 1C 34 56
 	rol	ind16,z		;17 2C 34 56
-	rol	address		;17 3C 11 22
-	rol	external	;17 3Cs00r00
+	rol	addr16		;17 3C 11 22
+	rol	external	;17 3Cv00u00
 
 	rola			;37 0C
 	rolb			;37 1C
@@ -2832,8 +2808,8 @@ long:	lbcc	long		;37 84 FF FA
 	rolw	ind16,x		;27 0C 34 56
 	rolw	ind16,y		;27 1C 34 56
 	rolw	ind16,z		;27 2C 34 56
-	rolw	address		;27 3C 11 22
-	rolw	external	;27 3Cs00r00
+	rolw	addr16		;27 3C 11 22
+	rolw	external	;27 3Cv00u00
 
 	ror	,x		;0E 00
 	ror	,y		;1E 00
@@ -2865,8 +2841,8 @@ long:	lbcc	long		;37 84 FF FA
 	ror	ind16,x		;17 0E 34 56
 	ror	ind16,y		;17 1E 34 56
 	ror	ind16,z		;17 2E 34 56
-	ror	address		;17 3E 11 22
-	ror	external	;17 3Es00r00
+	ror	addr16		;17 3E 11 22
+	ror	external	;17 3Ev00u00
 
 	rora			;37 0E
 	rorb			;37 1E
@@ -2891,14 +2867,16 @@ long:	lbcc	long		;37 84 FF FA
 	rorw	ind16,x		;27 0E 34 56
 	rorw	ind16,y		;27 1E 34 56
 	rorw	ind16,z		;27 2E 34 56
-	rorw	address		;27 3E 11 22
-	rorw	external	;27 3Es00r00
+	rorw	addr16		;27 3E 11 22
+	rorw	external	;27 3Ev00u00
 
 	rti			;27 77
 	rts			;27 F7
 
 	sba			;37 0A
 
+	sbca	#imm8		;72 01
+	sbca	#num8		;72r00
 	sbca	,x		;42 00
 	sbca	,y		;52 00
 	sbca	,z		;62 00
@@ -2917,8 +2895,6 @@ long:	lbcc	long		;37 84 FF FA
 	sbca	ind8,x		;42 12
 	sbca	ind8,y		;52 12
 	sbca	ind8,z		;62 12
-	sbca	#imm8		;72 01
-	sbca	#num8		;72r00
 	sbca	offset16,x16	;17 42s00r00
 	sbca	offset16,y16	;17 52s00r00
 	sbca	offset16,z16	;17 62s00r00
@@ -2931,12 +2907,14 @@ long:	lbcc	long		;37 84 FF FA
 	sbca	ind16,x		;17 42 34 56
 	sbca	ind16,y		;17 52 34 56
 	sbca	ind16,z		;17 62 34 56
-	sbca	address		;17 72 11 22
-	sbca	external	;17 72s00r00
+	sbca	addr16		;17 72 11 22
+	sbca	external	;17 72v00u00
 	sbca	e,x		;27 42
 	sbca	e,y		;27 52
 	sbca	e,z		;27 62
 
+	sbcb	#imm8		;F2 01
+	sbcb	#num8		;F2r00
 	sbcb	,x		;C2 00
 	sbcb	,y		;D2 00
 	sbcb	,z		;E2 00
@@ -2955,8 +2933,6 @@ long:	lbcc	long		;37 84 FF FA
 	sbcb	ind8,x		;C2 12
 	sbcb	ind8,y		;D2 12
 	sbcb	ind8,z		;E2 12
-	sbcb	#imm8		;F2 01
-	sbcb	#num8		;F2r00
 	sbcb	offset16,x16	;17 C2s00r00
 	sbcb	offset16,y16	;17 D2s00r00
 	sbcb	offset16,z16	;17 E2s00r00
@@ -2969,12 +2945,14 @@ long:	lbcc	long		;37 84 FF FA
 	sbcb	ind16,x		;17 C2 34 56
 	sbcb	ind16,y		;17 D2 34 56
 	sbcb	ind16,z		;17 E2 34 56
-	sbcb	address		;17 F2 11 22
-	sbcb	external	;17 F2s00r00
+	sbcb	addr16		;17 F2 11 22
+	sbcb	external	;17 F2v00u00
 	sbcb	e,x		;27 C2
 	sbcb	e,y		;27 D2
 	sbcb	e,z		;27 E2
 
+	sbcd	#imm16		;37 B2 23 45
+	sbcd	#num16		;37 B2s00r00
 	sbcd	,x		;82 00
 	sbcd	,y		;92 00
 	sbcd	,z		;A2 00
@@ -2993,8 +2971,6 @@ long:	lbcc	long		;37 84 FF FA
 	sbcd	ind8,x		;82 12
 	sbcd	ind8,y		;92 12
 	sbcd	ind8,z		;A2 12
-	sbcd	#imm16		;37 B2 23 45
-	sbcd	#num16		;37 B2s00r00
 	sbcd	offset16,x16	;37 C2s00r00
 	sbcd	offset16,y16	;37 D2s00r00
 	sbcd	offset16,z16	;37 E2s00r00
@@ -3007,8 +2983,8 @@ long:	lbcc	long		;37 84 FF FA
 	sbcd	ind16,x		;37 C2 34 56
 	sbcd	ind16,y		;37 D2 34 56
 	sbcd	ind16,z		;37 E2 34 56
-	sbcd	address		;37 F2 11 22
-	sbcd	external	;37 F2s00r00
+	sbcd	addr16		;37 F2 11 22
+	sbcd	external	;37 F2v00u00
 	sbcd	e,x		;27 82
 	sbcd	e,y		;27 92
 	sbcd	e,z		;27 A2
@@ -3033,8 +3009,8 @@ long:	lbcc	long		;37 84 FF FA
 	sbce	ind16,x		;37 42 34 56
 	sbce	ind16,y		;37 52 34 56
 	sbce	ind16,z		;37 62 34 56
-	sbce	address		;37 72 11 22
-	sbce	external	;37 72s00r00
+	sbce	addr16		;37 72 11 22
+	sbce	external	;37 72v00u00
 
 	sde			;27 79
 
@@ -3068,8 +3044,8 @@ long:	lbcc	long		;37 84 FF FA
 	staa	ind16,x		;17 4A 34 56
 	staa	ind16,y		;17 5A 34 56
 	staa	ind16,z		;17 6A 34 56
-	staa	address		;17 7A 11 22
-	staa	external	;17 7As00r00
+	staa	addr16		;17 7A 11 22
+	staa	external	;17 7Av00u00
 	staa	e,x		;27 4A
 	staa	e,y		;27 5A
 	staa	e,z		;27 6A
@@ -3104,8 +3080,8 @@ long:	lbcc	long		;37 84 FF FA
 	stab	ind16,x		;17 CA 34 56
 	stab	ind16,y		;17 DA 34 56
 	stab	ind16,z		;17 EA 34 56
-	stab	address		;17 FA 11 22
-	stab	external	;17 FAs00r00
+	stab	addr16		;17 FA 11 22
+	stab	external	;17 FAv00u00
 	stab	e,x		;27 CA
 	stab	e,y		;27 DA
 	stab	e,z		;27 EA
@@ -3140,8 +3116,8 @@ long:	lbcc	long		;37 84 FF FA
 	std	ind16,x		;37 CA 34 56
 	std	ind16,y		;37 DA 34 56
 	std	ind16,z		;37 EA 34 56
-	std	address		;37 FA 11 22
-	std	external	;37 FAs00r00
+	std	addr16		;37 FA 11 22
+	std	external	;37 FAv00u00
 	std	e,x		;27 8A
 	std	e,y		;27 9A
 	std	e,z		;27 AA
@@ -3164,10 +3140,10 @@ long:	lbcc	long		;37 84 FF FA
 	ste	ind16,x		;37 4A 34 56
 	ste	ind16,y		;37 5A 34 56
 	ste	ind16,z		;37 6A 34 56
-	ste	address		;37 7A 11 22
-	ste	external	;37 7As00r00
-
-	sted			;27 73
+	ste	addr16		;37 7A 11 22
+	ste	external	;37 7Av00u00
+	sted	addr16		;27 73 11 22
+	sted	external	;27 73v00u00
 
 	sts	,x		;8F 00
 	sts	,y		;9F 00
@@ -3199,8 +3175,8 @@ long:	lbcc	long		;37 84 FF FA
 	sts	ind16,x		;17 8F 34 56
 	sts	ind16,y		;17 9F 34 56
 	sts	ind16,z		;17 AF 34 56
-	sts	address		;17 BF 11 22
-	sts	external	;17 BFs00r00
+	sts	addr16		;17 BF 11 22
+	sts	external	;17 BFv00u00
 
 	stx	,x		;8C 00
 	stx	,y		;9C 00
@@ -3232,8 +3208,8 @@ long:	lbcc	long		;37 84 FF FA
 	stx	ind16,x		;17 8C 34 56
 	stx	ind16,y		;17 9C 34 56
 	stx	ind16,z		;17 AC 34 56
-	stx	address		;17 BC 11 22
-	stx	external	;17 BCs00r00
+	stx	addr16		;17 BC 11 22
+	stx	external	;17 BCv00u00
 
 	sty	,x		;8D 00
 	sty	,y		;9D 00
@@ -3265,8 +3241,8 @@ long:	lbcc	long		;37 84 FF FA
 	sty	ind16,x		;17 8D 34 56
 	sty	ind16,y		;17 9D 34 56
 	sty	ind16,z		;17 AD 34 56
-	sty	address		;17 BD 11 22
-	sty	external	;17 BDs00r00
+	sty	addr16		;17 BD 11 22
+	sty	external	;17 BDv00u00
 
 	stz	,x		;8E 00
 	stz	,y		;9E 00
@@ -3298,9 +3274,11 @@ long:	lbcc	long		;37 84 FF FA
 	stz	ind16,x		;17 8E 34 56
 	stz	ind16,y		;17 9E 34 56
 	stz	ind16,z		;17 AE 34 56
-	stz	address		;17 BE 11 22
-	stz	external	;17 BEs00r00
+	stz	addr16		;17 BE 11 22
+	stz	external	;17 BEv00u00
 
+	suba	#imm8		;70 01
+	suba	#num8		;70r00
 	suba	,x		;40 00
 	suba	,y		;50 00
 	suba	,z		;60 00
@@ -3319,8 +3297,6 @@ long:	lbcc	long		;37 84 FF FA
 	suba	ind8,x		;40 12
 	suba	ind8,y		;50 12
 	suba	ind8,z		;60 12
-	suba	#imm8		;70 01
-	suba	#num8		;70r00
 	suba	offset16,x16	;17 40s00r00
 	suba	offset16,y16	;17 50s00r00
 	suba	offset16,z16	;17 60s00r00
@@ -3333,12 +3309,14 @@ long:	lbcc	long		;37 84 FF FA
 	suba	ind16,x		;17 40 34 56
 	suba	ind16,y		;17 50 34 56
 	suba	ind16,z		;17 60 34 56
-	suba	address		;17 70 11 22
-	suba	external	;17 70s00r00
+	suba	addr16		;17 70 11 22
+	suba	external	;17 70v00u00
 	suba	e,x		;27 40
 	suba	e,y		;27 50
 	suba	e,z		;27 60
 
+	subb	#imm8		;F0 01
+	subb	#num8		;F0r00
 	subb	,x		;C0 00
 	subb	,y		;D0 00
 	subb	,z		;E0 00
@@ -3357,8 +3335,6 @@ long:	lbcc	long		;37 84 FF FA
 	subb	ind8,x		;C0 12
 	subb	ind8,y		;D0 12
 	subb	ind8,z		;E0 12
-	subb	#imm8		;F0 01
-	subb	#num8		;F0r00
 	subb	offset16,x16	;17 C0s00r00
 	subb	offset16,y16	;17 D0s00r00
 	subb	offset16,z16	;17 E0s00r00
@@ -3371,12 +3347,14 @@ long:	lbcc	long		;37 84 FF FA
 	subb	ind16,x		;17 C0 34 56
 	subb	ind16,y		;17 D0 34 56
 	subb	ind16,z		;17 E0 34 56
-	subb	address		;17 F0 11 22
-	subb	external	;17 F0s00r00
+	subb	addr16		;17 F0 11 22
+	subb	external	;17 F0v00u00
 	subb	e,x		;27 C0
 	subb	e,y		;27 D0
 	subb	e,z		;27 E0
 
+	subd	#imm16		;37 B0 23 45
+	subd	#num16		;37 B0s00r00
 	subd	,x		;80 00
 	subd	,y		;90 00
 	subd	,z		;A0 00
@@ -3395,8 +3373,6 @@ long:	lbcc	long		;37 84 FF FA
 	subd	ind8,x		;80 12
 	subd	ind8,y		;90 12
 	subd	ind8,z		;A0 12
-	subd	#imm16		;37 B0 23 45
-	subd	#num16		;37 B0s00r00
 	subd	offset16,x16	;37 C0s00r00
 	subd	offset16,y16	;37 D0s00r00
 	subd	offset16,z16	;37 E0s00r00
@@ -3409,8 +3385,8 @@ long:	lbcc	long		;37 84 FF FA
 	subd	ind16,x		;37 C0 34 56
 	subd	ind16,y		;37 D0 34 56
 	subd	ind16,z		;37 E0 34 56
-	subd	address		;37 F0 11 22
-	subd	external	;37 F0s00r00
+	subd	addr16		;37 F0 11 22
+	subd	external	;37 F0v00u00
 	subd	e,x		;27 80
 	subd	e,y		;27 90
 	subd	e,z		;27 A0
@@ -3435,8 +3411,8 @@ long:	lbcc	long		;37 84 FF FA
 	sube	ind16,x		;37 40 34 56
 	sube	ind16,y		;37 50 34 56
 	sube	ind16,z		;37 60 34 56
-	sube	address		;37 70 11 22
-	sube	external	;37 70s00r00
+	sube	addr16		;37 70 11 22
+	sube	external	;37 70v00u00
 
 	swi			;37 20
 	sxt			;27 F8
@@ -3493,8 +3469,8 @@ long:	lbcc	long		;37 84 FF FA
 	tst	ind16,x		;17 06 34 56
 	tst	ind16,y		;17 16 34 56
 	tst	ind16,z		;17 26 34 56
-	tst	address		;17 36 11 22
-	tst	external	;17 36s00r00
+	tst	addr16		;17 36 11 22
+	tst	external	;17 36v00u00
 
 	tsta			;37 06
 	tstb			;37 16
@@ -3519,8 +3495,8 @@ long:	lbcc	long		;37 84 FF FA
 	tstw	ind16,x		;27 06 34 56
 	tstw	ind16,y		;27 16 34 56
 	tstw	ind16,z		;27 26 34 56
-	tstw	address		;27 36 11 22
-	tstw	external	;27 36s00r00
+	tstw	addr16		;27 36 11 22
+	tstw	external	;27 36v00u00
 
 	tsx			;27 4F
 	tsy			;27 5F

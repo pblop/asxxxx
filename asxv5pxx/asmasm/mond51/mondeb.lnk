@@ -1,0 +1,25 @@
+-imu
+mondeb
+startup
+sp0_x
+print
+macros
+mondeb51
+xhelp
+lbsfr
+-e
+
+; Notes:
+;   Any file containing MONDEB51 commands must
+;   follow mondeb and xhelp in the linking order !!!
+;
+; Sequence (03_05_2021)
+mondeb
+startup
+sp0_x
+print
+macros
+mondeb51
+xhelp
+lbsfr
+

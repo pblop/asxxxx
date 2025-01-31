@@ -1,7 +1,7 @@
 /* z80mch.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -37,8 +37,8 @@ int	mchtyp;
 #define	OPCY_SDP	((char) (0xFF))
 #define	OPCY_ERR	((char) (0xFE))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	OPCY_CPU	((char) (0xFD))
 
@@ -363,6 +363,85 @@ static char *hd64Page[7] = {
 };
 
 /*
+ * 8080 Cycle Count
+ *
+ *	opcycles = i80pg1[opcode]
+ */
+
+static char  i80pg1[256] = {
+/*--*--* 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F */
+/*--*--* -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - */
+/*00*/   4,10, 7, 5, 5, 5, 7, 4,UN,10, 7, 5, 5, 5, 7, 4,
+/*10*/  UN,10, 7, 5, 5, 5, 7, 4,UN,10, 7, 5, 5, 5, 7, 4,
+/*20*/  UN,10,16, 5, 5, 5, 7, 4,UN,10,16, 5, 5, 5, 7, 4,
+/*30*/  UN,10,13, 5,10,10,10, 4,UN,10,13, 5, 5, 5, 7, 4,
+/*40*/   5, 5, 5, 5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 7, 5,
+/*50*/   5, 5, 5, 5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 7, 5,
+/*60*/   5, 5, 5, 5, 5, 5, 7, 5, 5, 5, 5, 5, 5, 5, 7, 5,
+/*70*/   7, 7, 7, 7, 7, 7, 7, 7, 5, 5, 5, 5, 5, 5, 7, 5,
+/*80*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*90*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*A0*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*B0*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*C0*/   5,10,10,10,11,11, 7,11, 5,10,10,UN,11,17, 7,11,
+/*D0*/   5,10,10,10,11,11, 7,11, 5,UN,10,10,11,UN, 7,11,
+/*E0*/   5,10,10,18,11,11, 7,11, 5, 5,10, 4,11,UN, 7,11,
+/*F0*/   5,10,10, 4,11,11, 7,11, 5, 5,10, 4,11,UN, 7,11
+};
+
+/*
+ * 8085 Cycle Count
+ *
+ *	opcycles = i85xpg1[opcode]
+ */
+static char i85pg1[256] = {
+/*--*--* 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F */
+/*--*--* -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - */
+/*00*/   4,10, 7, 6, 4, 4, 7, 4,UN,10, 7, 6, 4, 4, 7, 4,
+/*10*/   7,UN, 7, 6, 4, 4, 7, 4,UN,10, 7, 6, 4, 4, 7, 4,
+/*20*/   4,10,16, 6, 4, 4, 7, 4,UN,10,16, 6, 4, 4, 7, 4,
+/*30*/   4,10,13, 6,10,10,10, 4,UN,10,13, 6, 4, 4, 7, 4,
+/*40*/   4, 4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 7, 4,
+/*50*/   4, 4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 7, 4,
+/*60*/   4, 4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 7, 4,
+/*70*/   7, 7, 7, 7, 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 7, 4,
+/*80*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*90*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*A0*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*B0*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*C0*/  12,10,10,10,18,12, 7,12,12,10,10,UN,18,18, 7,12,
+/*D0*/  12,10,10,10,18,12, 7,12,12,UN,10,10,18,UN, 7,12,
+/*E0*/  12,10,10,16,18,12, 7,12,12, 6,10, 4,18,UN, 7,12,
+/*F0*/  12,10,10, 4,18,12, 7,12,12, 6,10, 4,18,UN, 7,12
+};
+
+/*
+ * 8085X Cycle Count
+ *
+ *	opcycles = x85pg1[opcode]
+ */
+static char x85pg1[256] = {
+/*--*--* 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F */
+/*--*--* -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  - */
+/*00*/   4,10, 7, 6, 4, 4, 7, 4,10,10, 7, 6, 4, 4, 7, 4,
+/*10*/   7,10, 7, 6, 4, 4, 7, 4,10,10, 7, 6, 4, 4, 7, 4,
+/*20*/   4,10,16, 6, 4, 4, 7, 4,10,10,16, 6, 4, 4, 7, 4,
+/*30*/   4,10,13, 6,10,10,10, 4,10,10,13, 6, 4, 4, 7, 4,
+/*40*/   4, 4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 7, 4,
+/*50*/   4, 4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 7, 4,
+/*60*/   4, 4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 7, 4,
+/*70*/   7, 7, 7, 7, 7, 7, 4, 7, 4, 4, 4, 4, 4, 4, 7, 4,
+/*80*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*90*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*A0*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*B0*/   4, 4, 4, 4, 4, 4, 7, 4, 4, 4, 4, 4, 4, 4, 7, 4,
+/*C0*/  12,10,10,10,18,12, 7,12,12,10,10,12,18,18, 7,12,
+/*D0*/  12,10,10,10,18,12, 7,12,12,10,10,10,18,10, 7,12,
+/*E0*/  12,10,10,16,18,12, 7,12,12, 6,10, 4,18,10, 7,12,
+/*F0*/  12,10,10, 4,18,12, 7,12,12, 6,10, 4,18,10, 7,12
+};
+
+/*
  * Process a machine op.
  */
 VOID
@@ -373,14 +452,26 @@ struct mne *mp;
 	struct expr e1, e2;
 	int rf, v1, v2;
 
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
+
 	clrexpr(&e1);
 	clrexpr(&e2);
 	op = (int) mp->m_valu;
 	rf = mp->m_type;
-	if (!mchtyp && rf>S_CPU)
-		rf = 0;
-	switch (rf) {
 
+	switch (rf) {
+	case S_CPU:
+		opcycles = OPCY_CPU;
+		mchtyp = op;
+		sym[2].s_addr = op;
+		lmode = SLIST;
+		break;
+
+	case X_INH1:
 	case S_INH1:
 		outab(op);
 		break;
@@ -395,7 +486,7 @@ struct mne *mp;
 			if ((v1 = admode(CND)) != 0) {
 				outab(op | (v1<<3));
 			} else {
-				qerr();
+				xerr('a', "Require condition code NZ, Z, NC, or C.");
 			}
 		} else {
 			outab(0xC9);
@@ -415,13 +506,13 @@ struct mne *mp;
 			outab(op | (v1<<4));
 			break;
 		}
-		aerr();
+		xerr('a', "Only 16-Bit registers except SP.");
 		break;
 
 	case S_RST:
 		v1 = (int) absexpr();
 		if (v1 & ~0x38) {
-			aerr();
+			xerr('a', "Allowed values: N * 0x08, N = 0 -> 7."); 
 			v1 = 0;
 		}
 		outab(op|v1);
@@ -431,7 +522,7 @@ struct mne *mp;
 		expr(&e1, 0);
 		abscheck(&e1);
 		if (e1.e_addr > 2) {
-			aerr();
+			xerr('a', "Values of 0, 1, and 2 are valid.");
 			e1.e_addr = 0;
 		}
 		outab(op);
@@ -451,7 +542,7 @@ struct mne *mp;
 		addr(&e2);
 		abscheck(&e1);
 		if (genop(0xCB, op, &e2, 0) || t1)
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_RL:
@@ -465,7 +556,7 @@ struct mne *mp;
 			t2 = addr(&e2);
 		}
 		if (genop(0xCB, op, &e2, 0) || t1)
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_AND:
@@ -484,7 +575,13 @@ struct mne *mp;
 				t2 = e2.e_mode = S_IMMED;
 		}
 		if (genop(0, op, &e2, 1) || t1)
-			aerr();
+			xerr('a', "Invalid Addressing Mode.");
+		break;
+
+	case X_ADI:
+		expr(&e1, 0);
+		outab(op);
+		outrb(&e1, 0);
 		break;
 
 	case S_ADD:
@@ -502,12 +599,12 @@ struct mne *mp;
 			if (t1 == S_USER)
 				t1 = e1.e_mode = S_IMMED;
 			if (genop(0, op, &e1, 1))
-				aerr();
+				xerr('a', "Invalid Addressing Mode.");
 			break;
 		}
 		if ((t1 == S_R8) && (e1.e_addr == A)) {
 			if (genop(0, op, &e2, 1))
-				aerr();
+				xerr('a', "Second argument: Invalid Addressing Mode.");
 			break;
 		}
 		if ((t1 == S_R16) && (t2 == S_R16)) {
@@ -526,7 +623,7 @@ struct mne *mp;
 				break;
 			}
 			if (rf != S_ADD) {
-				aerr();
+				xerr('a', "Only valid with ADD.");
 				break;
 			}
 			if ((v1 == IX) && (v2 != HL) && (v2 != IY)) {
@@ -544,7 +641,7 @@ struct mne *mp;
 				break;
 			}
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_LD:
@@ -642,7 +739,7 @@ struct mne *mp;
 				break;
 			}
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 
@@ -670,7 +767,7 @@ struct mne *mp;
 			outab(0x08);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_IN:
@@ -698,7 +795,7 @@ struct mne *mp;
 				break;
 			}
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_DEC:
@@ -729,7 +826,7 @@ struct mne *mp;
 				break;
 			}
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_DJNZ:
@@ -738,16 +835,15 @@ struct mne *mp;
 			if ((v1 &= 0xFF) <= 0x03) {
 				op += (v1+1)<<3;
 			} else {
-				aerr();
+				xerr('a', "Condition code required.");
 			}
 			comma(1);
 		}
 		expr(&e2, 0);
 		outab(op);
-		if (mchpcr(&e2)) {
-			v2 = (int) (e2.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e2, &v2, 1)) {
 			if ((v2 < -128) || (v2 > 127))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outab(v2);
 		} else {
 			outrb(&e2, R_PCR);
@@ -763,6 +859,12 @@ struct mne *mp;
 		} else {
 			op = 0xCD;
 		}
+		expr(&e1, 0);
+		outab(op);
+		outrw(&e1, 0);
+		break;
+
+	case X_JP:
 		expr(&e1, 0);
 		outab(op);
 		outrw(&e1, 0);
@@ -787,14 +889,7 @@ struct mne *mp;
 			outab(0xE9);
 			break;
 		}
-		aerr();
-		break;
-
-	case S_CPU:
-		opcycles = OPCY_CPU;
-		mchtyp = op;
-		sym[2].s_addr = op;
-		lmode = SLIST;
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case X_INH2:
@@ -819,7 +914,7 @@ struct mne *mp;
 			outrb(&e2, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case X_MLT:
@@ -829,7 +924,7 @@ struct mne *mp;
 			outab(op | (v1<<4));
 			break;
 		}
-		aerr();
+		xerr('a', "Only BC, DE, HL and SP are allowed.");
 		break;
 
 	case X_TST:
@@ -852,7 +947,7 @@ struct mne *mp;
 			outrb(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case X_TSTIO:
@@ -865,36 +960,46 @@ struct mne *mp;
 			outrb(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 
+	if (rf != S_CPU) {
+		if (mchtyp == X_Z80) {
+			if (rf > S_CPU)
+				xerr('o', "Not a Z80 instruction.");
+		} else
+		if (mchtyp == X_HD64) {
+			if ((rf > S_CPU) && (rf < X_CPU))
+				xerr('o', "Not an HD64180 instruction.");
+		} else
+		if (mchtyp == X_8080) {
+			if ((i80pg1[cb[0] & 0xFF]) == UN)
+				xerr('o', "Not an 8080 instruction.");
+			if (rf > S_CPU)
+				xerr('o', "Not an 8080 instruction.");
+		} else
+		if (mchtyp == X_8085) {
+			if ((i85pg1[cb[0] & 0xFF]) == UN)
+				xerr('o', "Not a standard 8085 instruction.");
+			if (rf > X_CPU)
+				xerr('o', "Not a standard 8085 instruction.");
+		} else
+		if (mchtyp == X_8085X) {
+			if (rf > X_CPU)
+				xerr('o', "Not an 8085 instruction.");
+		}
+	}
+
 	if (opcycles == OPCY_NONE) {
-		if (mchtyp) {
-			opcycles = hd64pg1[cb[0] & 0xFF];
-			while ((opcycles & OPCY_NONE) && (opcycles & OPCY_MASK)) {
-				switch (opcycles) {
-				case P2:	/* CB xx	*/
-				case P3:	/* DD xx	*/
-				case P4:	/* ED xx	*/
-				case P5:	/* FD xx	*/
-					opcycles = hd64Page[opcycles & OPCY_MASK][cb[1] & 0xFF];
-					break;
-				case P6:	/* DD CB -- xx	*/
-				case P7:	/* FD CB -- xx	*/
-					opcycles = hd64Page[opcycles & OPCY_MASK][cb[3] & 0xFF];
-					break;
-				default:
-					opcycles = OPCY_NONE;
-					break;
-				}
-			}
-		} else {
+		switch(mchtyp) {
+		default:
+		case X_Z80:
 			opcycles = z80pg1[cb[0] & 0xFF];
 			while ((opcycles & OPCY_NONE) && (opcycles & OPCY_MASK)) {
 				switch (opcycles) {
@@ -913,8 +1018,47 @@ struct mne *mp;
 					break;
 				}
 			}
+			break;
+
+		case X_HD64:
+			opcycles = hd64pg1[cb[0] & 0xFF];
+			while ((opcycles & OPCY_NONE) && (opcycles & OPCY_MASK)) {
+				switch (opcycles) {
+				case P2:	/* CB xx	*/
+				case P3:	/* DD xx	*/
+				case P4:	/* ED xx	*/
+				case P5:	/* FD xx	*/
+					opcycles = hd64Page[opcycles & OPCY_MASK][cb[1] & 0xFF];
+					break;
+				case P6:	/* DD CB -- xx	*/
+				case P7:	/* FD CB -- xx	*/
+					opcycles = hd64Page[opcycles & OPCY_MASK][cb[3] & 0xFF];
+					break;
+				default:
+					opcycles = OPCY_NONE;
+					break;
+				}
+			}
+			break;
+
+		case X_8080:
+			opcycles = i80pg1[cb[0] & 0xFF];
+			break;
+
+		case X_8085:
+			opcycles = i85pg1[cb[0] & 0xFF];
+			break;
+
+		case X_8085X:
+			opcycles = x85pg1[cb[0] & 0xFF];
+			break;
 		}
 	}
+	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*
@@ -930,6 +1074,8 @@ int f;
 {
 	int t1;
 
+	if ((mchtyp == X_8080) && pop)
+		xerr('a', "Not an 8080 instruction or an invalid argument.");
 	if ((t1 = esp->e_mode) == S_R8) {
 		if (pop)
 			outab(pop);
@@ -990,10 +1136,28 @@ int v;
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - n);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - n);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {
@@ -1022,9 +1186,10 @@ minit()
 	 */
 	hilo = 0;
 
-	if (pass == 0) {
-		mchtyp = X_Z80;
-		sym[2].s_addr = X_Z80;
-	}
+	/*
+	 * Default Machine Type
+	 */
+	mchtyp = X_Z80;
+	sym[2].s_addr = X_Z80;
 }
 

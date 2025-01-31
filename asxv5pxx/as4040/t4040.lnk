@@ -1,0 +1,8 @@
+-g xsjmp=0
+-g xljmp=0
+-g xbyt=0
+-g xnbl=0
+-i
+-u
+t4040
+-e

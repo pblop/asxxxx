@@ -1,7 +1,7 @@
 /* aslex.c */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2022  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@
  *		int	nxtline()
  *		int	replace()
  *		VOID	scanline()
+ *		int	skpcomma()
  *		VOID	unget()
  *
  *	aslex.c contains no local/static variables
@@ -85,7 +86,6 @@
  *	called functions:
  *		int	get()		aslex.c
  *		int	getnb()		aslex.c
- *		VOID	getsub()	aslex.c
  *		VOID	unget()		aslex.c
  *
  *	side effects:
@@ -420,6 +420,13 @@ int d;
 		c = get();
 		switch (c) {
 
+		default:
+			unget(c);
+
+		case '\\':
+			c = '\\';
+			break;
+
 		case 'b':
 			c = '\b';
 			break;
@@ -457,11 +464,6 @@ int d;
 			unget(c);
 			c = v;
 			break;
-
-		default:
-			unget(c);
-			c = '\\';
-			break;
 		}
 	}
 	return (c);
@@ -486,8 +488,8 @@ int d;
  *
  *	called functions:
  *		int	getnb()		aslex.c
- *		VOID	qerr()		assubr.c
  *		VOID	unget()		aslex.c
+ *		VOID	xerr()		assubr.c
  *
  *	side effects:
  *		assembler-source text line pointer updated
@@ -501,10 +503,40 @@ int flag;
 
 	if ((c = getnb()) != ',') {
 		if (flag) {
-			qerr();
+			xerr('q', "Expected a ','.");
 		} else {
 			unget(c);
 		}
+		return(0);
+	}
+	return(1);
+}
+
+/*)Function	int	skpcomma(VOID)
+ *
+ *	The function skpcomma() checks for and then skips an
+ *	immediate COMMA.  The function returns '1' if a COMMA
+ *	was found else a '0' is returned.
+ *
+ *	local variables:
+ *		int	c		last character read from
+ *					assembler-source text line
+ *
+ *	global variables:
+ *
+ *	functions called:
+ *		int	get()		aslex.c
+ *		VOID	unget()		aslex.c
+ *
+ *	side effects:
+ *		assembler-source text line pointer may be updated
+ */
+int skpcomma()
+{
+	int c;
+
+	if ((c = get()) != ','){
+		unget(c);
 		return(0);
 	}
 	return(1);
@@ -553,6 +585,8 @@ int flag;
  *		int	fclose()	c_library
  *		char *	fgets()		c_library
  *		char *	fgetm()		asmcro.c
+ *		int	fprintf()	c_library
+ *		VOID	listhlr()	aslist.c
  *		VOID	scanline()	aslex.c
  *		char *	strcpy()	c_library
  *
@@ -565,22 +599,29 @@ int flag;
  *
  * --------------------------------------------------------------
  *
- * How the assembler sequences the command line assembler
- * source files, include files, and macros is shown in a
- * simplified manner in the following.
+ * How the assembler sequences the -i command line strings,
+ * command line assembler source files, include files, and
+ * macros is shown in a simplified manner in the following.
  *
- *	main[asmain] sequences the command line files by creating
- *	a linked list of asmf structures, one for each file.
+ *	main[asmain] sequences the assembly by creating a
+ *	linked list of asmf structures, one for each command
+ *	line string and one for each file.
  *
  *	asmf structures:
+ *
+ *	 ------       ------
+ *	| asmo | --> | asmp |
+ *	 ------       ------
+ *
+ *	At the beginning of each assembler pass set asmc = asmo
+ *	which will process any -i command line string T_INSERT
+ *	asmf structures and then process the files in sequence.
+ *
  *	             -------------       -------------               -------------
  *                  | File 1      |     | File 2      |             | File N      |
  *	 ------     |       ------|     |       ------|             |       ------|      
  *	| asmp | -->|      | next | --> |      | next | --> ... --> |      | NULL |
  *	 ------      -------------       -------------               -------------
- *
- *	At the beginning of each assembler pass set asmc = asmp
- *	and process the files in sequence.
  *
  *	If the source file invokes the .include directive to process a
  *	file then a new asmf structure is prepended to the asmc structure
@@ -602,7 +643,7 @@ int flag;
  *	| asmp | -->|      | next | --> |      | next | --> ... --> |      | NULL |
  *	 ------      -------------       -------------               -------------
  *
- *	At the .include point link the asmi structure to asmc
+ *	At the .include point link set the asmi structure to asmc
  *	and then set asmc = asmi (the include file asmf structure).
  *
  *	If a source file invokes a macro then a new asmf structure is
@@ -625,7 +666,7 @@ int flag;
  *	| asmp | -->|      | next | --> |      | next | --> ... --> |      | NULL |
  *	 ------      -------------       -------------               -------------
  *
- *	At the macro point link the asmq structure to asmc
+ *	At the macro point link set the asmq structure to asmc
  *	and then set asmc = asmq (the macro asmf structure).
  *
  *	Note that both include files and macros can be nested.
@@ -636,12 +677,15 @@ int flag;
  *	of the assembler.
  *
  *	Macros are recreated during each pass of the assembler.
+ *
  */
 
 int
 nxtline()
 {
 	struct asmf *asmt;
+	struct macrofp *nfp;
+	struct mcrdef *np;
 
 loop:	if (asmc == NULL) return(0);
 
@@ -652,6 +696,12 @@ loop:	if (asmc == NULL) return(0);
 		asmc = asmi;
 		asmi = NULL;
 		incline = 0;
+		if (trcflags & TRC_INC) {
+			if ((pass == 2) && (lfp != NULL)) {
+				fprintf(lfp, ";I>> (%d) %s\n", incfil, asmc->afn);
+				listhlr(LIST_SRC, SLIST, 0);
+			}
+		}
 	}
 	/*
 	 * Insert Queued Macro
@@ -659,12 +709,40 @@ loop:	if (asmc == NULL) return(0);
 	if (asmq != NULL) {
 		asmc = asmq;
 		asmq = NULL;
-		mcrline = 0;
+		nfp = (struct macrofp *) asmc->fp;
+		np = nfp->np;
+		mcrline = np->fline;
+		if (trcflags & TRC_MCR) {
+			if ((pass == 2) && (lfp != NULL)) {
+				fprintf(lfp, ";M>> (%d) %s (%d)\n", mcrfil, np->fname, np->fline);
+				listhlr(LIST_SRC, SLIST, 0);
+			}
+		}
 	}
 
 	switch(asmc->objtyp) {
+	case T_INSERT:
+		if (trcflags & TRC_INS) {
+			if ((pass == 2) && (lfp != NULL)) {
+				fprintf(lfp, ";N>>\n");
+				listhlr(LIST_SRC, SLIST, 0);
+			}
+		}
+		strcpy(ib,asmc->afn);
+		if (asmc->lnlist != 0) {
+			srcline++;
+		}
+		asmc = asmc->next;
+		break;
+
 	case T_ASM:
 		if (fgets(ib, NINPUT, asmc->fp) == NULL) {
+			if (trcflags & TRC_ASM) {
+				if ((pass == 2) && (lfp != NULL)) {
+					fprintf(lfp, ";A<< %s\n", asmc->afn);
+					listhlr(LIST_SRC, SLIST, 0);
+				}
+			}
 			if ((asmc->flevel != flevel) || (asmc->tlevel != tlevel)) {
 				err('i');
 				fprintf(stderr, "?ASxxxx-Error-<i> at end of assembler file\n");
@@ -683,6 +761,12 @@ loop:	if (asmc == NULL) return(0);
 			goto loop;
 		} else {
 			if (asmline++ == 0) {
+				if (trcflags & TRC_ASM) {
+					if ((pass == 2) && (lfp != NULL)) {
+						fprintf(lfp, ";A>> %s\n", asmc->afn);
+						listhlr(LIST_SRC, SLIST, 0);
+					}
+				}
 				strcpy(afn, asmc->afn);
 				afp = asmc->afp;
 			}
@@ -692,6 +776,12 @@ loop:	if (asmc == NULL) return(0);
 
 	case T_INCL:
 		if (fgets(ib, NINPUT, asmc->fp) == NULL) {
+			if (trcflags & TRC_INC) {
+				if ((pass == 2) && (lfp != NULL)) {
+					fprintf(lfp, ";I<< (%d) %s\n", incfil, asmc->afn);
+					listhlr(LIST_SRC, SLIST, 0);
+				}
+			}
 			fclose(asmc->fp);
 			incfil -= 1;
 			if ((asmc->flevel != flevel) || (asmc->tlevel != tlevel)) {
@@ -737,6 +827,14 @@ loop:	if (asmc == NULL) return(0);
 
 	case T_MACRO:
 		if (fgetm(ib, NINPUT, asmc->fp) == NULL) {
+			nfp = (struct macrofp *) asmc->fp;
+			np = nfp->np;
+			if (trcflags & TRC_MCR) {
+				if ((pass == 2) && (lfp != NULL)) {
+					fprintf(lfp, ";M<< (%d) %s (%d)\n", mcrfil, np->fname, line);
+					listhlr(LIST_SRC, SLIST, 0);
+				}
+			}
 			mcrfil -= 1;
 			srcline = asmc->line;
 			flevel = asmc->flevel;
@@ -749,6 +847,7 @@ loop:	if (asmc == NULL) return(0);
 			case T_INCL:	incline = srcline;	break;
 			case T_MACRO:	mcrline = srcline;	break;
 			}
+			popmstk(np);
 			goto loop;
 		} else {
 			if (mcrline++ == 0) {
@@ -909,6 +1008,7 @@ scanline()
  *	called functions:
  *		int	fprintf()	c_library
  *		int	getlnm()	assubr.c
+ *		VOID	listhlr()	aslist.c
  *		VOID	slew()		aslist.c
  *		char *	strcat()	c_library
  *		char *	strcpy()	c_library
@@ -960,6 +1060,10 @@ char *id;
 					case 4: frmt = "  %32s%5u %s\n"; break;
 					}
 					fprintf(lfp, frmt, "", line, ib);
+					/*
+					 * Update HLR File
+					 */
+					listhlr(LIST_SRC, SLIST, 0);
 				}
 			}
 			/*

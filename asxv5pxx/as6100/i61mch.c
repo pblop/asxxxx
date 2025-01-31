@@ -1,7 +1,7 @@
 /* i61mch.c */
 
 /*
- *  Copyright (C) 2013-2014  Alan R. Baldwin
+ *  Copyright (C) 2013-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,8 +34,8 @@ char *dsft = "asm";
 #define	OPCY_SDP	((char) (0xFF))
 #define	OPCY_ERR	((char) (0xFE))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	OPCY_SKP	((char) (0xFD))
 
@@ -51,6 +51,12 @@ struct mne *mp;
 	char id[NCPS];
 	struct mne *gmp;
 	int c, cnt, d, nc, opc;
+
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
 
 	clrexpr(&e1);
 	clrexpr(&e2);
@@ -69,19 +75,19 @@ struct mne *mp;
 			expr(&e1, 0);
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 				if (e1.e_addr & ~0x1F) {
-					err('b');
+					xerr('b', "Paging Error: 0 -> 31 allowed, page set to 0.");
 					e1.e_addr = 0;
 				}
 				e1.e_addr <<= 7;
 			} else {
-				err('b');
+				xerr('b', "Absolute Page Number Required.");
 				clrexpr(&e1);
 			}
 			dot.s_addr = e1.e_addr;
 		} else {
 			dot.s_addr = (dot.s_addr + 0x7F) & ~0x7F;
 			if (dot.s_addr & ~0xFFF) {
-				err('b');
+				xerr('b', "Next page is > 31, page set to 0.");
 				dot.s_addr = 0;
 			}
 			e1.e_addr = dot.s_addr;
@@ -99,12 +105,12 @@ struct mne *mp;
 		expr(&e1, 0);
 		if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 			if (e1.e_addr & ~0x1F) {
-				err('b');
+				xerr('b', "Paging Error: 0 -> 31 allowed, page set to 0.");
 				e1.e_addr = 0;
 			}
 			e1.e_addr <<= 7;
 		} else {
-			err('b');
+			xerr('b', "Absolute Page Number Required.");
 			clrexpr(&e1);
 		}
 		outdp(dot.s_area, &e1, 0);
@@ -120,11 +126,11 @@ struct mne *mp;
 		expr(&e1, 0);
 		if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 			if (e1.e_addr & ~0x0F80) {
-				err('b');
+				xerr('b', "Invalid Page Address.");
 				e1.e_addr &= 0x0F80;
 			}
 		} else {
-			err('b');
+			xerr('b', "Absolute Number Required.");
 			clrexpr(&e1);
 		}
 		outdp(dot.s_area, &e1, 0);
@@ -152,7 +158,7 @@ struct mne *mp;
 		clrexpr(&e1);
 		expr(&e1, 0);
 		outchk(HUGE,HUGE);
-		cnt = e1.e_addr * mp->m_valu;
+		cnt = (int) e1.e_addr * mp->m_valu;
 		nc = 1 + ((dot.s_area->a_flag) & A_BYTES);
 		dot.s_addr += (cnt/nc) + (cnt % nc ? 1 : 0);
 		lmode = BLIST;
@@ -254,32 +260,32 @@ struct mne *mp;
 				/* Group 1 */
 				if ((op & 00400) == 0) {
 					if ((opc & 00400) == 00400) {
-						err('1');
+						xerr('1', "Group 1 Error.");
 					} else
 					if (((op & 00016) != 0) && ((opc & 00016) != 0)){
 						if (((op & 00016) == 00002) || ((opc & 00016) == 00002)) {
-							err('1');
+							xerr('1', "Group 1 Error.");
 						} else
 						if ((op & 00002) != (opc & 00002)) {
-							err('1');
+							xerr('1', "Group 1 Error.");
 						}
 					}
 				} else
 				/* Group 2 */
 				if ((op & 00401) == 00400) {
 					if ((opc & 00401) != 00400) {
-						err('2');
+						xerr('2', "Group 2 Error.");
 					} else
 					if (((op & 00170) != 0) && ((opc & 00170) != 0)) {
 						if ((op & 00010) != (opc & 00010)) {
-							err('2');
+							xerr('2', "Group 2 Error.");
 						}
 					}
 				} else
 				/* Group 3 */
 				if ((op & 00401) == 00401) {
 					if ((opc & 00401) != 00401) {
-						err('3');
+						xerr('3', "Group 3 Error.");
 					}
 				}
 				op |= opc;
@@ -296,7 +302,7 @@ struct mne *mp;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 	if (opcycles == OPCY_NONE) {
@@ -352,6 +358,11 @@ struct mne *mp;
 			break;
 		}
 	}
+ 	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*

@@ -1,7 +1,7 @@
 /* m6812.h */
 
 /*
- *  Copyright (C) 1989-2014  Alan R. Baldwin
+ *  Copyright (C) 1989-2021  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -106,10 +106,15 @@
  * Set Direct Pointer
  */
 #define	S_SDP		80
-#define	S_CPU		81
+#define	S_PGD		81
 
 /*
- * Processor Type
+ * CPU Option
+ */
+#define	S_CPU		82
+
+/*
+ * Processor Type (S_CPU)
  */
 #define	X_HC12		0
 #define X_HCS12		1
@@ -160,17 +165,17 @@ extern struct opdata mc6811[];
 extern	int		addr(struct expr *esp);
 extern	int		addr1(struct expr *esp);
 extern	int		admode(struct adsym *sp);
-extern	int		any(int c, char *str);
 extern	int		srch(char *str);
 
 	/* m12mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine(struct mne *mp);
 extern	VOID		genout(int cpg, int op, int rf, struct expr *esp);
 extern	VOID		movout(struct expr *esp, int indx, int offset);
 extern	VOID		m68out(int i);
 extern	int		setbit(int b);
 extern	int		getbit(void);
-extern	int		mchpcr(struct expr *esp);
+extern	int		mchpcr(struct expr *esp, int *v, int n);
 extern	VOID		minit(void);
 
 #else
@@ -179,10 +184,10 @@ extern	VOID		minit(void);
 extern	int		addr();
 extern	int		addr1();
 extern	int		admode();
-extern	int		any();
 extern	int		srch();
 
 	/* m12mch.c */
+extern	struct  area	*zpg;
 extern	VOID		machine();
 extern	VOID		genout();
 extern	VOID		movout();

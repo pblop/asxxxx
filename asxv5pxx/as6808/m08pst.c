@@ -1,7 +1,7 @@
 /* m08pst.c */
 
 /*
- *  Copyright (C) 1993-2014  Alan R. Baldwin
+ *  Copyright (C) 1993-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -57,8 +57,15 @@ char	mode0[32] = {	/* R_NORM */
 /*
  * Additional Relocation Mode Definitions
  */
-
-/* None Required */
+/*
+ *	#define		R_3BIT	0100		Bit Positioning
+ */
+char	mode1[32] = {	/* R_3BIT */
+	'\201',	'\202',	'\203',	'\003',	'\004',	'\005',	'\006',	'\007',
+	'\010',	'\011',	'\012',	'\013',	'\014',	'\015',	'\016',	'\017',
+	'\020',	'\021',	'\022',	'\023',	'\024',	'\025',	'\026',	'\027',
+	'\030',	'\031',	'\032',	'\033',	'\034',	'\035',	'\036',	'\037'
+};
 
 /*
  *     *m_def is a pointer to the bit relocation definition.
@@ -74,15 +81,16 @@ char	mode0[32] = {	/* R_NORM */
  *		a_uint	m_sbits;	Source Bit Mask
  *	};
  */
-struct	mode	mode[1] = {
-    {	&mode0[0],	0,	0x0000FFFF,	0x0000FFFF	}
+struct	mode	mode[2] = {
+    {	&mode0[0],	0,	0x0000FFFF,	0x0000FFFF	},
+    {	&mode1[0],	1,	0x0000000E,	0x00000007	}
 };
 
 /*
  * Array of Pointers to mode Structures
  */
 struct	mode	*modep[16] = {
-	&mode[0],	NULL,		NULL,		NULL,
+	&mode[0],	&mode[1],	NULL,		NULL,
 	NULL,		NULL,		NULL,		NULL,
 	NULL,		NULL,		NULL,		NULL,
 	NULL,		NULL,		NULL,		NULL
@@ -93,34 +101,19 @@ struct	mode	*modep[16] = {
  */
 struct	mne	mne[] = {
 
-	/* machine */
+	/* assembler */
 
-    {	NULL,	"CSEG",		S_ATYP,		0,	A_CSEG|A_1BYTE	},
-    {	NULL,	"DSEG",		S_ATYP,		0,	A_DSEG|A_1BYTE	},
-
-    {	NULL,	".setdp",	S_SDP,		0,	0	},
-
-	/* system */
-
-    {	NULL,	"BANK",		S_ATYP,		0,	A_BNK	},
-    {	NULL,	"CON",		S_ATYP,		0,	A_CON	},
-    {	NULL,	"OVR",		S_ATYP,		0,	A_OVR	},
-    {	NULL,	"REL",		S_ATYP,		0,	A_REL	},
-    {	NULL,	"ABS",		S_ATYP,		0,	A_ABS	},
-    {	NULL,	"NOPAG",	S_ATYP,		0,	A_NOPAG	},
-    {	NULL,	"PAG",		S_ATYP,		0,	A_PAG	},
-
-    {	NULL,	"BASE",		S_BTYP,		0,	B_BASE	},
-    {	NULL,	"SIZE",		S_BTYP,		0,	B_SIZE	},
-    {	NULL,	"FSFX",		S_BTYP,		0,	B_FSFX	},
-    {	NULL,	"MAP",		S_BTYP,		0,	B_MAP	},
-
+    {	NULL,	".enabl",	S_OPTN,		0,	O_ENBL	},
+    {	NULL,	".dsabl",	S_OPTN,		0,	O_DSBL	},
     {	NULL,	".page",	S_PAGE,		0,	0	},
     {	NULL,	".title",	S_HEADER,	0,	O_TITLE	},
     {	NULL,	".sbttl",	S_HEADER,	0,	O_SBTTL	},
     {	NULL,	".module",	S_MODUL,	0,	0	},
-    {	NULL,	".include",	S_INCL,		0,	0	},
+    {	NULL,	".include",	S_INCL,		0,	I_CODE	},
+    {	NULL,	".incbin",	S_INCL,		0,	I_BNRY	},
     {	NULL,	".area",	S_AREA,		0,	0	},
+    {	NULL,	".psharea",	S_AREA,		0,	O_PSH	},
+    {	NULL,	".poparea",	S_AREA,		0,	O_POP	},
     {	NULL,	".bank",	S_BANK,		0,	0	},
     {	NULL,	".org",		S_ORG,		0,	0	},
     {	NULL,	".radix",	S_RADIX,	0,	0	},
@@ -173,8 +166,10 @@ struct	mne	mne[] = {
     {	NULL,	".fdb",		S_DATA,		0,	O_2BYTE	},
 /*    {	NULL,	".3byte",	S_DATA,		0,	O_3BYTE	},	*/
 /*    {	NULL,	".triple",	S_DATA,		0,	O_3BYTE	},	*/
+/*    {	NULL,	".dl",		S_DATA,		0,	O_4BYTE	},	*/
 /*    {	NULL,	".4byte",	S_DATA,		0,	O_4BYTE	},	*/
 /*    {	NULL,	".quad",	S_DATA,		0,	O_4BYTE	},	*/
+/*    {	NULL,	".long",	S_DATA,		0,	O_4BYTE	},	*/
     {	NULL,	".blkb",	S_BLK,		0,	O_1BYTE	},
     {	NULL,	".ds",		S_BLK,		0,	O_1BYTE	},
     {	NULL,	".rmb",		S_BLK,		0,	O_1BYTE	},
@@ -182,6 +177,7 @@ struct	mne	mne[] = {
     {	NULL,	".blkw",	S_BLK,		0,	O_2BYTE	},
 /*    {	NULL,	".blk3",	S_BLK,		0,	O_3BYTE	},	*/
 /*    {	NULL,	".blk4",	S_BLK,		0,	O_4BYTE	},	*/
+/*    {	NULL,	".blkl",	S_BLK,		0,	O_4BYTE	},	*/
     {	NULL,	".ascii",	S_ASCIX,	0,	O_ASCII	},
     {	NULL,	".ascis",	S_ASCIX,	0,	O_ASCIS	},
     {	NULL,	".asciz",	S_ASCIX,	0,	O_ASCIZ	},
@@ -204,6 +200,9 @@ struct	mne	mne[] = {
 /*    {	NULL,	".16bit",	S_BITS,		0,	O_2BYTE	},	*/
 /*    {	NULL,	".24bit",	S_BITS,		0,	O_3BYTE	},	*/
 /*    {	NULL,	".32bit",	S_BITS,		0,	O_4BYTE	},	*/
+    {	NULL,	".trace",	S_TRACE,	0,	O_TRC	},
+    {	NULL,	".ntrace",	S_TRACE,	0,	O_NTRC	},
+/*    {	NULL,	"_______",	S_CONST,	0,	VALUE	},	*/
     {	NULL,	".end",		S_END,		0,	0	},
 
 	/* Macro Processor */
@@ -223,6 +222,11 @@ struct	mne	mne[] = {
     {	NULL,	".nval",	S_MACRO,	0,	O_NVAL	},
 
     {	NULL,	".mdelete",	S_MACRO,	0,	O_MDEL	},
+
+	/* Special */
+
+    {	NULL,	".setdp",	S_SDP,		0,	0	},
+    {	NULL,	".dpgbl",	S_PGD,		0,	0	},
 
 	/* Machines */
 

@@ -28,7 +28,8 @@
            <A HREF="#SECT3_3">Passing Numerical Arguments as Symbols</A>
            <A HREF="#SECT3_4">Number of Arguments in Macro Calls</A>
            <A HREF="#SECT3_5">Creating Local Symbols Automatically</A>
-           <A HREF="#SECT3_6">Concatenation of Macro Arguments</A>
+           <A HREF="#SECT3_6">Keyword Arguments</A>
+           <A HREF="#SECT3_7">Concatenation of Macro Arguments</A>
    <IMG SRC = "orange.gif" ALT = "-">... <A HREF="#SECT4">Macro Attributes Directives</A>
       <IMG SRC = "yellow.gif" ALT = "-">  <A HREF= #NARG><FONT COLOR="#FFFF00">.narg</FONT></A> 
       <IMG SRC = "yellow.gif" ALT = "-">  <A HREF= #NCHR><FONT COLOR="#FFFF00">.nchr</FONT></A>
@@ -42,10 +43,11 @@
    <IMG SRC = "orange.gif" ALT = "-">... <A HREF="#SECT7">Macro Deletion Directive</A>
       <IMG SRC = "yellow.gif" ALT = "-">  <A HREF= #MDELETE><FONT COLOR="#FFFF00">.mdelete</FONT></A> 
    <IMG SRC = "orange.gif" ALT = "-">... <A HREF="#SECT8">Macro Invocation Details</A>
-   <IMG SRC = "orange.gif" ALT = "-">... <A HREF="#SECT9">Building a Macro Library</A>
-           <A HREF="#SECT9_1">.mlib  Macro Directive</A>
-           <A HREF="#SECT9_2">.mcall Macro Directive</A>
-   <IMG SRC = "orange.gif" ALT = "-">... <A HREF="#SECT10">Example Macro Cross Assemblers</A>
+   <IMG SRC = "orange.gif" ALT = "-">... <A HREF="#SECT9">Controlling Macro Listings</A>
+   <IMG SRC = "orange.gif" ALT = "-">... <A HREF="#SECT10">Building a Macro Library</A>
+           <A HREF="#SECT10_1">.mlib  Macro Directive</A>
+           <A HREF="#SECT10_2">.mcall Macro Directive</A>
+   <IMG SRC = "orange.gif" ALT = "-">... <A HREF="#SECT11">Example Macro Cross Assemblers</A>
 
    <IMG SRC = "orange.gif" ALT = "-">... <A HREF = "asxdoc.htm#TOP">Go to Documentation Index</A>
 </PRE></H4>
@@ -120,7 +122,7 @@ where:  label   represents an optional statement label.
                 separated by any legal separator.  The
                 detection of a duplicate or an illegal
                 symbol in a dummy argument list
-                terminates the scan and causes a 'q'
+                terminates the scan and causes a &ltq&gt
                 error to be generated.
 
 
@@ -132,7 +134,7 @@ tive, as shown below:
 
 The  first  statement  of  a  macro  definition must be a .macro
 directive.  Defining a macro with the same name as  an  existing
-macro will generate an 'm' error.  The .mdelete directive should
+macro will generate an &ltm&gt error.  The .mdelete directive should
 be used to delete the previous macro definition before  redefin-
 ing a macro.  
 </PRE></B></H4>
@@ -149,7 +151,7 @@ Format:
 
 The .endm directive should not have a label.  Because the direc-
 tives .irp, .irpc, and .rept may repeat more than once the label
-will  be  defined multiple times resulting in 'm' and/or 'p' er-
+will  be  defined multiple times resulting in &lt;m&gt; and/or &lt;p&gt; er-
 rors.  
 
    The  .endm  directive  may be followed by a comment field, as
@@ -169,7 +171,7 @@ directive, as shown below:
 The  final  statement  of every macro definition must be a .endm
 directive.  The .endm directive is also used to terminate  inde-
 finite  repeat  blocks and repeat blocks.  A .endm directive en-
-countered outside a macro definition  is  flagged  with  an  'n'
+countered outside a macro definition  is  flagged  with  an  <n>
 error.  
 </PRE></B></H4>
 <H5><A HREF= #Index> =&gt; Section Index</A></H5>
@@ -210,10 +212,10 @@ example:
 
 In  an  assembly  where  the  symbol  N is replaced by zero, the
 .mexit directive would assemble the conditional block  and  ter-
-minate  the  macro  expansion.   When macros ar nested, a .mexit
+minate  the  macro  expansion.  When macros are nested, a .mexit
 directive causes an exit to the next higher level of  macro  ex-
 pansion.  A .mexit directive encountered outside a macro defini-
-tion is flagged with an 'n' error.  
+tion is flagged with an &ltn&gt error.  
 </PRE></B></H4>
 <H5><A HREF= #Index> =&gt; Section Index</A></H5>
 
@@ -303,13 +305,13 @@ causes the entire expression
 
         exg    x,y
 
-to  replace all occurrances of the symbol a in the macro defini-
+to  replace all occurrences of the symbol a in the macro defini-
 tion.  Real arguments with a macro call  are  considered  to  be
 character  strings  and  are  treated  as a single entity during
 macro expansion.  
 
    The  up-arrow  (^)  construction also allows another up-arrow
-costruction to be passed as part of  the  argument.   This  con-
+construction to be passed as part of the  argument.   This  con-
 struction,  for example, could have been used in the above macro
 call, as follows:  
 
@@ -422,12 +424,12 @@ The above macro call (inc) would thus expand to:
 
         x0:     .word   4
 
-In  this  expanded  code,  the  lable x0:  results from the con-
+In  this  expanded  code,  the  label x0:  results from the con-
 catenation  of  two  real  arguments.   The  single  quote   (')
 character  in  the  label a'b:  concatenates the real argument x
 and 0 as they are passed during  the  expansion  of  the  macro.
-This type of argument construction is descibed in more detail in
-a following section.  
+This  type  of argument construction is described in more detail
+in a following section.  
 
    A  subsequent  call to the same macro would generate the fol-
 lowing code:  
@@ -448,7 +450,7 @@ macro expansion.
 
    A  macro  can  be defined with or without arguments.  If more
 arguments appear in the macro call than in the macro definition,
-a  'q'  error  is  generated.   If fewer arguments appear in the
+a  &ltq&gt  error  is  generated.   If fewer arguments appear in the
 macro call than in the macro definition, missing  arguments  are
 assumed to be null values.  The conditional directives .if b and
 .if nb can be used within the macro to detect missing arguments.
@@ -459,7 +461,7 @@ tive.
 <A NAME = "SECT3_5"></A><FONT COLOR="#FF0000">Creating Local Symbols Automatically</FONT>
 
    A  label is often required in an expanded macro.  In the con-
-ventional macro facilituies thus far described, a label must  be
+ventional macro facilities thus far described, a label  must  be
 explicitly  specified  as an argument with each macro call.  The
 user must be careful in issuing subsequent  calls  to  the  same
 macro  in  order  avoid duplicating labels.  This concern can be
@@ -523,11 +525,83 @@ symbol references in the previous block and their symbol defini-
 tions in the new one, causing error codes in the assembly  list-
 ing.   Furthermore  a  later  macro expansion that creates local
 symbols in the new block may duplicate one  of  the  symbols  in
-question,  causing  an additional error code 'p' in the assembly
+question,  causing  an additional error code &lt;p&gt; in the assembly
 listing.  
 
 
-<A NAME = "SECT3_6"></A><FONT COLOR="#FF0000">Concatenation of Macro Arguments</FONT>
+<A NAME = "SECT3_6"></A><FONT COLOR="#FF0000">Keyword Arguments</FONT>
+
+Format:
+
+        name=string
+
+where:  name    represents the dummy argument
+
+        string  represents the real symbolic argument
+
+The  keyword  argument may not contain embedded argument separa-
+tors unless delimited as described earlier.  
+
+
+   Macros may be defined with, and/or called with, keyword argu-
+ments.  When a keyword argument appears in  the  dummy  argument
+list  of  a  macro  definition, the specified string becomes the
+default real argument at macro call.  When  a  keyword  argument
+appears  in the real argument list of a macro call, however, the
+specified string becomes the real argument for the  dummy  argu-
+ment  that  matches the specified name, whether or not the dummy
+argument was defined with a keyword.  If a match  fails,  a  'q'
+error will be reported.  If it is desired to pass a non-matching
+argument  of  the  keyword  style  then  the  argument  must  be
+delimited.  
+
+   A  keyword argument may be specified anywhere in the argument
+list of a macro definition and is part of the positional  order-
+ing  of  macro arguments.  A keyword argument may also be speci-
+fied anywhere in the real argument list of a macro call, but  in
+this  case, does not effect the positional ordering of the argu-
+ments.  
+
+                  1         .list  (me)
+                  2 
+                  3         ; MACRO With Dummy Arguments
+                  4 
+                  5 .macro  TBL  name  dev="NL",blk=0,flg=3
+                  6         .word   blk
+                  7         .word   flg
+                  8 'name:  .asciz  dev
+                  9         .even
+                 10 .endm
+                 11 
+                 12         ; Invoke Multiple Times
+                 13 
+                 14         TBL  NL
+0000 00 00        6         .word   0
+0002 00 03        7         .word   3
+0004 4E 4C 00     8 NL:     .asciz  "NL"
+0008              9         .even
+                 15 
+                 16         TBL  DY  dev="DY0"
+0008 00 00        6         .word   0
+000A 00 03        7         .word   3
+000C 44 59 30 00  8 DY:     .asciz  "DY0"
+0010              9         .even
+                 17 
+                 18         TBL  RL  dev="RL3",blk=20.
+0010 00 14        6         .word   20.
+0012 00 03        7         .word   3
+0014 52 4C 33 00  8 RL:     .asciz  "RL3"
+0018              9         .even
+                 19 
+                 20         TBL  DU  dev="DU1",blk=1,flg=7
+0018 00 01        6         .word   1
+001A 00 07        7         .word   7
+001C 44 55 31 00  8 DU:     .asciz  "DU1"
+0020              9         .even
+                 21
+
+
+<A NAME = "SECT3_7"></A><FONT COLOR="#FF0000">Concatenation of Macro Arguments</FONT>
 
    The  apostrophe  or  single quote character (') operates as a
 legal delimiting character in macro definitions.  A single quote
@@ -551,9 +625,9 @@ xy:     asciz   "V05.00"
 
 In  expanding  the  first  line, the scan for the first argument
 terminates upon finding  the  first  apostrophe  (')  character.
-Since  A is a dummy argument, the apostrphe (') is removed.  The
+Since A is a dummy argument, the apostrophe (') is removed.  The
 scan then resumes with B;  B is also noted as another dummy  ar-
-gument.   The  two  real  arguments x and y are then concated to
+gument.  The two real arguments x and y are then concatenated to
 form the label xy:.  The third dummy argument is  noted  in  the
 operand field of the .asciz directive, causing the real argument
 V05.00 to be substituted in this field.  
@@ -604,12 +678,12 @@ where:  label   represents an optional statement label.
                 is equated to the number of arguments in
                 the macro call currently being expanded.
                 If a symbol is not specified, the .narg
-                directive is flagged with a 'q' error.
+                directive is flagged with a &ltq&gt error.
 
 The .narg directive is used to determine the number of arguments
 in the macro call currently being expanded.   Hence,  the  .narg
 directive  can appear only within a macro definition;  if it ap-
-pears elsewhere, an 'n' error is generated.  
+pears elsewhere, an &ltn&gt error is generated.  
 
    The  argument  count  includes null arguments as shown in the
 following:  
@@ -648,7 +722,7 @@ where:  label   represents an optional statement label.
                 the string of the macro call currently
                 being expanded.  If a symbol is not
                 specified, the .nchr  directive is
-                flagged with a 'q' error.
+                flagged with a &lt;q&gt; error.
 
         ,       represents any legal separator (comma,
                 space, and/or tab).
@@ -664,7 +738,7 @@ where:  label   represents an optional statement label.
                 cannot be detected because of a
                 syntactical error in the character
                 string, the .nchr directive reports
-                a 'q' error.
+                a &lt;q&gt; error.
 
 The .nchr directive, which can appear anywhere in an ASxxxx pro-
 gram, is used to determine the number of characters in a  speci-
@@ -691,7 +765,7 @@ where:  label   represents an optional statement label.
                 absolute and equated to 1 if arg is a
                 relocatable symbol.  If a symbol is not
                 specified then the .ntyp directive is
-                flagged with a 'q' error.
+                flagged with a &lt;q&gt; error.
 
         ,       represents any legal separator (comma,
                 space, and/or tab).
@@ -699,7 +773,7 @@ where:  label   represents an optional statement label.
         arg     represents any legal expression or
                 symbol. If arg is not specified
                 then the .ntyp directive is flagged
-                with a 'q' error.
+                with a &lt;q&gt; error.
 
 The .ntyp directive, which can appear anywhere in an ASxxxx pro-
 gram, is used to determine the symbol or expression type as  ab-
@@ -722,7 +796,7 @@ where:  label   represents an optional statement label.
                 is equated to the value of arg and made
                 absolute.  If a symbol is not specified
                 then the .nval directive is flagged
-                with a 'q' error.
+                with a &lt;q&gt; error.
 
         ,       represents any legal separator (comma,
                 space, and/or tab).
@@ -730,7 +804,7 @@ where:  label   represents an optional statement label.
         arg     represents any legal expression or
                 symbol. If arg is not specified
                 then the .nval directive is flagged
-                with a 'q' error.
+                with a &lt;q&gt; error.
 
 The .nval directive, which can appear anywhere in an ASxxxx pro-
 gram, is used to determine the value of arg and make the  result
@@ -778,7 +852,7 @@ where:  label   represents an optional statement label.
                 replaced with successive real arguments
                 from the argument list.  If the dummy
                 argument is not specified, the .irp
-                directive is flagged with a 'q' error.
+                directive is flagged with a &lt;q&gt; error.
 
         ,       represents any legal separator (comma,
                 space, and/or tab).
@@ -808,8 +882,8 @@ where:  label   represents an optional statement label.
 
 The .irp directive is used to replace a dummy argument with suc-
 cessive real arguments specified  in  an  argument  list.   This
-replacement  process  occurrs  during  the expansion of an inde-
-finite repeat block range.  
+replacement process occurs during the expansion of an indefinite
+repeat block range.  
 </PRE></B></H4>
 <H5><A HREF= #Index> =&gt; Section Index</A></H5>
 </PRE></B></H4>
@@ -834,7 +908,7 @@ where:  label   represents an optional statement label.
                 replaced with successive real characters
                 from the argument string.  If the dummy
                 argument is not specified, the .irpc
-                directive is flagged with a 'q' error.
+                directive is flagged with a &lt;q&gt; error.
 
         ,       represents any legal separator (comma,
                 space, and/or tab).
@@ -902,7 +976,7 @@ where:  label   represents an optional statement label.
                 value is less than or equal to zero (0),
                 the repeat block is not assembled.  If
                 this value is not an absolute value, the
-                .rept directive is flagged with an 'r'
+                .rept directive is flagged with an &lt;r&gt;
                 error.
                 
         range   represents the block of code to be
@@ -913,8 +987,8 @@ where:  label   represents an optional statement label.
         .endm   indicates the end of the repeat block
                 range.
 
-The .rept directive is used to duplicate a block of code, a cer-
-tain number of times, in line with other source code.  
+The  .rept  directive  is  used to duplicate a block of code, a
+certain number of times, in line with other source code.  
 </PRE></B></H4>  
 <H5><A HREF= #Index> =&gt; Section Index</A></H5>
 <IMG width=576 height=5 border=0 SRC="rnbow.gif">
@@ -925,7 +999,7 @@ tain number of times, in line with other source code.
 
 <H4><B><PRE>
 
-   The  .mdelete  directive  deletes  the definitions of the the
+   The  .mdelete  directive  deletes  the definitions of the
 specified macro(s).  
 
 
@@ -998,7 +1072,7 @@ code:   fnc
 dition is not propagated outside the macro.  
 
    Similarly,  when  the  .list-.nlist state is changed within a
-macro the change is not propogated outside the macro.  
+macro the change is not propagated outside the macro.  
 
    The  normal  .if-.else-.endif  processing verifies that every
 .if has a corresponding .endif.  When a macro, indefinite repeat
@@ -1011,6 +1085,35 @@ between the .mexit and .endm directives are skipped.
 <IMG width=576 height=5 border=0 SRC="rnbow.gif">
 <A NAME = "SECT9"> </A>
 <H3><B>
+<IMG SRC = "orange.gif" ALT = "-">   Controlling Macro Listings</A>
+</B></H3>
+
+<H4><B><PRE>
+
+   The  basic  .list  directive enables listing of all fields in
+the assembler listing and clears the 'me', 'meb' and  'mel'  op-
+tions.  
+
+   When  a  macro is entered the listing is by default inhibited
+unless the 'me' (enable listing), 'meb' (list  only  binary  and
+location), or 'mel' (enable listing forcing binary and location)
+options have been specified.  The 'me' option simply enables any
+previously  set  listing  options.   The 'meb' option clears all
+listing options and sets the 'bin' and 'loc' options.  The 'mel'
+option enables the previously set listing options and forces the
+'bin' and 'loc' options.  If no listing options  have  been  set
+then a list 'me' option will not cause any listing.  
+
+   Within  a  macro the .list/.nlist directives can set or clear
+any of the listing options but listing will only occur when  the
+'me' option is set.  
+
+</PRE></B></H4>
+  
+<H5><A HREF= #Index> =&gt; Section Index</A></H5>
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+<A NAME = "SECT10"> </A>
+<H3><B>
 <IMG SRC = "orange.gif" ALT = "-">   Building a Macro Library</A>
 </B></H3>
 
@@ -1022,12 +1125,12 @@ bining individual macros, sets of macros, or include file direc-
 tives into a single file.  Each macro entity is enclosed  within
 a .if/.endif block that selects the desired macro definitions.  
 
-   The  selection of specific macros to be imported in a program
-is performed by three macros, .mlib, .mcall,  and  .mload,  con-
-tained in the file mlib.def.  
+   The  selection  of specific macros to be imported into a pro-
+gram is performed by three macros, .mlib,  .mcall,  and  .mload,
+contained in the file mlib.def.  
 
 
-<A NAME = "SECT9_1"></A><FONT COLOR="#FF0000">.mlib Macro Directive</FONT>
+<A NAME = "SECT10_1"></A><FONT COLOR="#FF0000">.mlib Macro Directive</FONT>
 
 Format:
 
@@ -1089,7 +1192,7 @@ includes the macro library file with the listing disabled.
 .endm   ;.mlib
 
 
-<A NAME = "SECT9_2"></A><FONT COLOR="#FF0000">.mcall Macro Directive</FONT>
+<A NAME = "SECT10_2"></A><FONT COLOR="#FF0000">.mcall Macro Directive</FONT>
 
 Format:
 
@@ -1103,8 +1206,8 @@ where:
         macro8  the file specified with the .mlib macro.
 
 As  can  be  seen  from the macro definition of .mlib and .mcall
-shown above,  when  .mcall  is  invoked  temporary  symbols  are
-defined for each macro or macro set that is to be imported.  The
+shown above, when .mcall is invoked temporary  symbols  are  de-
+fined  for  each macro or macro set that is to be imported.  The
 macro .mload is then invoked to  load  the  macro  library  file
 specified in the call to .mlib.  
 
@@ -1150,7 +1253,7 @@ macro file which shows the M6809 macro group:
 </PRE></B></H4>  
 <H5><A HREF= #Index> =&gt; Section Index</A></H5>
 <IMG width=576 height=5 border=0 SRC="rnbow.gif">
-<A NAME = "SECT10"> </A>
+<A NAME = "SECT11"> </A>
 <H3><B>
 <IMG SRC = "orange.gif" ALT = "-">   Example Macro Cross Assemblers</A>
 </B></H3>
@@ -1190,6 +1293,6 @@ examples of actual macro implementations.
 <B>...  Home Page</B></P>
 </H4>
 
-<H6><P><B>Last Updated: April 2009</B></P></H6>
+<H6><P><B>Last Updated: March 2021</B></P></H6>
 </BODY> 
 </HTML>

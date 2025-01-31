@@ -1,0 +1,6671 @@
+.list
+	; BLDT68K Macro Definitions Loaded
+
+	.area	B	(abs,ovr)	; External Labels Area
+	.org	0
+
+	.globl	xb, xw, xl
+
+	.define barg ^/(xb+0x12)/	; Externals Plus A Constant
+	.define	warg ^/(xw+0x1234)/
+	.define	larg ^/(xl+0x12345678)/
+
+	.area	A	(abs,ovr)	; Main Coding Area
+	.org	0
+.nlist
+
+	; .if/.else/.endif/.list/.nlist   And Other Helper Definitions
+
+	.define	LIST	^/.list (err,loc,bin,eqt,cyc,lin,src,mel)/
+	.define NLIST	^/.nlist (mel)/
+;	.define	NLIST	^//
+ 
+	.define	IFOK		^/.ifne .OK./		; General OK
+	.define	ELSEOK		^/.else/
+	.define	ENDOK		^/.endif/
+
+	.define	IFOKB		^/.ifne .OKB./		; Byte
+	.define	IFOKW		^/.ifne .OKW./		; Word
+	.define	IFOKL		^/.ifne .OKL./		; Long
+	.define	IFOKS		^/.ifne .OKS./		; Single
+	.define	IFOKD		^/.ifne .OKD./		; Double
+	.define	IFOKX		^/.ifne .OKX./		; Extended
+	.define	IFOKP		^/.ifne .OKP./		; Packed
+
+	.define	IFOKDN		^/.ifne .OKDN./		; Dn Allowed
+	.define	IFOKAN		^/.ifne .OKAN./		; An Allowed
+	.define	IFOKBWLS	^/.ifne	.OKBWLS./	; Byte/Word/Long/Single
+
+	.define	IFERR		^/.ifne .err./		; Error Flag
+	.define	ELSERR		^/.else/
+	.define	ENDERR		^/.endif/
+
+	.define	IFCPU00		^/.ifeq .__.CPU. - 0/	; 68000
+	.define	IFCPU08		^/.ifeq .__.CPU. - 8/	; 68008
+	.define	IFCPU10		^/.ifeq .__.CPU. - 10/	; 68010
+	.define	IFCPU20		^/.ifeq .__.CPU. - 20/	; 68020
+	.define ELSECPU		^/.else/
+	.define	ENDCPU		^/.endif/
+
+	; *****-----*****-----*****-----*****-----*****-----*****-----*****
+	; This Macro Creates Labels Which Are Effectively External.
+	; This Allows Testing Of The Program Counter Relative Modes
+	; For External Symbols.
+	; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.macro	.xpc	a
+	  LIST
+
+		.nval	New_B_Org, .
+		.area	B
+		.org	New_B_Org
+'a::
+		.area	A
+
+	  NLIST
+	.endm
+
+
+	; Macro For M68K.X Addressing Mode Checks
+
+	.macro	AMCHK	argerr	
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  LIST
+
+	.m68k	D0		; 00 00			; Mode / Register
+	.m68k	A0		; 01 00			; Mode / Register
+	.m68k	(A1)		; 02 01			; Mode / Register
+	.m68k	(A2)+		; 03 02			; Mode / Register
+	.m68k	-(A3)		; 04 03			; Mode / Register
+	.m68k	1(A4)		; 05 04 00 01		; Mode / Register / MSB / LSB
+	.m68k	2(A5,D6.W)	; 06 05 60 02		; Mode / Register / Register - SZ / Byte Displacement
+	.m68k	3(A6,D7.L)	; 06 06 78 03		; Mode / Register / Register - SZ / Byte Displacement
+	.m68k	*0xFFFFFFF0	; 07 00 FF F0		; Mode / Sub Type / Page Mode Word Address
+	.m68k	 0x00010004	; 07 01 00 01 00 04	; Mode / Sub Type / Long Address
+	.m68k	4(PC)		; 07 02 00 02		; Mode / Sub Type / Word Displacement
+	.m68k	5(PC,A6.W)	; 07 03 E0 03		; Mode / Sub Type / Register - SZ / Byte Displacement
+	.m68k	6(PC,A7.L)	; 07 03 F8 04		; Mode / Sub Type / Register - SZ / Byte Displacement
+	.m68k	#0x01020304	; 07 04 01 02 03 04 	; Mode / Sub Type / Long #
+
+	.m68k	@A1		; 02 01			; Mode / Register
+	.m68k	@A2+		; 03 02			; Mode / Register
+	.m68k	-@A3		; 04 03			; Mode / Register
+
+	.m68k.w	D0		; 00 00			; Mode / Register
+	.m68k.w	A0		; 01 00			; Mode / Register
+	.m68k.w	(A1)		; 02 01			; Mode / Register
+	.m68k.w	(A2)+		; 03 02			; Mode / Register
+	.m68k.w	-(A3)		; 04 03			; Mode / Register
+	.m68k.w	1(A4)		; 05 04 00 01		; Mode / Register / MSB / LSB
+	.m68k.w	2(A5,D6.W)	; 06 05 60 02		; Mode / Register / Register - SZ / Byte Displacement
+	.m68k.w	3(A6,D7.L)	; 06 06 78 03		; Mode / Register / Register - SZ / Byte Displacement
+	.m68k.w	*0xFFFFFFF0	; 07 00 FF F0		; Mode / Sub Type / Page Mode Word Address
+	.m68k.w	 0x00010004	; 07 01 00 01 00 04	; Mode / Sub Type / Long Address
+	.m68k.w	4(PC)		; 07 02 00 02		; Mode / Sub Type / Word Displacement
+	.m68k.w	5(PC,A6.W)	; 07 03 E0 03		; Mode / Sub Type / Register - SZ / Byte Displacement
+	.m68k.w	6(PC,A7.L)	; 07 03 F8 04		; Mode / Sub Type / Register - SZ / Byte Displacement
+	.m68k.w	#0x01020304	; 07 04 03 04 		; Mode / Sub Type / Word #
+
+	  NLIST
+	  IFCPU20
+	    LIST
+	.m68k	([A1])					; Mode / Sub Type / Mode 
+	.m68k	([A1,D3])				; Mode / Sub Type / Mode 
+	.m68k	([A1],D3)				; Mode / Sub Type / Mode 
+	.m68k	([0x1234,A1,D3],0x4321)			; Mode / Sub Type / Mode / Word # / Word #
+	.m68k	([0x12345678,A2,D4],0x87654321)		; Mode / Sub Type / Mode / Long # / Long #
+	.m68k	([0x1234,A1]D3,0x4321)			; Mode / Sub Type / Mode / Word # / Word #
+	.m68k	([0x12345678,A2]D4,0x87654321)		; Mode / Sub Type / Mode / Long # / Long #
+
+	.m68k	([PC])					; Mode / Sub Type / Mode 
+	.m68k	([PC,D3])				; Mode / Sub Type / Mode 
+	.m68k	([PC],D3)				; Mode / Sub Type / Mode 
+	.m68k	([0x1234,PC,D3],0x4321)			; Mode / Sub Type / Mode / Word # / Word #
+	.m68k	([0x12345678,PC,D4],0x87654321)		; Mode / Sub Type / Mode / Long # / Long #
+	.m68k	([0x1234,PC]D3,0x4321)			; Mode / Sub Type / Mode / Word # / Word #
+	.m68k	([0x12345678,PC]D4,0x87654321)		; Mode / Sub Type / Mode / Long # / Long #
+
+	    NLIST
+	  ENDCPU
+	  LIST
+	.m68k.w	@A1		; 02 01			; Mode / Register
+	.m68k.w	@A2+		; 03 02			; Mode / Register
+	.m68k.w	-@A3		; 04 03			; Mode / Register
+
+	.m68k.b	#0x01020304	; 07 04 00 04	 	; Mode / Sub Type / 0 Byte / Byte #
+	.m68k.w	#0x01020304	; 07 04 03 04	 	; Mode / Sub Type / Word #
+	.m68k.l	#0x01020304	; 07 04 01 02 03 04 	; Mode / Sub Type / Long #
+
+	.m68k.w	#^F111.11111	; 07 04 43 DE
+	.m68k.l	#^F111.11111	; 07 04 43 DE 38 E3
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	.m68k.b	#^F111.11111	;
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+
+	; Macro For S_TYP1 Instructions - ABCD, SBCD, ADDX, SUBX
+
+	.macro	.TYP1.	mne
+	  LIST
+	mne	D7,D2
+	mne	-(A5),-(A1)
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D6,(A2)		; Bad Mnemonic Or Invalid Argument Pair
+	mne	(A4)+,D5	; Bad Mnemonic Or Invalid Argument Pair
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_TYP1	argerr	
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TYP1:						*
+	;*	ABCD, SBCD, ADDX, SUBX				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	abcd, sbcd, addx, subx
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+		.OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.b	.OK. = 1
+		.iifidn	mne addx.w	.OK. = 1
+		.iifidn	mne addx.l	.OK. = 1
+		.iifidn	mne subx.w	.OK. = 1
+		.iifidn	mne subx.l	.OK. = 1
+		IFOK
+		  .TYP1.  mne
+		ELSEOK
+		  IFERR
+		    .TYP1.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TYP2 Instructions - ADD, AND, OR, SUB
+
+	.macro	.TYP2.	mne
+	  LIST
+	mne	D7,D0
+	  NLIST
+	  IFOKAN
+	    LIST
+	mne	A0,D1
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	(A1),D2
+	mne	(A2)+,D3
+	mne	-(A3),D4
+	mne	1(A4),D5
+	mne	2(A5,D7.W),D6
+	mne	2(A5,D7.L),D6
+	mne	(0x1234).W,D7
+	mne	(0x1234).L,D7
+	mne	*0xFFFFFFF0,D0
+	mne	 0x00010004,D1
+	mne	#7,D2		; Using Alternate - [mne]Q #,Dn / [mne]I #,<ea>
+	mne	5(PC),D3
+	mne	6(PC,A7.W),D4
+	mne	6(PC,A7.L),D4
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),D0
+	mne	([2,A1,A2],4),D1
+	mne	([6,A2],D3,8),D2
+	mne	(0x1234,PC,D1),D3
+	mne	([2,PC,A2],4),D4
+	mne	([6,PC],D3,8),D5
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFOKAN
+	    LIST
+	mne	D1,A1		; Using Alternate - [mne]A D1,An
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	D2,(A1)
+	mne	D3,(A2)+
+	mne	D4,-(A3)
+	mne	D5,1(A4)
+	mne	D6,2(A5,D7.W)
+	mne	D6,2(A5,D7.L)
+	mne	D7,(0x1234).W
+	mne	D7,(0x1234).L
+	mne	D0,*0xFFFFFFF0
+	mne	D0, 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	D0,(0x1234,A0,D1)
+	mne	D1,([2,A1,A2],4)
+	mne	D2,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D1,#7 			; Not Allowed
+	mne	D2,5(PC)		; Not Allowed
+	mne	D3,6(PC,A7.W)		; Not Allowed
+	mne	D3,6(PC,A7.L)		; Not Allowed
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	D4,(0x1234,PC,D1)	; Not Allowed
+	mne	D5,([2,PC,A2],4)	; Not Allowed
+	mne	D6,([6,PC],D3,8)	; Not Allowed
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_TYP2	argerr	
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TYP2:						*
+	;*	ADD, AND, OR, SUB				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	add, and, or, sub
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		.OKAN. = 1
+		.iifidn	base and	.OKAN. = 0
+ 	        .iifidn	base or		.OKAN. = 0
+		.iifidn	mne add.b	.OKAN. = 0
+		.iifidn	mne sub.b	.OKAN. = 0
+		IFOK
+		  .TYP2.  mne
+		ELSEOK
+		  IFERR
+		    .TYP2.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TYP3 Instructions - ADDA, CMPA, SUBA
+
+	.macro	.TYP3.	mne
+	  LIST
+	mne	D7,A0
+	mne	A0,A1
+	mne	(A1),A2
+	mne	(A2)+,A3
+	mne	-(A3),A4
+	mne	1(A4),A5
+	mne	2(A5,D7.W),A6
+	mne	2(A5,D7.L),A6
+	mne	(0x1234).W,A7
+	mne	(0x1234).L,A7
+	mne	*0xFFFFFFF0,A0
+	mne	 0x00010004,A1
+	mne	#7,A2
+	mne	5(PC),A3
+	mne	6(PC,A7.W),A4
+	mne	6(PC,A7.L),A4
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),A0
+	mne	([2,A1,A2],4),A1
+	mne	([6,A2],D3,8),A2
+	mne	(0x1234,PC,D1),A3
+	mne	([2,PC,A2],4),A4
+	mne	([6,PC],D3,8),A5
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A0,D0		; Bad Mnemonic Or Second Argument Not An
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_TYP3	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TYP3:						*
+	;*	ADDA, CMPA, SUBA				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	adda, cmpa, suba
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+		.OK. = 1
+		.iifidn	mne adda.b	.OK. = 0
+		.iifidn	mne cmpa.b	.OK. = 0
+		.iifidn	mne suba.b	.OK. = 0
+		IFOK
+		  .TYP3.  mne
+		ELSEOK
+		  IFERR
+		    .TYP3.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TYP4 Instructions - ADDI, ANDI, CMPI, EORI, ORI, SUBI
+
+	.macro	.TYP4.	mne
+	   LIST
+	mne	#0,D7
+	mne	#1,(A1)
+	mne	#2,(A2)+
+	mne	#3,-(A3)
+	mne	#4,1(A4)
+	mne	#5,2(A5,D7.W)
+	mne	#6,2(A5,D7.L)
+	mne	#7,(0x1234).W
+	mne	#8,(0x1234).L
+	mne	#9,*0xFFFFFFF0
+	mne	#10, 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	#11,(0x1234,A0,D1)
+	mne	#12,([2,A1,A2],4)
+	mne	#13,([6,A2],D3,8)
+	    NLIST
+	    .ifne  .CMP.
+	      LIST
+	mne	#14,5(PC)
+	mne	#15,6(PC,A3.W)
+	mne	#16,6(PC,A3.L)
+	mne	#17,(0x1234,PC,D1)
+	mne	#18,([2,PC,A2],4)
+	mne	#19,([6,PC],D3,8)
+	      NLIST
+	    .endif
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	(A1),D1		; Bad Mnemonic Or First Argument Must Be A #
+	mne	#1,A2		; Bad Mnemonic Or Second Argument Must Not Be An
+	    NLIST
+	    IFCPU20	; 68020
+	    ELSECPU
+	      LIST
+	mne	#11,(0x1234,A0,D1)	; Bad Mnemonic Or Only Allowed With 68020
+	mne	#12,([2,A1,A2],4)	; Bad Mnemonic Or Only Allowed With 68020
+	mne	#13,([6,A2],D3,8)	; Bad Mnemonic Or Only Allowed With 68020
+	      NLIST
+	      .ifeq  .CMP.
+	        LIST
+	mne	#14,5(PC)	; Bad Mnemonic Or Only Allowed With CMPI
+	mne	#15,6(PC,A3.W)	; Bad Mnemonic Or Only Allowed With CMPI
+	mne	#16,6(PC,A3.L)	; Bad Mnemonic Or Only Allowed With CMPI
+	mne	#17,(0x1234,PC,D1)	; Bad Mnemonic Or Only Allowed With 68020
+	mne	#18,([2,PC,A2],4)	; Bad Mnemonic Or Only Allowed With 68020
+	mne	#19,([6,PC],D3,8)	; Bad Mnemonic Or Only Allowed With 68020
+	        NLIST
+	      .endif
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.TYP4.CCR.  mne
+	  LIST
+	mne	#1,CCR
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	#2,CCR
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.TYP4.SR.  mne
+	  LIST
+	mne	#3,SR
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	#4,SR
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_TYP4	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TYP4:						*
+	;*	ADDI, ANDI, CMPI, EORI, ORI, SUBI		*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	addi, andi, cmpi, eori, ori, subi
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		.CMP. = 0
+		.iifidn	base cmpi	.CMP. = 1
+		IFOK
+		  .TYP4.  mne
+		ELSEOK
+		  IFERR
+		    .TYP4.  mne
+		  ENDERR
+		ENDOK
+	        .OK. = 0
+		.iifidn	mne andi	.OK. = 1
+		.iifidn	mne andi.b	.OK. = 1
+		.iifidn	mne eor		.OK. = 1
+		.iifidn	mne eor.b	.OK. = 1
+		.iifidn	mne or		.OK. = 1
+		.iifidn	mne or.b	.OK. = 1
+		IFOK
+		  .TYP4.CCR.  mne
+		ELSEOK
+		  IFERR
+		    .TYP4.CCR.  mne
+		  ENDERR
+		ENDOK
+	        .OK. = 0
+		.iifidn	mne andi	.OK. = 1
+		.iifidn	mne andi.w	.OK. = 1
+		.iifidn	mne eor		.OK. = 1
+		.iifidn	mne eor.w	.OK. = 1
+		.iifidn	mne or		.OK. = 1
+		.iifidn	mne or.w	.OK. = 1
+		IFOK
+		  .TYP4.SR.  mne
+		ELSEOK
+		  IFERR
+		    .TYP4.SR.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TYP5 Instructions - ADDQ, SUBQ
+
+	.macro	.TYP5.	mne
+	  LIST
+	mne	#8,D7
+	  NLIST
+	  .ifne	.OKAN.
+	    LIST
+	mne	#1,A0
+	    NLIST
+	  .endif
+	  LIST
+	mne	#2,(A1)
+	mne	#3,(A2)+
+	mne	#4,-(A3)
+	mne	#5,1(A4)
+	mne	#6,2(A5,D7.W)
+	mne	#6,2(A5,D7.L)
+	mne	#7,(0x1234).W
+	mne	#7,(0x1234).L
+	mne	#8,*0xFFFFFFF0
+	mne	#1, 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	#2,(0x1234,A0,D1)
+	mne	#3,([2,A1,A2],4)
+	mne	#4,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	(A1),D0		; Bad Mnemonic Or First Argument Must Be A #
+	    NLIST
+	    .ifne  .OKAN.
+	    .else
+	      LIST
+	mne	#1,A0		; Bad Mnemonic Or .B Second Argument Cannot Be An
+
+	      NLIST
+	    .endif
+	    LIST
+	mne	#2,#7 		; Bad Mnemonic Or Invalid Second Argument
+	mne	#3,5(PC)	; Bad Mnemonic Or Invalid Second Argument
+	mne	#4,6(PC,A7.W)	; Bad Mnemonic Or Invalid Second Argument
+	mne	#5,6(PC,A7.L)	; Bad Mnemonic Or Invalid Second Argument
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	#6,(0x1234,PC,D1)	; Bad Mnemonic Or Invalid Second Argument
+	mne	#7,([2,PC,A2],4)	; Bad Mnemonic Or Invalid Second Argument
+	mne	#8,([6,PC],D3,8)	; Bad Mnemonic Or Invalid Second Argument
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_TYP5	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TYP5:						*
+	;*	ADDQ, SUBQ					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	addq, subq
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		.OKAN. = 1
+		.iifidn	mne addq.b	.OKAN. = 0
+		.iifidn	mne subq.b	.OKAN. = 0
+		IFOK
+		  .TYP5.  mne
+		ELSEOK
+		  IFERR
+		    .TYP5.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TYP6 Instructions - DIVS, DIVU, MULS, MULU
+
+	.macro	.TYP6.	mne
+	  LIST
+	mne	D0,D1
+	mne	(A1),D2
+	mne	(A2)+,D3
+	mne	-(A3),D4
+	mne	1(A4),D5
+	mne	2(A5,D7.W),D6
+	mne	2(A5,D7.L),D6
+	mne	(0x1234).W,D7
+	mne	(0x1234).L,D7
+	mne	*0xFFFFFFF0,D0
+	mne	 0x00010004,D1
+	mne	#7,D2
+	mne	5(PC),D3
+	mne	6(PC,A7.W),D4
+	mne	6(PC,A7.L),D4
+	  NLIST
+	  IFCPU20	; 68020
+	    .ifne  .OKDD.
+	      LIST
+	mne	(A1),D2:D3
+	      NLIST
+	    .endif
+	    LIST
+	mne	(0x1234,A0,D1),D0
+	mne	([2,A1,A2],4),D1
+	mne	([6,A2],D3,8),D2
+	mne	(0x1234,PC,D1),D3
+	mne	([2,PC,A2],4),D4
+	mne	([6,PC],D3,8),D5
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A0,D1		; Bad Mnemonic Or First Argument Cannot Be An
+	    NLIST
+	    IFCPU20	; 68020
+	    ELSECPU
+	    .ifeq  .OKDD.
+	      LIST
+	mne	(A1),D2:D3		; Bad Mnemonic Or Requires A 68020
+	      NLIST
+	    .endif
+	      LIST
+	mne	(0x1234,A0,D1),D0	; Bad Mnemonic Or Requires A 68020
+	mne	([2,A1,A2],4),D1	; Bad Mnemonic Or Requires A 68020
+	mne	([6,A2],D3,8),D2	; Bad Mnemonic Or Requires A 68020
+	mne	(0x1234,PC,D1),D3	; Bad Mnemonic Or Requires A 68020
+	mne	([2,PC,A2],4),D4	; Bad Mnemonic Or Requires A 68020
+	mne	([6,PC],D3,8),D5	; Bad Mnemonic Or Requires A 68020
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_TYP6	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TYP6:						*
+	;*	DIVS, DIVU, MULS, MULU				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	divs, divsl, divu, divul, muls, mulu
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+		.OK. = 0
+		.iifidn	mne divs	.OK. = 1
+		.iifidn	mne divs.w	.OK. = 1
+		.iifidn	mne divu	.OK. = 1
+		.iifidn	mne divu.w	.OK. = 1
+		.iifidn	mne muls	.OK. = 1
+		.iifidn	mne muls.w	.OK. = 1
+		.iifidn	mne mulu	.OK. = 1
+		.iifidn	mne mulu.w	.OK. = 1
+		IFCPU20
+		  .iifidn  mne divs.l	.OK. = 1
+		  .iifidn  mne divsl.l	.OK. = 1
+		  .iifidn  mne divu.l	.OK. = 1
+		  .iifidn  mne divul.l	.OK. = 1
+		  .iifidn  mne muls.l	.OK. = 1
+		  .iifidn  mne mulu.l	.OK. = 1
+		ENDCPU
+		.OKDD. = 0
+		.iifidn	mne divs.l	.OKDD. = 1
+		.iifidn	mne divu.l	.OKDD. = 1
+		.iifidn	mne divsl.l	.OKDD. = 1
+		.iifidn	mne divul.l	.OKDD. = 1
+		IFOK
+		  .TYP6.  mne
+		ELSEOK
+		  IFERR
+		    .TYP6.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TYP7 Instructions - CLR, NEG, NEGX, NOT, TST
+
+	.macro	.TYP7.	mne
+	  LIST
+	mne	D7
+	mne	(A1)
+	mne	(A2)+
+	mne	-(A3)
+	mne	1(A4)
+	mne	2(A5,D7.W)
+	mne	2(A5,D7.L)
+	mne	(0x1234).W
+	mne	(0x1234).L
+	mne	*0xFFFFFFF0
+	mne	 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1)
+	mne	([2,A1,A2],4)
+	mne	([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  .ifne	.OKTST.
+	    LIST
+	mne	5(PC)
+	mne	6(PC,A7.W)
+	mne	6(PC,A7.L)
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	(0x1234,PC,D1)
+	mne	([2,PC,A2],4)
+	mne	([6,PC],D3,8)
+	      NLIST
+	    ENDCPU
+	  .endif
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A0		; Bad mnemonic Or Argument An Not Allowed
+	mne	#7		; Bad mnemonic Or Invalid Argument
+	    NLIST
+	    IFCPU20	; 68020
+	    ELSEOK
+	      LIST
+	mne	(0x1234,A0,D1)	; Bad mnemonic Or Invalid Argument
+	mne	([2,A1,A2],4)	; Bad mnemonic Or Invalid Argument
+	mne	([6,A2],D3,8)	; Bad mnemonic Or Invalid Argument
+	      NLIST
+	    ENDCPU
+	    .ifeq  .OKTST.
+	      LIST
+	mne	5(PC)		; Bad Mnemonic Or Invalid Addressing Mode
+	mne	6(PC,A7.W)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	6(PC,A7.L)	; Bad Mnemonic Or Invalid Addressing Mode
+	      NLIST
+	      IFCPU20	; 68020
+	        LIST
+	mne	(0x1234,PC,D1)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	([2,PC,A2],4)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	([6,PC],D3,8) 	; Bad Mnemonic Or Invalid Addressing Mode
+	        NLIST
+	      ENDCPU
+	    .endif
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_TYP7	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TYP7:						*
+	;*	CLR, NEG, NEGX, NOT, TST			*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	clr, neg, negx, not, tst
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		.OKTST. = 0
+		IFCPU20
+		  .iifidn base tst	.OKTST. = 1
+		ENDCPU
+		IFOK
+		  .TYP7.  mne
+		ELSEOK
+		  IFERR
+		    .TYP7.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TYP8 Instructions - jmp, jsr, lea, pea
+
+	.macro	.TYP8.	mne
+	  LIST
+	mne	(A1)
+	mne	1(A4)
+	mne	2(A5,D7.W)
+	mne	2(A5,D7.L)
+	mne	(0x1234).W
+	mne	(0x1234).L
+	mne	*0xFFFFFFF0
+	mne	 0x00010004
+	mne	5(PC)
+	mne	6(PC,A7.W)
+	mne	6(PC,A7.L)
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1)
+	mne	([2,A1,A2],4)
+	mne	([6,A2],D3,8)
+	mne	(0x1234,PC,D1)
+	mne	([2,PC,A2],4)
+	mne	([6,PC],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D7		; Bad Mnemonic Or Not Allowed
+	mne	A0		; Bad Mnemonic Or Not Allowed
+	mne	(A2)+		; Bad Mnemonic Or Not Allowed
+	mne	-(A3)		; Bad Mnemonic Or Not Allowed
+	mne	#7 		; Bad Mnemonic Or Not Allowed
+	  NLIST
+	  IFCPU20	; 68020
+	  ELSECPU
+	    LIST
+	mne	(0x1234,A0,D1)	; Bad Mnemonic Or Not Allowed
+	mne	([2,A1,A2],4)	; Bad Mnemonic Or Not Allowed
+	mne	([6,A2],D3,8)	; Bad Mnemonic Or Not Allowed
+	mne	(0x1234,PC,D1)	; Bad Mnemonic Or Not Allowed
+	mne	([2,PC,A2],4)	; Bad Mnemonic Or Not Allowed
+	mne	([6,PC],D3,8)	; Bad Mnemonic Or Not Allowed
+	    NLIST
+	  ENDCPU
+	  LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.LEA.	mne
+	  LIST
+	mne	(A1),A2
+	mne	1(A4),A5
+	mne	2(A5,D7.W),A6
+	mne	2(A5,D7.L),A6
+	mne	(0x1234).W,A7
+	mne	(0x1234).L,A7
+	mne	*0xFFFFFFF0,A0
+	mne	 0x00010004,A1
+	mne	5(PC),A3
+	mne	6(PC,A7.W),A4
+	mne	6(PC,A7.L),A4
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),A0
+	mne	([2,A1,A2],4),A1
+	mne	([6,A2],D3,8),A2
+	mne	(0x1234,PC,D1),A3
+	mne	([2,PC,A2],4),A4
+	mne	([6,PC],D3,8),A5
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D7,A0		; Bad Mnemonic Or Not Allowed
+	mne	A0,A1		; Bad Mnemonic Or Not Allowed
+	mne	(A2)+,A1	; Bad Mnemonic Or Not Allowed
+	mne	-(A3),A2	; Bad Mnemonic Or Not Allowed
+	mne	#7,A0		; Bad Mnemonic Or Not Allowed
+
+	mne	(A4),D1		; Bad Mnemonic Or Second Argument Must Be An
+	    NLIST
+	    IFCPU20	; 68020
+	    ELSECPU
+	      LIST
+	mne	(0x1234,A0,D1),A0	; Bad Mnemonic Or Not Allowed
+	mne	([2,A1,A2],4),A1	; Bad Mnemonic Or Not Allowed
+	mne	([6,A2],D3,8),A2	; Bad Mnemonic Or Not Allowed
+	mne	(0x1234,PC,D1),A3	; Bad Mnemonic Or Not Allowed
+	mne	([2,PC,A2],4),A4	; Bad Mnemonic Or Not Allowed
+	mne	([6,PC],D3,8),A5	; Bad Mnemonic Or Not Allowed
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_TYP8	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TYP8:						*
+	;*	JMP, JSR, LEA, PEA				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	jmp, jsr, pea
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+	        .iifidn	mne base	.OK. = 1
+	        .iifidn	mne base'.l	.OK. = 1
+		IFOK
+		  .TYP8.  mne
+		ELSEOK
+		  IFERR
+		    .TYP8.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  .irp	base	lea
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+	        .iifidn	mne base	.OK. = 1
+	        .iifidn	mne base'.l	.OK. = 1
+		IFOK
+		  .LEA.  mne
+		ELSEOK
+		  IFERR
+		    .LEA.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TYP9 Instructions - NBCD, TAS
+
+	.macro	.TYP9.	mne
+	  LIST
+	mne	D7
+	mne	(A1)
+	mne	(A2)+
+	mne	-(A3)
+	mne	1(A4)
+	mne	2(A5,D7.W)
+	mne	2(A5,D7.L)
+	mne	(0x1234).W
+	mne	(0x1234).L
+	mne	*0xFFFFFFF0
+	mne	 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1)
+	mne	([2,A1,A2],4)
+	mne	([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A0		; Not Allowed
+	mne	5(PC) 		; Not Allowed
+	mne	6(PC,A7.W) 	; Not Allowed
+	mne	6(PC,A7.L) 	; Not Allowed
+	mne	#7 		; Not Allowed
+	    NLIST
+	    IFCPU20	; 68020
+	    ELSECPU
+	      LIST
+	mne	(0x1234,PC,D1)
+	mne	([2,PC,A2],4)
+	mne	([6,PC],D3,8)
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_TYP9	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TYP9:						*
+	;*	NBCD, TAS					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	nbcd, tas
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne nbcd	.OK. = 1
+		.iifidn	mne nbcd.b	.OK. = 1
+		.iifidn	mne tas		.OK. = 1
+		.iifidn	mne tas.b	.OK. = 1
+		IFOK
+		  .TYP9.  mne
+		ELSEOK
+		  IFERR
+		    .TYP9.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_SHFT Instructions - ASL, ASR, LSL, LSR, ROL, ROR, ROXL, ROXL
+
+	.macro	.SHFT.	mne
+	  LIST
+	mne	D1,D2
+	mne	#3,D3
+
+	  NLIST
+	  IFOKW
+	    LIST
+	mne	(A1)
+	mne	(A2)+
+	mne	-(A3)
+	mne	1(A4)
+	mne	2(A5,D7.W)
+	mne	2(A5,D7.L)
+	mne	(0x1234).W
+	mne	(0x1234).L
+	mne	*0xFFFFFFF0
+	mne	 0x00010004
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	(0x1234,A0,D1)
+	mne	([2,A1,A2],4)
+	mne	([6,A2],D3,8)
+	      NLIST
+	    ENDCPU
+	  ENDOK
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	(A0),D4		; Only Dn,Dn Allowed
+	mne	#4,(A1)		; Only  #,Dn Allowed
+	mne	#9,D5		; First Argument Must In The Range 1-8
+
+	mne	D7		; Not Allowed
+	mne	A0		; Not Allowed
+	mne	5(PC)		; Not Allowed
+	mne	6(PC,A7.W)	; Not Allowed
+	mne	6(PC,A7.L)	; Not Allowed
+	mne	#7 		; Not Allowed
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	(0x1234,PC,D1)	; Not Allowed
+	mne	([2,PC,A2],4)	; Not Allowed
+	mne	([6,PC],D3,8)	; Not Allowed
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_SHFT	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_SHFT:						*
+	;*	ASL, ASR, LSL, LSR, ROL, ROR, ROXL, ROXL	*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	asl, asr, lsl, lsr, rol, ror, roxl, roxr
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		.OKW. = 0
+		.iifidn	mne base'.w	.OKW. = 1
+		IFOK
+		  .SHFT.  mne
+		ELSEOK
+		  IFERR
+		    .SHFT.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_BCC Instructions - 
+	; BRA, BSR, BHI, BLS, BCC, BCS, BNE, BEQ
+	; BVC, BVS, BPL, BMI, BGE, BLT, BGT, BLE
+
+	.macro	.BCC.	base ?a
+	  LIST
+	base	'a
+	base	. - 0x7E
+a':	base	.
+	base	. + 0x04
+	base	. + 0x80
+	base	. + 0x82
+	base	. + 0x1002
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	base	. + 0x20002
+	    NLIST
+	  ENDCPU
+	  LIST
+	base'.b	. + 0x12
+	base'.w	. + 0x12
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	base'.l	. + 0x12
+	    NLIST
+	  ENDCPU
+	  LIST
+	base'.w	. + 0x1002
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	base'.l	. + 0x1002
+	base'.l	. + 0x20002
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	base'.b	. + 0x02
+	base'.b	. + 0x101
+	base'.b	. + 0x200
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	base	. + 0x20002
+	    NLIST
+	  ENDCPU
+	  LIST
+	base'.w	. + 0x8002
+	    NLIST
+	    IFCPU20	; !68020
+	      LIST
+	base'.l	. + 0x12
+	      NLIST
+	    ENDCPU
+	    LIST
+	base'.w	. - 0x8004
+	    NLIST
+	    IFCPU20	; !68020
+	      LIST
+	base'.l	. + 0x1002
+	base'.l	. + 0x20002
+	      NLIST
+	    ENDCPU
+	  LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_BCC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_BCC:						*
+	;*	BRA, BSR, BHI, BLS, BCC, BCS, BNE, BEQ		*
+	;*	BVC, BVS, BPL, BMI, BGE, BLT, BGT, BLE		*
+	;*	BHS, BLO					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  ; Set 1
+	  .irp	base	bra, bsr, bhi, bls, bcc, bcs, bne, beq
+	    .ifnb base
+	      ; ---
+		.BCC.  base
+	      ; ---
+	    .endif
+	  .endm
+	  ; Set 2
+	  .irp	base	bvc, bvs, bpl, bmi, bge, blt, bgt, ble, bhs, blo
+	    .ifnb base
+	      ; ---
+		.BCC.  base
+	      ; ---
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_DBCC Instructions - 
+	; DBT,  DBF,  DBHI, DBLS, DBCC, DBCS, DBNE, DBEQ
+	; DBVC, DBVS, DBPL, DBMI, DBGE, DBLT, DBGT, DBLE
+	; DBHS, DBLO, DBRA
+
+
+	.macro	.DBCC.	mne
+	  LIST
+	mne	D0,.
+	mne	D1,. + 4
+	mne	D2,. + 0x1004
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D6,. + 0x8002		; Bad Mnemonic Or Branch Range Exceeded
+	mne	A1,.			; Bad Mnemonic Or First Argument Must Be Dn
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_DBCC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_DBCC:						*
+	;*	DBT,  DBF,  DBHI, DBLS, DBCC, DBCS, DBNE, DBEQ	*
+	;*	DBVC, DBVS, DBPL, DBMI, DBGE, DBLT, DBGT, DBLE	*
+	;*	DBHS, DBLO, DBRA				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  ; Set 1
+	  .irp	base	dbt, dbf, dbhi, dbls, dbcc, dbcs, dbne, dbeq
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.w	.OK. = 1
+		IFOK
+		  .DBCC.  mne
+		ELSEOK
+		  IFERR
+		    .DBCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  ; Set 2
+	  .irp	base	dbvc, dbvs, dbpl, dbmi, dbge, dblt, dbgt, dble, dbhs, dblo, dbra
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.w	.OK. = 1
+		IFOK
+		  .DBCC.  mne
+		ELSEOK
+		  IFERR
+		    .DBCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_SCC Instructions - 
+	; ST,  SF,  SHI, SLS, SCC, SCS, SNE, SEQ
+	; SVC, SVS, SPL, SMI, SGE, SLT, SGT, SLE
+	; SHS, SLO
+
+	.macro	.SCC.	mne
+	  LIST
+	mne	D7
+	mne	(A1)
+	mne	(A2)+
+	mne	-(A3)
+	mne	1(A4)
+	mne	2(A5,D7.W)
+	mne	2(A5,D7.L)
+	mne	(0x1234).W
+	mne	(0x1234).L
+	mne	*0xFFFFFFF0
+	mne	 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1)
+	mne	([2,A1,A2],4)
+	mne	([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A0		; Bad Mnemonic Or An Not Allowed
+	mne	#7 		; Bad Mnemonic Or Not Allowed
+	mne	5(PC)		; Bad Mnemonic Or Not Allowed
+	mne	6(PC,A7.W)	; Bad Mnemonic Or Not Allowed
+	mne	6(PC,A7.L)	; Bad Mnemonic Or Not Allowed
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	(0x1234,PC,D1)	; Bad Mnemonic Or Not Allowed
+	mne	([2,PC,A2],4)	; Bad Mnemonic Or Not Allowed
+	mne	([6,PC],D3,8)	; Bad Mnemonic Or Not Allowed
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_SCC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_SCC:						*
+	;*	ST,  SF,  SHI, SLS, SCC, SCS, SNE, SEQ		*
+	;*	SVC, SVS, SPL, SMI, SGE, SLT, SGT, SLE		*
+	;*	SHS, SLO					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  ; Set 1
+	  .irp	base	st, sf, shi, sls, scc, scs, sne, seq
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+		.OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn mne base'.b	.OK. = 1
+		IFOK
+		  .SCC.  mne
+		ELSEOK
+		  IFERR
+		    .SCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	    LIST
+
+	    NLIST
+	  .endm
+	  ; Set 2
+	  .irp	base	svc, svs, spl, smi, sge, slt, sgt, sle, shs, slo
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+		.OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn mne base'.b	.OK. = 1
+		IFOK
+		  .SCC.  mne
+		ELSEOK
+		  IFERR
+		    .SCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_BIT Instructions - BCHG, BCLR, BSET, BTST
+
+	.macro	.BTBD.	mne
+	  LIST
+	mne	D2,(A1)
+	mne	D3,(A2)+
+	mne	D4,-(A3)
+	mne	D5,1(A4)
+	mne	D6,2(A5,D7.W)
+	mne	D6,2(A5,D7.L)
+	mne	D7,(0x1234).W
+	mne	D7,(0x1234).L
+	mne	D0,*0xFFFFFFF0
+	mne	D0, 0x00010004
+	  NLIST
+	  IFCPU20
+	    LIST
+	mne	D0,(0x1234,A0,D1)
+	mne	D1,([2,A1,A2],4)
+	mne	D2,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  .ifne  .OKTST.
+	    LIST
+	mne	D4,5(PC)
+	mne	D5,6(PC,A7.W)
+	mne	D5,6(PC,A7.L)
+	    NLIST
+	    IFCPU20
+	      LIST
+	mne	D7,(0x1234,PC,D0)
+	mne	D1,([2,PC,A2],4)
+	mne	D2,([6,PC],D3,8)
+	      NLIST
+	    ENDCPU
+	  .endif
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D1,A0		; Bad Mnemonic Or Invalid Second Argument
+	mne	A1,(A2)+	; Bad Mnemonic Or First Argument Not Dn Or #
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.BTBN.	mne
+	  LIST
+	mne	#2,(A1)
+	mne	#3,(A2)+
+	mne	#4,-(A3)
+	mne	#5,1(A4)
+	mne	#6,2(A5,D7.W)
+	mne	#6,2(A5,D7.L)
+	mne	#7,(0x1234).W
+	mne	#7,(0x1234).L
+	mne	#8,*0xFFFFFFF0
+	mne	#8, 0x00010004
+	  NLIST
+	  IFCPU20
+	    LIST
+	mne	#9,(0x1234,A0,D1)
+	mne	#10,([2,A1,A2],4)
+	mne	#11,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  .ifne  .OKTST.
+	    LIST
+	mne	#12,5(PC)
+	mne	#13,6(PC,A7.W)
+	mne	#14,6(PC,A7.L)
+	    NLIST
+	    IFCPU20
+	      LIST
+	mne	#15,(0x1234,PC,D0)
+	mne	#16,([2,PC,A2],4)
+	mne	#17,([6,PC],D3,8)
+	      NLIST
+	    ENDCPU
+	  .endif
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	#7,A0		; Bad Mnemonic Or Invalid Second Argument
+	mne	A1,(A2)+	; Bad Mnemonic Or First Argument Not Dn Or #
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.BTL.	mne
+	  LIST
+	mne	D0,D6
+	mne	#5,D7
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	(A1),D5		; Bad Mnemonic Or First Argument Not Dn Or #
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_BIT	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_BIT:						*
+	;*	BCHG, BCLR, BSET, BTST				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	bchg, bclr, bset, btst
+	    .ifnb base
+	      .irp  mne	base, base'.b, base'.w, base'.l
+		.OK. = 0
+		.iifidn mne base	.OK. = 1
+		.iifidn mne base'.l	.OK. = 1
+		IFOK
+		  .BTL.  mne
+		ELSEOK
+		  IFERR
+		    .BTL.  mne
+		  ENDERR
+		ENDOK
+		.OK. = 0
+		.iifidn mne base	.OK. = 1
+		.iifidn mne base'.b	.OK. = 1
+		.OKTST. = 0
+		.iifidn	base btst	.OKTST. = 1
+		IFOK
+		  .BTBD.  mne
+		  .BTBN.  mne
+		ELSEOK
+		  IFERR
+		    .BTBD.  mne
+		    .BTBN.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_MOVE Instructions - MOVE
+
+	.macro	.CCR.	mne
+	  IFOKW
+	    LIST
+	mne	D0,CCR
+	mne	CCR,(A0)
+	mne	(A1)+,SR
+	mne	SR,-(A2)
+	mne	1(A3),CCR
+	mne	CCR,2(A5,D7.W)
+	mne	2(A5,D7.L),SR
+	mne	SR,(0x1234).W
+	mne	(0x1234).L,CCR
+	mne	CCR,*0xFFFFFFF0
+	mne	 0x00010004,SR
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	SR,(0x1234,A0,D1)
+	mne	([2,A1,A2],4),CCR
+	mne	CCR,([6,A2],D3,8)
+	      NLIST
+	    ENDCPU
+	    LIST
+	mne	#8,SR
+	mne	(PC),CCR
+	mne	2(PC,D2),SR
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	(0x1234,PC,D1),CCR
+	mne	([2,PC,A2],4),SR
+	mne	([6,PC],D3,8),CCR
+	      NLIST
+	    ENDCPU
+	  ENDOK
+	  IFOKL
+	    LIST
+	mne	A1,USP
+	mne	USP,A2
+	    NLIST
+	  ENDOK
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	SR,#7 		; Not Allowed
+	mne	CCR,5(PC)	; Not Allowed
+	mne	SR,6(PC,A7.W)	; Not Allowed
+	mne	CCR,6(PC,A7.L)	; Not Allowed
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	SR,(0x1234,PC,D1)	; Not Allowed
+	mne	CCR,([2,PC,A2],4)	; Not Allowed
+	mne	SR,([6,PC],D3,8)	; Not Allowed
+	      NLIST
+	    ENDCPU
+	    IFOKL
+	      LIST
+	mne	D0,USP		; First Argument Must Be An
+	mne	USP,(A2)	; Second Argument Must Be An
+	      NLIST
+	    ENDOK
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.MOVE.	mne
+	  IFOKB
+	    LIST
+	mne	A0,2(A5,D7.L)
+	mne	6(PC,A7.L),A0	; MOVE __,An  ==>>  MOVEA __,An
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	6(PC,A7.W),(A1)
+	mne	0x00010004,-(A3)
+	mne	1(A4),*0xFFFFFFF0
+	mne	2(A5,D7.L),2(A5,D7.W)
+	mne	2(A5,D7.W),2(A5,D7.L)
+	mne	(0x1234).W,(0x8765).L
+	mne	(0x1234).L,(0x7654).W
+	mne	*0xFFFFFFF0,1(A4)
+	mne	-(A3),0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),(A2)+
+	mne	([2,A1,A2],4),(A1)
+	mne	([6,A2],D3,8),D0
+	    NLIST
+	  ENDCPU
+	  LIST
+	mne	#7,D7
+	mne	5(PC),(A2)+
+	mne	6(PC,A7.W),-(A3)
+	mne	6(PC,A7.L),2(A4)
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,PC,D1),*0xFFFFFFF0
+	mne	([2,PC,A2],4),0x00010004
+	mne	([6,PC],D3,8),2(A5,D7.W)
+	    NLIST
+	  ENDCPU
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	    NLIST
+	    IFOKB
+	    ELSEOK
+	      LIST
+	mne	A0,2(A5,D7.L)	; .B With An As Source Is Not Allowed
+	      NLIST
+	    ENDOK
+	    LIST
+	mne	D0,#7 		; Not Allowed
+	mne	(A2)+,5(PC)	; Not Allowed
+	mne	(A1),6(PC,A7.W)	; Not Allowed
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	D4,(0x1234,PC,D1)	; Not Allowed
+	mne	(A1),([2,PC,A2],4)	; Not Allowed
+	mne	(A2)+,([6,PC],D3,8)	; Not Allowed
+	      NLIST
+	    ENDCPU
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_MOVE	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_MOVE:						*
+	;*	MOVE						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	move
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		.OKB. = 1
+		.iifidn mne base'.b	.OKB. = 0	; MOVE.B  An,---
+		.OKW. = 0
+		.iifidn	mne base	.OKW. = 1	; MOVE And MOVE.W
+		.iifidn	mne base'.w	.OKW. = 1	; MOVE And MOVE.W
+	        .OKL. = 0
+		.iifidn	mne base	.OKL. = 1	; MOVE And MOVE.L
+		.iifidn	mne base'.l	.OKL. = 1	; MOVE And MOVE.L
+		IFOK
+		  .CCR.  mne
+		  .MOVE.  mne
+		ELSEOK
+		  IFERR
+		    .CCR.  mne
+		    .MOVE.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_MOVEA Instructions - MOVEA
+
+	.macro	.MOVEA.	mne
+	  LIST
+	mne	D7,A0
+	mne	A0,A1
+	mne	(A1),A2
+	mne	(A2)+,A3
+	mne	-(A3),A4
+	mne	1(A4),A5
+	mne	2(A5,D7.W),A6
+	mne	2(A5,D7.L),A6
+	mne	(0x1234).W,A7
+	mne	(0x1234).L,A7
+	mne	*0xFFFFFFF0,A0
+	mne	 0x00010004,A1
+	mne	#7,A2
+	mne	5(PC),A3
+	mne	6(PC,A7.W),A4
+	mne	6(PC,A7.L),A4
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),A0
+	mne	([2,A1,A2],4),A1
+	mne	([6,A2],D3,8),A2
+	mne	(0x1234,PC,D1),A3
+	mne	([2,PC,A2],4),A4
+	mne	([6,PC],D3,8),A5
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A0,D0		; Second Argument Must Be An
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_MOVEA	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_MOVEA:						*
+	;*	MOVEA						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	movea
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.w	.OK. = 1
+		.iifidn	mne base'.l	.OK. = 1
+		IFOK
+		  .MOVEA.  mne
+		ELSEOK
+		  IFERR
+		    .MOVEA.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_MOVEM Instructions - MOVEM
+
+	.macro	.MOVEM.	mne
+	  LIST
+	mne	D0,(A1)
+	mne	D1,-(A3)
+	mne	D2,1(A4)
+	mne	A0,2(A5,D7.W)
+	mne	A1,2(A5,D7.L)
+	mne	A2,(0x1234).W
+	mne	A3,(0x1234).L
+	mne	A4,*0xFFFFFFF0
+	mne	A5, 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	D3,(0x1234,A0,D1)
+	mne	D4,([2,A1,A2],4)
+	mne	D5,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	mne	D0-D3/A0-A7,(A4)
+	mne	D0-D7/A3/A7,-(A5)
+
+	mne	(A1),D0
+	mne	(A3)+,D1
+	mne	1(A4),D2
+	mne	2(A5,D7.W),A0
+	mne	2(A5,D7.L),A1
+	mne	(0x1234).W,A2
+	mne	(0x1234).L,A3
+	mne	*0xFFFFFFF0,A4
+	mne	 0x00010004,A5
+	mne	(PC),D0
+	mne	6(PC,A7.W),A1
+	mne	6(PC,A7.L),D2
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,PC,D1),D2
+	mne	([2,PC,A2],4),D3
+	mne	([6,PC],D3,8),D4
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	mne	4(PC,A5.L),D4-D7/A0-A3
+	mne	(A4),D0-D3/A0-A7
+	mne	(A5)+,D0-D7/A3/A7
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D6,(A5)+		; Not Allowed
+	mne	(A6),-(A7)		; Arguments Must Be <R List>,<ea> Or <ea>,<R List>
+
+	mne	D0,(PC)			; Invalid Destination
+	mne	A1,6(PC,A7.W)		; Invalid Destination
+	mne	D2,6(PC,A7.L)		; Invalid Destination
+	mne	#2,A3			; Invalid Source
+	mne	D4,#5			; Invalid Destination
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	D5,(0x1234,PC,D1)	; Invalid Destination
+	mne	D6,([2,PC,A2],4)	; Invalid Destination
+	mne	D7,([6,PC],D3,8)	; Invalid Destination
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_MOVEM	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_MOVEM:						*
+	;*	MOVEM						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	movem
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.w	.OK. = 1
+		.iifidn	mne base'.l	.OK. = 1
+		IFOK
+		  .MOVEM.  mne
+		ELSEOK
+		  IFERR
+		    .MOVEM.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_MOVEP Instructions - MOVEP
+
+	.macro	.MOVEP.	mne
+	  LIST
+	mne	D1,0x100(A2)
+	mne	0x200(A3),D4
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A1,0x100(A2)		; Arguments Must Be Dn,d(An) Or d(An),Dn
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_MOVEP	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_MOVEP:						*
+	;*	MOVEP						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	movep
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.w	.OK. = 1
+		.iifidn	mne base'.l	.OK. = 1
+		IFOK
+		  .MOVEP.  mne
+		ELSEOK
+		  IFERR
+		    .MOVEP.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_MOVEQ Instructions - MOVEQ
+
+	.macro	.MOVEQ.	mne
+	        LIST
+	mne	#0x0F,D3
+
+		NLIST
+		IFERR
+		  LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	#7,A0		; Second Argument Must Be Dn
+	mne	(A1),D2		; First Argument Must Be A #
+	mne	#128,D3		; -128 <= # <= 127
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+		  NLIST
+		ENDERR
+	.endm
+
+ 	.macro	S_MOVEQ	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_MOVEQ:						*
+	;*	MOVEQ						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	moveq
+	    .ifnb base
+	      .irp	mne base, bas'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.1	.OK. = 1
+		IFOK
+		  .MOVEQ.  mne
+		ELSEOK
+		  IFERR
+		    .MOVEQ.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_CHK Instructions - CHK
+
+	.macro	.CHK.	mne
+	  LIST
+	mne	D0,D1
+	mne	(A1),D2
+	mne	(A2)+,D3
+	mne	-(A3),D4
+	mne	1(A4),D5
+	mne	2(A5,D7.W),D6
+	mne	2(A5,D7.L),D6
+	mne	*0xFFFFFFF0,D7
+	mne	 0x00010004,D7
+	mne	(PC),D0
+	mne	6(PC,A7.W),D1
+	mne	6(PC,A7.L),D1
+	mne	#2,D2
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),D0
+	mne	([2,A1,A2],4),D1
+	mne	([6,A2],D3,8),D2
+	mne	(0x1234,PC,D1),D3
+	mne	([2,PC,A2],4),D4
+	mne	([6,PC],D3,8),D5
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A0,D2		; Bad Mnemonic Or Invalid First Argument
+	mne	D3,(A2)		; Bad Mnemonic Or Second Argument Must Be Dn
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_CHK	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_CHK:						*
+	;*	CHK						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	chk
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		.iifidn	mne base'.b	.OK. = 0
+		IFCPU00
+		  .iifidn mne base'.l	.OK. = 0
+		ENDCPU
+		IFCPU08
+		  .iifidn mne base'.l	.OK. = 0
+		ENDCPU
+		IFCPU10
+		  .iifidn mne base'.l	.OK. = 0
+		ENDCPU
+		IFOK
+		  .CHK.  mne
+		ELSEOK
+		  IFERR
+		    .CHK.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_CMP Instructions - CMP
+
+	.macro	.CMP.	mne
+	  LIST
+	mne	D0,D0
+	  NLIST
+	  IFOKB
+	    LIST
+	mne	A0,D1
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	(A1),D2
+	mne	(A2)+,D3
+	mne	-(A3),D4
+	mne	1(A4),D5
+	mne	2(A5,D7.W),D6
+	mne	2(A5,D7.L),D6
+	mne	(0x1234).W,D7
+	mne	(0x1234).L,D7
+	mne	*0xFFFFFFF0,D7
+	mne	 0x00010004,D7
+	mne	#2,D3
+	mne	(PC),D0
+	mne	6(PC,A7.W),D1
+	mne	6(PC,A7.L),D2
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),D0
+	mne	([2,A1,A2],4),D1
+	mne	([6,A2],D3,8),D2
+	mne	(0x1234,PC,D1),D3
+	mne	([2,PC,A2],4),D4
+	mne	([6,PC],D3,8),D5
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0,(A0)		; Bad Mnemonic Or Second Argument Not Dn
+	    IFOKB
+	    ELSEOK
+	      LIST
+	mne	A0,D1
+	      NLIST
+	    ENDOK
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_CMP	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_CMP:						*
+	;*	CMP						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	cmp
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		.OKB. = 1
+		.iifidn	mne base'.b	.OKB. = 0
+		IFOK
+		  .CMP.  mne
+		ELSEOK
+		  IFERR
+		    .CMP.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_CMPM Instructions - CMPM
+
+	.macro	.CMPM.	mne
+	  LIST
+	mne	(A1)+,(A2)+
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D1,(A3)+	; Only (An)+,(An)+ Allowed
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_CMPM	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_CMPM:						*
+	;*	CMPM						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	cmpm
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		IFOK
+		  .CMPM.  mne
+		ELSEOK
+		  IFERR
+		    .CMPM.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_EOR Instructions - EOR
+
+	.macro	.EOR.	mne
+	  LIST
+	mne	D0,D1
+	mne	D2,(A1)
+	mne	D3,(A2)+
+	mne	D4,-(A3)
+	mne	D5,1(A4)
+	mne	D6,2(A5,D7.W)
+	mne	D6,2(A5,D7.L)
+	mne	D7,(0x1234).W
+	mne	D7,(0x1234).L
+	mne	D7,*0xFFFFFFF0
+	mne	D7, 0x00010004
+	mne	#3,D2		; EOR.x #,Dn ==>> EORI.x #,Dn
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	D0,(0x1234,A0,D1)
+	mne	D1,([2,A1,A2],4)
+	mne	D2,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D1,A0		; Bad Mnemonic Or Invalid Second Argument
+	mne	D0,(PC)		; Bad Mnemonic Or Invalid Second Argument
+	mne	D1,6(PC,A7.W)	; Bad Mnemonic Or Invalid Second Argument
+	mne	D1,6(PC,A7.L)	; Bad Mnemonic Or Invalid Second Argument
+
+	mne	(A2),D3		; Bad Mnemonic Or First Argument Must Be Dn
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	D4,(0x1234,PC,D1)	; Bad Mnemonic Or Invalid Second Argument
+	mne	D5,([2,PC,A2],4)	; Bad Mnemonic Or Invalid Second Argument
+	mne	D6,([6,PC],D3,8)	; Bad Mnemonic Or Invalid Second Argument
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+	  
+ 	.macro	S_EOR	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_EOR:						*
+	;*	EOR						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	eor
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	      .OK. = 1
+	      .iifidn	mne base	.OK. = 1
+	      .iifidn	mne base'.l	.OK. = 1
+	      IFOK
+		.EOR.  mne
+	      ELSEOK
+	        IFERR
+		  .EOR.  mne
+	        ENDERR
+	      ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_EXG Instructions - EXG
+
+	.macro	.EXG.	mne
+	  LIST
+	mne	D0,D1
+	mne	D2,A3
+	mne	A4,D3
+	mne	A5,A6
+
+	  NLIST
+	  IFERR
+            LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A1,(A2)		; Bad Mnemonic Or Requires Dn Or An As Second Argument
+	mne	(A3),D4		; Bad Mnemonic Or Requires Dn Or An As First Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_EXG	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_EXG:						*
+	;*	EXG						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	exg
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'l	.OK. = 1
+	        IFOK
+		  .EXG.  mne
+	        ELSEOK
+	          IFERR
+		    .EXG.  mne
+	          ENDERR
+	        ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_EXT Instructions - EXT, EXTB
+
+	.macro	.EXT.	mne
+	  LIST
+	mne	D0
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A2		; Bad Mnemonic Or Argument Must Be Dn
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_EXT	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_EXT:						*
+	;*	EXT, EXTB					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	ext, extb
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne ext		.OK. = 1
+		.iifidn	mne ext.w	.OK. = 1
+		.iifidn	mne ext.l	.OK. = 1
+		IFCPU20
+		  .iifidn mne extb	.OK. = 1
+		  .iifidn mne extb.l	.OK. = 1
+		ENDCPU
+	        IFOK
+		  .EXT.  mne
+	        ELSEOK
+	          IFERR
+		    .EXT.  mne
+	          ENDERR
+	        ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_LINK Instructions - LINK
+
+	.macro	.LINK.	mne
+	  LIST
+	mne	A1,#0x1234
+
+	  NLIST
+	  IFERR
+            LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A1,#0x1234
+	mne	A2,D0		; Second Argument Must Be A #
+	mne	D0,#0x1234	; Firat Argument Must Be 'An'
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_LINK	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_LINK:						*
+	;*	LINK						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	link
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.w	.OK. = 1
+		IFCPU20
+		  .iifidn mne base'.l	.OK. = 1
+		ENDCPU
+	        IFOK
+		  .LINK.  mne
+	        ELSEOK
+	          IFERR
+		    .LINK.  mne
+	          ENDERR
+	        ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_STOP Instructions - STOP, RTD
+
+	.macro	.STOP.	mne
+	  LIST
+	mne	#0x1234
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0		; Bad Mnemonic Or Argument Must Be A #
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+            NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_STOP	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_STOP:						*
+	;*	STOP, RTD					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	stop, rtd
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. =0
+	        .iifidn	mne stop	.OK. = 1
+		IFCPU10
+		  .iifidn mne rtd	.OK. = 1
+		ENDCPU
+		IFCPU20
+		  .iifidn mne rtd	.OK. = 1
+		ENDCPU
+		IFOK
+		  .STOP.  mne
+		ELSEOK
+		  IFERR
+		    .STOP.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_SWAP Instructions - SWAP
+
+	.macro	.SWAP.	mne
+	  LIST
+	mne	D0
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A7		; Bad Mnemonic Or Argument Must Be Dn
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_SWAP	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_SWAP:						*
+	;*	SWAP						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	swap
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.w	.OK. = 1
+		IFOK
+		  .SWAP.  mne
+		ELSEOK
+		  IFERR
+		    .SWAP.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TRAP Instructions - TRAP
+
+	.macro	.TRAP.	mne
+	  LIST
+	mne	#12
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A7		; Argument Must Be A #
+	mne	#17		; Argument Must Be 0-15
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_TRAP	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TRAP:						*
+	;*	TRAP						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	trap
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		IFOK
+		  .TRAP.  mne
+		ELSEOK
+		  IFERR
+		    .TRAP.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_UNLK Instructions - UNLK
+
+	.macro	.UNLK.	mne
+	  LIST
+	unlk	A1
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	unlk	D2		; Argument Must Be 'An'
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_UNLK	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_UNLK:						*
+	;*	UNLK						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	unlk
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+	        .iifidn mne base	.OK. = 1
+		IFOK
+		  .UNLK.  mne
+		ELSEOK
+		  IFERR
+		    .UNLK.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_INH Instructions - ILLEGAL, NOP, RESET, RTE, RTR, RTS, TRAPV
+
+	.macro	.INH.	mne
+	  LIST
+	mne
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0	; Bad Mnemonic Or Argument Should Be Blank
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_INH	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_INH:						*
+	;*	ILLEGAL, NOP, RESET, RTE, RTR, RTS, TRAPV	*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	illegal, nop, reset, rte, rtr, rts, trapv
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn mne base	.OK. = 1
+		IFOK
+		  .INH.  mne
+		ELSEOK
+		  IFERR
+		    .INH.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  LIST
+
+	  NLIST
+	.endm
+
+
+	;////////////////////////////////////////////////////////
+	;/							/
+	;/     Instructions First Available In The 68010	/
+	;/							/
+	;////////////////////////////////////////////////////////
+
+	; Macro For S_MOVEC Instructions - MOVEC
+
+	.macro	.MOVEC.	mne
+	  LIST
+	mne	SFC,D0
+	mne	DFC,A1
+	mne	USP,A3
+	mne	VBR,D4
+	mne	D0,SFC
+	mne	A1,DFC
+	mne	A3,USP
+	mne	D4,VBR
+	  NLIST
+	  IFCPU20
+	    LIST
+	mne	CACR,D2
+	mne	CAAR,A5
+	mne	MSP,D6
+	mne	ISP,A7
+	mne	D2,CACR
+	mne	A5,CAAR
+	mne	D6,MSP
+	mne	A7,ISP
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D2,(A0)		; Bad Mnemonic Or Second Argument Must Be Control Register
+	mne	(A1)+,A2	; Bad Mnemonic Or First Argument Must Be Control Register
+	    NLIST
+	    IFCPU20
+	    ELSECPU
+	      LIST
+	mne	CACR,D2		; Bad Mnemonic Or Only Valid In 68020
+	mne	CAAR,A5		; Bad Mnemonic Or Only Valid In 68020
+	mne	MSP,D6		; Bad Mnemonic Or Only Valid In 68020
+	mne	ISP,A7		; Bad Mnemonic Or Only Valid In 68020
+	mne	D2,CACR		; Bad Mnemonic Or Only Valid In 68020
+	mne	A5,CAAR		; Bad Mnemonic Or Only Valid In 68020
+	mne	D6,MSP		; Bad Mnemonic Or Only Valid In 68020
+	mne	A7,ISP		; Bad Mnemonic Or Only Valid In 68020
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_MOVEC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_MOVEC:						*
+	;*	MOVEC						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	movec
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		IFCPU10
+	          .iifidn mne base	.OK. = 1
+	          .iifidn mne base'.l	.OK. = 1
+		ENDCPU
+		IFCPU20
+	          .iifidn mne base	.OK. = 1
+	          .iifidn mne base'.l	.OK. = 1
+		ENDCPU
+		IFOK
+		  .MOVEC.  mne
+		ELSEOK
+		  IFERR
+		    .MOVEC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_MOVES Instructions - MOVES
+
+	.macro	.MOVES.	mne
+	  LIST
+	mne	A1,(A2)
+	mne	D2,(A3)+
+	mne	A4,-(A5)
+	mne	D6,1(A7)
+	mne	A0,2(A1,D1.W)
+	mne	D2,2(A3,D4.L)
+	mne	A3,(0x1234).W
+	mne	D3,(0x1234).L
+	mne	A4,*0xFFFFFFF0
+	mne	D5, 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	A5,(0x1234,A0,D1)
+	mne	D6,([2,A1,A2],4)
+	mne	A6,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	mne	(A0),D1
+	mne	(A2)+,A3
+	mne	-(A4),D5
+	mne	1(A6),D7
+	mne	2(A0,D1.W),A1
+	mne	2(A2,D3.L),D4
+	mne	(0x1234).W,A3
+	mne	D5,(0x1234).L
+	mne	*0xFFFFFFF0,A4
+	mne	 0x00010004,D6
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A5,D7),A6
+	mne	([2,A7,A0],4),D0
+	mne	([6,A1],D2,8),A2
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0,A1		; Bad Mnemonic Or Invalid Argument Pair
+	mne	A2,D3		; Bad Mnemonic Or Invalid Argument Pair
+	mne	(A3)+,-(A4)	; Bad Mnemonic Or Invalid Argument Pair
+	mne	D0,(PC)		; Bad Mnemonic Or Invalid Second Argument
+	mne	A1,6(PC,A7.W)	; Bad Mnemonic Or Invalid Second Argument
+	mne	D2,6(PC,A7.L)	; Bad Mnemonic Or Invalid Second Argument
+	mne	A3,#7		; Bad Mnemonic Or Invalid Second Argument
+	mne	(PC),D0		; Bad Mnemonic Or Invalid First Argument
+	mne	6(PC,A7.W),A1	; Bad Mnemonic Or Invalid First Argument
+	mne	6(PC,A7.L),D2	; Bad Mnemonic Or Invalid First Argument
+	mne	#7,A3		; Bad Mnemonic Or Invalid First Argument
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	D3,(0x1234,PC,D1)	; Bad Mnemonic Or Invalid Second Argument
+	mne	([2,PC,A2],4),A3	; Bad Mnemonic Or Invalid First Argument
+	mne	D6,([6,PC],D3,8)	; Bad Mnemonic Or Invalid Second Argument
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+	  
+ 	.macro	S_MOVES	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_MOVES:						*
+	;*	MOVES						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	moves
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	      .OK. = 0
+	      IFCPU10
+	       	.OK. = 1
+	      ENDCPU
+	      IFCPU20
+	        .OK. = 1
+	      ENDCPU
+	      IFOK
+		.MOVES.  mne
+	      ELSEOK
+	        IFERR
+		  .MOVES.  mne
+	        ENDERR
+	      ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+
+	;////////////////////////////////////////////////////////
+	;/							/
+	;/     Instructions First Available In The 68020	/
+	;/							/
+	;////////////////////////////////////////////////////////
+
+	; Macro For S_BF Instructions - BFCHG, BFCLR, BFEXTS, BFEXTU, BFFFO, BFINS, BFSET, BFTST
+
+	.macro	.BF1.	mne
+	  LIST
+	mne	D0,{31:1}
+	mne	(A1),{29:3}
+	mne	1(A4),{27:5}
+	mne	2(A5,D7.W),{25:7}
+	mne	2(A5,D7.L),{23:9}
+	mne	(0x1234).W,{21:11}
+	mne	(0x1234).L,{19:13}
+	mne	*0xFFFFFFF0,{17:15}
+	mne	 0x00010004,{15:17}
+	mne	(0x1234,A0,D1),{13:19}
+	mne	([2,A1,A2],4),{11:21}
+	mne	([6,A2],D3,8),{9:23}
+	  NLIST
+	  .ifne  .OKTST.	; BFTST
+	    LIST
+	mne	5(PC),{5:27}
+	mne	6(PC,A7.W),{3:29}
+	mne	6(PC,A7.L),{1:31}
+	mne	(0x1234,PC,D1),{5:27}
+	mne	([2,PC,A2],4),{3:29}
+	mne	([6,PC],D3,8),{1:31}
+	    NLIST
+	  .endif
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A1,{17,15}
+	mne	(A2)+,{15:17}		; Bad Mnemonic Or Invalid First Argument
+	mne	-(A3),{13:19}		; Bad Mnemonic Or Invalid First Argument
+	mne	#7,{5:27}		; Bad Mnemonic Or Invalid First Argument
+	mne	D0,{33:1}		; Bad Mnemonic Or Second Argument Not 0-31
+	    NLIST
+	    .ifeq  .OKTST.
+	      LIST
+	mne	(PC)			; Bad Mnemonic Or Invalid First Argument
+	mne	6(PC,A7.W)		; Bad Mnemonic Or Invalid Second Argument
+	mne	6(PC,A7.L)		; Bad Mnemonic Or Invalid Second Argument
+	mne	(0x1234,PC,D1),{5:27}	; Bad Mnemonic Or Invalid First Argument
+	mne	([2,PC,A2],4),{3:29}	; Bad Mnemonic Or Invalid First Argument
+	mne	([6,PC],D3,8),{1:31}	; Bad Mnemonic Or Invalid First Argument
+	      NLIST
+	    .endif
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.BF2.	mne
+	  LIST
+	mne	D0,{31:1},D0
+	mne	(A1),{29:3},D1
+	mne	1(A4),{27:5},D2
+	mne	2(A5,D7.W),{25:7},D3
+	mne	2(A5,D7.L),{23:9},D4
+	mne	(0x1234).W,{21:11},D5
+	mne	(0x1234).L,{19:13},D6
+	mne	*0xFFFFFFF0,{17:15},D7
+	mne	 0x00010004,{15:17},D0
+	mne	(0x1234,A0,D1),{13:19},D1
+	mne	([2,A1,A2],4),{11:21},D2
+	mne	([6,A2],D3,8),{9:23},D3
+	mne	5(PC),{5:27},D4
+	mne	6(PC,A7.W),{3:29},D5
+	mne	6(PC,A7.L),{1:31},D6
+	mne	(0x1234,PC,D1),{5:27},D7
+	mne	([2,PC,A2],4),{3:29},D0
+	mne	([6,PC],D3,8),{1:31},D1
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A1,{17,15},D0		; Bad Mnemonic Or Invalid First Argument
+	mne	(A2)+,{15:17},D1	; Bad Mnemonic Or Invalid First Argument
+	mne	-(A3),{13:19},D2	; Bad Mnemonic Or Invalid First Argument
+	mne	#7,{5:27},D3		; Bad Mnemonic Or Invalid First Argument
+	mne	D0,{33:1},D4		; Bad Mnemonic Or Second Argument Not 0-31
+	mne	D0,{31:0},D4		; Bad Mnemonic Or Second Argument Not 1-32
+	mne	(PC)			; Bad Mnemonic Or Missing Arguments
+	mne	(PC),{5:27}		; Bad Mnemonic Or Missing Argument
+	mne	(PC),D5			; Bad Mnemonic Or Missing Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.BF3.	mne
+	  LIST
+	mne	D1,D0,{31:1}
+	mne	D2,(A1),{29:3}
+	mne	D3,1(A4),{27:5}
+	mne	D4,2(A5,D7.W),{25:7}
+	mne	D5,2(A5,D7.L),{23:9}
+	mne	D6,(0x1234).W,{21:11}
+	mne	D7,(0x1234).L,{19:13}
+	mne	D0,*0xFFFFFFF0,{17:15}
+	mne	D1, 0x00010004,{15:17}
+	mne	D2,(0x1234,A0,D1),{13:19}
+	mne	D3,([2,A1,A2],4),{11:21}
+	mne	D4,([6,A2],D3,8),{9:23}
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A1,{17,15},D0		; Bad Mnemonic Or Invalid First Argument
+	mne	(A2)+,{15:17},D1	; Bad Mnemonic Or Invalid First Argument
+	mne	-(A3),{13:19},D2	; Bad Mnemonic Or Invalid First Argument
+	mne	#7,{5:27},D3		; Bad Mnemonic Or Invalid First Argument
+	mne	D1,D0,{33:1},D4		; Bad Mnemonic Or Third Argument Not 0-31:1-32
+	mne	D2,D0,{31:0},D4		; Bad Mnemonic Or Third Argument Not 0-31:1-32
+	mne	(PC)			; Bad Mnemonic Or Missing Arguments
+	mne	(PC),{5:27}		; Bad Mnemonic Or Missing Argument
+	mne	(PC),D5			; Bad Mnemonic Or Missing Argument
+	mne	D3,5(PC),{5:27}		; Bad Mnemonic Or Invalid Second Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_BF	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_BF:						*
+	;*	BFCHG, BFCLR, BFEXTS, BFEXTU,			*
+	;*	BFFFO, BFINS, BFSET, BFTST			*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	bfchg, bfclr, bfset, bftst
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+	        .iifidn mne base	.OK. = 1
+		.OKTST. = 0
+		.iifidn	mne bftst	.OKTST. = 1
+		IFOK
+		  IFCPU20
+		    .BF1.  mne
+		  ENDCPU
+		ELSEOK
+		  IFERR
+		    .BF1.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  .irp	base	bfexts, bfextu, bfffo
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+	        .iifidn mne base	.OK. = 1
+		IFOK
+		  IFCPU20
+		    .BF2.  mne
+		  ENDCPU
+		ELSEOK
+		  IFERR
+		    .BF2.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  .irp	base	bfins
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+	        .iifidn mne base	.OK. = 1
+		IFOK
+		  IFCPU20
+		    .BF3.  mne
+		  ENDCPU
+		ELSEOK
+		  IFERR
+		    .BF3.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_BKPT Instructions - BKPT
+
+	.macro	.BKPT.	mne
+	  LIST
+	mne	#5
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D2		; Bad Mnemonic Or Argument Must Be A #
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_BKPT	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_BKPT:						*
+	;*	BKPT						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	bkpt
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+	        .iifidn mne base	.OK. = 1
+		IFOK
+		  IFCPU20
+		    .BKPT.  mne
+		  ENDCPU
+		ELSEOK
+		  IFERR
+		    .BKPT.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_CALLM Instructions - CALLM
+
+	.macro	.CALLM.	mne
+	  LIST
+	mne	#1,(A1)
+	mne	#2,1(A4)
+	mne	#3,2(A5,D7.W)
+	mne	#4,2(A5,D7.L)
+	mne	#5,(0x1234).W
+	mne	#6,(0x1234).L
+	mne	#7,*0xFFFFFFF0
+	mne	#8, 0x00010004
+	mne	#9,(0x1234,A0,D1)
+	mne	#10,([2,A1,A2],4)
+	mne	#11,([6,A2],D3,8)
+	mne	#12,(PC)
+	mne	#13,6(PC,A7.W)
+	mne	#14,6(PC,A7.L)
+	mne	#15,(0x1234,PC,D1)
+	mne	#16,([2,PC,A2],4)
+	mne	#17,([6,PC],D3,8)
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	#1,D1		; Bad Mnemonic Or Invalid Second Argument
+	mne	#2,A0		; Bad Mnemonic Or Invalid Second Argument
+	mne	#3,(A2)+	; Bad Mnemonic Or Invalid Second Argument
+	mne	#4,-(A3)	; Bad Mnemonic Or Invalid Second Argument
+
+	mne	D0,(A2)		; Bad Mnemonic Or First Argument Must Be A #
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	S_CALLM	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_CALLM:						*
+	;*	CALLM						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	callm
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+	        .iifidn mne base	.OK. = 1
+		IFOK
+		  IFCPU20
+		    .CALLM.  mne
+		  ENDCPU
+		ELSEOK
+		  IFERR
+		    .CALLM.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_CAS Instructions - CAS
+
+	.macro	.CAS.  mne
+	  LIST
+	mne	D0,D1,(A0)
+	mne	D2,D3,(A1)+
+	mne	D4,D5,-(A2)
+	mne	D6,D7,(2,A3)
+	mne	D4,D5,2(A5,D7.W)
+	mne	D6,D7,2(A5,D7.L)
+	mne	D0,D1,(0x1234).W
+	mne	D2,D3,(0x1234).L
+	mne	D0,D1,*0xFFFFFFF0
+	mne	D2,D3, 0x00010004
+	mne	D4,D5,(0x1234,A0,D1)
+	mne	D6,D7,([2,A1,A2],4)
+	mne	D0,D1,([6,A2],D3,8)
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0,D1,D2		; Bad Mnemonic Or Invalid Third Argument
+	mne	D2,D3,A4		; Bad Mnemonic Or Invalid Third Argument
+	mne	D4,D5,(PC)		; Bad Mnemonic Or Invalid Third Argument
+	mne	D6,D7,6(PC,A7.W)	; Bad Mnemonic Or Invalid Third Argument
+	mne	D0,D1,6(PC,A7.L)	; Bad Mnemonic Or Invalid Third Argument
+	mne	D2,D3,(0x1234,PC,D1)	; Bad Mnemonic Or Invalid Third Argument
+	mne	D4,D5,([2,PC,A2],4)	; Bad Mnemonic Or Invalid Third Argument
+	mne	D6,D7,([6,PC],D3,8)	; Bad Mnemonic Or Invalid Third Argument
+
+	mne	(A2),D2,(A0)		; Bad Mnemonic Or First Argument Must Be Dn
+	mne	D3,(A3),(A0)		; Bad Mnemonic Or Second Argument Must Be Dn
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_CAS	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_CAS:						*
+	;*	CAS						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	cas
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		.OKCPU. = 0
+		IFCPU20
+		  .OKCPU. = 1
+		ENDCPU
+		IFOK
+		  .ifne  .OKCPU.
+		    .CAS.  mne
+		  .endif
+		ELSEOK
+		  IFERR
+		    .CAS.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_CAS2 Instructions - CAS2
+
+	.macro	.CAS2.  mne
+	  LIST
+	mne	D0:D1,D2:D3,(A0):(A1)
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0,D1,D2:D3,(A0):(A1)	; Bad Mnemonic Or Mssing :
+	mne	D0:D1,D2,D3,(A0):(A1)	; Bad Mnemonic Or Mssing :
+	mne	A0:D1,D2:D3,(A0):(A1)	; Bad Mnemonic Or Invalid First Argument
+	mne	D0:A1,D2:D3,(A0):(A1)	; Bad Mnemonic Or Invalid Second Argument
+	mne	D0:D1,A2:D3,(A0):(A1)	; Bad Mnemonic Or Invalid Third Argument
+	mne	D0:D1,D2:A3,(A0):(A1)	; Bad Mnemonic Or Invalid Fourth Argument
+	mne	D0:D1,D2:D3,(A0),(A1)	; Bad Mnemonic Or Mssing :
+	mne	D0:D1,D2:D3,D4:(A1)	; Bad Mnemonic Or Invalid Fifth Argument
+	mne	D0:D1,D2:D3,(A0):D5	; Bad Mnemonic Or Invalid Sixth Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_CAS2	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_CAS2:						*
+	;*	CAS2						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	cas2
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		.iifidn	mne base'.b	.OK. = 0
+		.OKCPU. = 0
+		IFCPU20
+		  .OKCPU. = 1
+		ENDCPU
+		IFOK
+		  .ifne  .OKCPU.
+		    .CAS2.  mne
+		  .endif
+		ELSEOK
+		  IFERR
+		    .CAS2.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_CHK2 Instructions - CHK2
+	; Macro For S_CMP2 Instructions - CMP2
+
+	.macro	.CHK2.	mne
+	  LIST
+	mne	(A1),A2
+	mne	1(A4),D5
+	mne	2(A5,D7.W),A6
+	mne	2(A5,D7.L),D6
+	mne	(0x1234).W,A7
+	mne	(0x1234).L,D7
+	mne	*0xFFFFFFF0,A7
+	mne	 0x00010004,D7
+	mne	(0x1234,A0,D1),A0
+	mne	([2,A1,A2],4),A1
+	mne	([6,A2],D3,8),D2
+	mne	(PC),A0
+	mne	6(PC,A7.W),D1
+	mne	6(PC,A7.L),A1
+	mne	(0x1234,PC,D1),D2
+	mne	([2,PC,A2],4),A3
+	mne	([6,PC],D3,8),D4
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0,D1		; Bad Mnemonic Or Invalid First Argument
+	mne	A0,A2		; Bad Mnemonic Or Invalid First Argument
+	mne	(A2)+,D3	; Bad Mnemonic Or Invalid First Argument
+	mne	-(A3),A4	; Bad Mnemonic Or Invalid First Argument
+	mne	#2,D2		; Bad Mnemonic Or Invalid First Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_CHK2	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_CHK2:						*
+	;*  S_CMP2:						*
+	;*	CHK2, CMP2					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	chk2, cmp2
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 1
+		IFOK
+		  IFCPU20
+		    .CHK2.  mne
+		  ENDCPU
+		ELSEOK
+		  IFERR
+		    .CHK2.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_PKUK Instructions - PACK, UNPK
+
+	.macro	.PKUK.  mne
+	  LIST
+	mne	-(A0),-(A1),#5
+	mne	D2,D3,#6
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0,D1,D2		; Bad Mnemonic Or Third Argument Argument Must Be A #
+	mne	D2,(A3),#1		; Bad Mnemonic Or Second Argument Must Be Dn
+	mne	(A4),D5,#2		; Bad Mnemonic Or First Argument Must Be Dn
+	mne	-(A5),(A6),#3		; Bad Mnemonic Or Second Argument Must Be -(An)
+	mne	(A7),-(A0),#4		; Bad Mnemonic Or First Argument Must Be -(An)
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	  ENDERR
+	.endm
+
+ 	.macro	S_PKUK	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_PKUK:						*
+	;*	PACK, UNPK					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	pack, unpk
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		IFOK
+		  IFCPU20
+		    .PKUK.  mne
+		  ENDCPU
+		ELSEOK
+		  IFERR
+		    .PKUK.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_RTM Instructions - RTM
+
+	.macro	.RTM.  mne
+	  LIST
+	mne	D1
+	mne	A1
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	(A0)		; Bad Mnemonic Or First Argument Argument Must Be Dn Or An
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	  ENDERR
+	.endm
+
+ 	.macro	S_RTM	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_RTM:						*
+	;*	RTM						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	rtm
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		IFOK
+		  IFCPU20
+		    .RTM.  mne
+		  ENDCPU
+		ELSEOK
+		  IFERR
+		    .RTM.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TRPC Instructions - TRAPcc
+
+	.macro	.TRPC.  mne
+	  IFOKB
+	    LIST
+	mne
+	mne	#0x000F
+	mne	#0x000F0000
+
+	    NLIST
+	  ELSEOK
+	    LIST
+	mne	#15
+
+	    NLIST
+	  ENDOK
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	(A0)		; Bad Mnemonic Or Requires A # Or Blank Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	S_TRPC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  S_TRPC:						*
+	;*	TRAPT,  TRAPF,  TRAPHI, TRAPLS			*
+	;*	TRAPCC, TRAPCS, TRAPNE, TRAPEQ			*
+	;*	TRAPVC, TRAPVS, TRAPPL, TRAPMI			*
+	;*	TRAPGE, TRAPLT, TRAPGT, TRAPLE			*
+	;*	TRAPHS, TRAPLO					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	trapt,  trapf,  traphi, trapls, trapcc, trapcs, trapne, trapeq
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.OKB. = 0
+		.iifidn  mne base	.OK. = 1
+		.iifidn  mne base	.OKB. = 1
+		.iifidn  mne base'.w	.OK. = 1
+		.iifidn  mne base'.l	.OK. = 1
+		IFOK
+		  IFCPU20
+		    .TRPC.  mne
+		  ENDCPU
+		ELSEOK
+		  IFERR
+		    .TRPC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  .irp	base	trapvc, trapvs, trappl, trapmi, trapge, traplt, trapgt, traple, traphs, traplo
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l
+	        .OK. = 0
+		.OKB. = 0
+		.iifidn  mne base	.OK. = 1
+		.iifidn  mne base	.OKB. = 1
+		.iifidn  mne base'.w	.OK. = 1
+		.iifidn  mne base'.l	.OK. = 1
+		IFOK
+		  IFCPU20
+		    .TRPC.  mne
+		  ENDCPU
+		ELSEOK
+		  IFERR
+		    .TRPC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For F_TYP1 Instructions - FINT, FSINH, FINTRZ, FSQRT, FLOGNP1, FETOXM1,
+	;				- FTANH, FATAN, FASIN, FATANH, FSIN, FTAN, 
+	;				- FETOX, FTWOTOX, FTENTOX, FLOGN, FLOG10, FLOG2, 
+	;				- FABS, FCOSH, FNEG, FCOS, FACOS, FGETEXP, 
+	;				- FGETMAN, FDIV
+
+	.macro	.FTYPN.EA.  mne
+	  IFOKDN
+	    LIST
+	mne	D0,FP0
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	(A1),FP2
+	mne	(A2)+,FP3
+	mne	-(A3),FP4
+	mne	1(A4),FP5
+	mne	2(A5,D7.W),FP6
+	mne	2(A5,D7.L),FP6
+	mne	(0x1234).W,FP7
+	mne	(0x1234).L,FP7
+	mne	*0xFFFFFFF0,FP0
+	mne	 0x00010004,FP1
+	  NLIST
+	  IFOKDN
+	    LIST
+	mne	#7,FP2
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	5(PC),FP3
+	mne	6(PC,A7.W),FP4
+	mne	6(PC,A7.L),FP4
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),FP0
+	mne	([2,A1,A2],4),FP1
+	mne	([6,A2],D3,8),FP2
+	mne	(0x1234,PC,D1),FP3
+	mne	([2,PC,A2],4),FP4
+	mne	([6,PC],D3,8),FP5
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    IFOKDN
+	      LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0,FP0		; Bad Mnemonic Or .D, .X, Or .P With Dn Is Not Allowed
+	mne	#7,FP2		; Bad Mnemonic Or .D, .X, Or .P With # Is Not Allowed
+	      NLIST
+	    ENDOK
+	    LIST
+	mne	A0,FP0		; Bad Mnemonic Or Invalid First Argument
+	mne	(A3),D0		; Bad Mnemonic Or Second Argument Must Be FP0-FP7
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.FTYP1.D.  mne
+	  LIST
+	mne	FP7
+	mne	FP1,FP2
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	FP8		; Bad Mnemonic Or Argument Not FP0-FP7
+	mne	FP9,FP1		; Bad Mnemonic Or Invalid First Argument
+	mne	FP0,FP8		; Bad Mnemonic Or Invalid Second Argument
+	mne	FP1,(A0)	; Bad Mnemonic Or Invalid Second Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+
+	; Macro For External Branch testing 
+	; BRA, BSR, BHI, BLS, BCC, BCS, BNE, BEQ
+	; BVC, BVS, BPL, BMI, BGE, BLT, BGT, BLE
+
+	.macro	.XPCB.	mne	i, ?a
+	  LIST
+a':	mne	'a		; 64 FE
+	  NLIST
+	  .xpc  y'i
+	  LIST
+	mne	y'i		; 64 FF FF FF FF FE
+	  NLIST
+	  .xpc  y'i'S
+	  LIST
+	mne'.b	y'i'S		; 64 FE
+	  NLIST
+	  .xpc  y'i'W
+	  LIST
+	mne'.w	y'i'W		; 64 00 FF FE
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	    NLIST
+	    .xpc  y'i'BE
+	    LIST
+	mne'.b	y'i'BE + 0x200
+	    NLIST
+	    .xpc  y'i'WE
+	    LIST
+	mne'.w	y'i'WE + 0x8200
+	    NLIST
+	    IFCPU20
+	    ELSECPU
+	      .xpc  y'i'L
+	      LIST
+	mne'.l	y'i'L
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.XPCW.	mne	i, ?a
+	  LIST
+a':	mne	'a + 0x200	; 64 00 01 FE
+	  NLIST
+	  .xpc  y'i
+	  LIST
+	mne	y'i + 0x200	; 64 FF 00 00 01 FE
+	  NLIST
+	  .xpc  y'i'W
+	  LIST
+	mne'.w	y'i'W + 0x200	; 64 00 01 FE
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	    NLIST
+	    .xpc  y'i'WE
+	mne'.w	y'i'WE + 0x8200
+	    NLIST
+	    IFCPU20
+	      .xpc  y'i'L
+	      LIST
+	mne'.l	y'i'L + 0x200	; 64 FF 00 00 01 FE
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.XPCL.	mne	i, ?a
+	  IFCPU20
+	    LIST
+a':	mne	'a + 0x20000	; 64 FF 00 01 FF FE
+	    NLIST
+	    .xpc  y'i
+	    LIST
+	mne	y'i + 0x20000	; 64 FF 00 01 FF FE
+	    NLIST
+	    .xpc  y'i'L
+	    LIST
+	mne'.l	y'i'L + 0x20000	; 64 FF 00 01 FF FE
+
+	    NLIST
+	  ENDCPU
+	  IFERR
+	    IFCPU20
+	    ELSECPU
+	      LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	      NLIST
+	    .xpc  y'i'L
+	      LIST
+	mne'.l	y'i'L + 0x20000	; 64 FF 00 01 FF FE
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	      NLIST
+	    ENDCPU
+	  ENDERR
+	.endm
+
+	.macro	.XPCJ.	mne	i, ?a
+	  LIST
+a':	mne	'a
+	  NLIST
+	  .xpc	j'i
+	  LIST
+	mne	j'i
+	  NLIST
+	.endm
+
+ 	.macro	B_XPC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  B_XPC:						*
+	;*	External Branching Test				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .XPCB.  bra 1
+	  .XPCW.  bra 2
+	  .XPCL.  bra 3
+	  .XPCB.  bsr 4
+	  .XPCW.  bsr 5
+	  .XPCL.  bsr 6
+	  .XPCB.  bcc 7
+	  .XPCW.  bcc 8
+	  .XPCL.  bcc 9
+	  LIST
+	jmp	barg
+	jmp	warg
+	jmp	larg
+	jsr	barg
+	jsr	warg
+	jsr	larg
+	
+	  NLIST
+	.endm
+
+
+ 	.macro	F_TYP1	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_TYP1:						*
+	;*	FINT, FSINH, FINTRZ, FSQRT, FLOGNP1, FETOXM1,	*
+	;*	FTANH, FATAN, FASIN, FATANH, FSIN, FTAN, 	*
+	;*	FETOX, FTWOTOX, FTENTOX, FLOGN, FLOG10, FLOG2, 	*
+	;*	FABS, FCOSH, FNEG, FCOS, FACOS, FGETEXP,	*
+	;*	FGETMAN, FDIV					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	fint, fsinh, fintrz, fsqrt, flognp1, fetoxm1, ftanh, fatan, fasin, fatanh
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.x	.OK. = 1
+		.OKDN. = 0
+		IFOK
+		  .FTYP1.D.  mne
+		ELSEOK
+		  IFERR
+		    .FTYP1.D.  mne
+		  ENDERR
+		ENDOK
+	        .OK. = 1
+		.OKDN. = 0
+		.iifidn	mne base'.b	.OKDN. = 1
+		.iifidn	mne base'.w	.OKDN. = 1
+		.iifidn	mne base'.l	.OKDN. = 1
+		.iifidn	mne base'.s	.OKDN. = 1
+		IFOK
+		  .FTYPN.EA.  mne
+		ELSEOK
+		  IFERR
+		    .FTYPN.EA.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  .irp	base	fsin, ftan, fetox, ftwotox, ftentox, flogn, flog10, flog2, fabs, fcosh
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.x	.OK. = 1
+		.OKDN. = 0
+		IFOK
+		  .FTYP1.D.  mne
+		ELSEOK
+		  IFERR
+		    .FTYP1.D.  mne
+		  ENDERR
+		ENDOK
+	        .OK. = 1
+		.OKDN. = 0
+		.iifidn	mne base'.b	.OKDN. = 1
+		.iifidn	mne base'.w	.OKDN. = 1
+		.iifidn	mne base'.l	.OKDN. = 1
+		.iifidn	mne base'.s	.OKDN. = 1
+		IFOK
+		  .FTYPN.EA.  mne
+		ELSEOK
+		  IFERR
+		    .FTYPN.EA.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  .irp	base	fneg, fcos, facos, fgetexp, fgetman, fdiv
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.x	.OK. = 1
+		.OKDN. = 0
+		IFOK
+		  .FTYP1.D.  mne
+		ELSEOK
+		  IFERR
+		    .FTYP1.D.  mne
+		  ENDERR
+		ENDOK
+	        .OK. = 1
+		.OKDN. = 0
+		.iifidn	mne base'.b	.OKDN. = 1
+		.iifidn	mne base'.w	.OKDN. = 1
+		.iifidn	mne base'.l	.OKDN. = 1
+		.iifidn	mne base'.s	.OKDN. = 1
+		IFOK
+		  .FTYPN.EA.  mne
+		ELSEOK
+		  IFERR
+		    .FTYPN.EA.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+	;   And For F_TYP2 Instructions - FMOD, FADD, FMUL, FSGLDIV,
+	;				- FREM, FSCALE, FSGLMUL, FSUB,  FCMP
+
+	.macro	.FTYP2.D.  mne
+	  LIST
+	mne	FP1,FP2
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	FP8		; Bad Mnemonic Or Missing Second Argument
+	mne	FP9,FP1		; Bad Mnemonic Or Invalid First Argument
+	mne	FP0,FP8		; Bad Mnemonic Or Invalid Second Argument
+	mne	FP1,(A0)	; Bad Mnemonic Or Invalid Second Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	F_TYP2  argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_TYP2:						*
+	;*	FMOD, FADD, FMUL, FSGLDIV,			*
+	;*	FREM, FSCALE, FSGLMUL, FSUB,  FCMP		*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	fmod, fadd, fmul, fsgldiv, frem, fscale, fsglmul, fsub,  fcmp
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.x	.OK. = 1
+		.OKDN. = 0
+		IFOK
+		  .FTYP2.D.  mne
+		ELSEOK
+		  IFERR
+		    .FTYP2.D.  mne
+		  ENDERR
+		ENDOK
+	        .OK. = 1
+		.OKDN. = 0
+		.iifidn	mne base'.b	.OKDN. = 1
+		.iifidn	mne base'.w	.OKDN. = 1
+		.iifidn	mne base'.l	.OKDN. = 1
+		.iifidn	mne base'.s	.OKDN. = 1
+		IFOK
+		  .FTYPN.EA.  mne
+		ELSEOK
+		  IFERR
+		    .FTYPN.EA.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For F_SNCS Instructions - FSINCOS
+
+	.macro	.FSNCS.EA.  mne
+	  IFOKDN
+	    LIST
+	mne	D0,FP1:FP0
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	(A1),FP2:FP1
+	mne	(A2)+,FP3:FP2
+	mne	-(A3),FP4:FP3
+	mne	1(A4),FP5:FP4
+	mne	2(A5,D7.W),FP6:FP5
+	mne	2(A5,D7.L),FP6:FP5
+	mne	(0x1234).W,FP7:FP0
+	mne	(0x1234).L,FP7:FP0
+	mne	*0xFFFFFFF0,FP0:FP7
+	mne	 0x00010004,FP1:FP0
+	  NLIST
+	  IFOKDN
+	    LIST
+	mne	#7,FP2:FP1
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	5(PC),FP3:FP2
+	mne	6(PC,A7.W),FP4:FP3
+	mne	6(PC,A7.L),FP4:FP3
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),FP0:FP7
+	mne	([2,A1,A2],4),FP1:FP0
+	mne	([6,A2],D3,8),FP2:FP1
+	mne	(0x1234,PC,D1),FP3:FP2
+	mne	([2,PC,A2],4),FP4:FP3
+	mne	([6,PC],D3,8),FP5:FP4
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	    NLIST
+	    IFOKDN
+	      LIST
+	mne	D0,FP0:FP1	; Bad Mnemonic Or .D, .X, Or .P No tAllowed
+	      NLIST
+	    ENDOK
+	    LIST
+	mne	A0,FP0:FP1	; Bad Mnemonic Or Invalid First Argument
+	mne	(A3),FP2,FP4	; Bad Mnemonic Or Invalid Arguments
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.FSNCS.D.  mne
+	  LIST
+	mne	FP0,FP1:FP2
+	mne	FP1,FP6:FP7
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	FP0		; Bad Mnemonic Or Missing Second Argument
+	mne	FP9,FP2:FP3	; Bad Mnemonic Or Invalid First Argument
+	mne	FP0,FP8		; Bad Mnemonic Or Requires Second Argument Of FPc:FPs
+	mne	FP1,(A0)	; Bad Mnemonic Or Invalid Second Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	F_SNCS  argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_SNCS:						*
+	;*	FSINCOS						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	fsincos
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.x	.OK. = 1
+		.OKDN. = 0
+		IFOK
+		  .FSNCS.D.  mne
+		ELSEOK
+		  IFERR
+		    .FSNCS.D.  mne
+		  ENDERR
+		ENDOK
+	        .OK. = 1
+		.OKDN. = 0
+		.iifidn	mne base'.b	.OKDN. = 1
+		.iifidn	mne base'.w	.OKDN. = 1
+		.iifidn	mne base'.l	.OKDN. = 1
+		.iifidn	mne base'.s	.OKDN. = 1
+		IFOK
+		  .FSNCS.EA.  mne
+		ELSEOK
+		  IFERR
+		    .FSNCS.EA.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For F_TST Instructions - FTST
+
+	.macro	.FTST.EA.  mne
+	  .ifne	.OKDN.
+	    LIST
+	mne	D0
+	    NLIST
+	  .endif
+	  LIST
+	mne	(A0)
+	mne	(A1)+
+	mne	-(A2)
+	mne	(1,A3)
+	mne	(2,A1,D2)
+	mne	(0x1234).W
+	mne	(0x1234).L
+	mne	*0xFFFFFFF0
+	mne	 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1)
+	mne	([2,A1,A2],4)
+	mne	([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  IFOKDN
+	    LIST
+	mne	#3
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	(2,PC)
+	mne	(4,PC,A2)
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,PC,D1)
+	mne	([2,PC,A2],4)
+	mne	([6,PC],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	    NLIST
+	    IFOKDN
+	    ELSEOK
+	      LIST
+	mne	D0		; Bad Mnemonic Or .D/.X/.P With Dn Is Not Allowed
+	mne	#3		; Bad Mnemonic Or .D/.X/.P With # Is Not Allowed
+	      NLIST
+	    .endif
+	    LIST
+	mne	A0		; Bad Mnemonic Or Invalid Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.FTST.D.  mne
+	  LIST
+	mne	FP7
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	FP8		; Bad Mnemonic Or Argument Not FP0-FP7
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	F_TST	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_TST:						*
+	;*	FTST						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	ftst
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn	mne base'.x	.OK. = 1
+		IFOK
+		  .FTST.D.  mne
+		ELSEOK
+		  IFERR
+		    .FTST.D.  mne
+		  ENDERR
+		ENDOK
+		.OK. = 1
+		.OKDN. = 0
+		.iifidn	mne base'.b	.OKDN. = 1
+		.iifidn	mne base'.w	.OKDN. = 1
+		.iifidn	mne base'.l	.OKDN. = 1
+		.iifidn	mne base'.s	.OKDN. = 1
+		IFOK
+		  .FTST.EA.  mne
+		ELSEOK
+		  IFERR
+		    .FTST.EA.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For F_MOV Instructions - FMOVE
+
+	.macro	.FMOV.L.	mne
+	  LIST
+	mne	D0,FPCR
+	mne	FPIAR,A0
+	mne	FPSR,(A0)
+	mne	(A1)+,FPCR
+	mne	FPSR,-(A2)
+	mne	1(A3),FPSR
+	mne	FPCR,2(A5,D7.W)
+	mne	2(A5,D7.L),FPCR
+	mne	FPSR,(0x1234).W
+	mne	(0x1234).L,FPSR
+	mne	FPCR,*0xFFFFFFF0
+	mne	 0x00010004,FPSR
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	FPSR,(0x1234,A0,D1)
+	mne	([2,A1,A2],4),FPCR
+	mne	FPCR,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+	mne	#5,FPSR
+	mne	(PC),FPCR
+	mne	2(PC,D2),FPSR
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,PC,D1),FPCR
+	mne	([2,PC,A2],4),FPSR
+	mne	([6,PC],D3,8),FPCR
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	FPIAR,D0	; Second Argument Must Be An
+	mne	FPCR,5(PC)	; Bad Mnemonic Or Not Allowed
+	mne	FPSR,6(PC,A7.W)	; Bad Mnemonic Or Not Allowed
+	mne	FPCR,6(PC,A7.L)	; Bad Mnemonic Or Not Allowed
+	mne	FPSR,#7 	; Bad Mnemonic Or Not Allowed
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	FPCR,(0x1234,PC,D1)	; Bad Mnemonic Or Not Allowed
+	mne	FPSR,([2,PC,A2],4)	; Bad Mnemonic Or Not Allowed
+	mne	FPCR,([6,PC],D3,8)	; Bad Mnemonic Or Not Allowed
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.FMOV.P.  mne
+	  LIST
+	mne	FP1,(A0){D0}
+	mne	FP2,(A1)+{#0}
+	mne	FP3,-(A2){D1}
+	mne	FP4,0x1234(A3){#1}
+	mne	FP5,(2,A4,D2.W){D3}
+	mne	FP6,(2,A5,D4.L){#2}
+	mne	FP7,*0xFFFFFFF0{D4}
+	mne	FP0, 0x00010004{#3}
+	mne	FP1,(0x1024).W{D5}
+	mne	FP2,(0x1024).L{#4}
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	FP3,(0x1234,A0,D1){D6}
+	mne	FP4,([2,A1,A2],4){#5}
+	mne	FP5,([6,A2],D3,8){D7}
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	(A0){D0},FP0	; Bad Mnemonic Or First Argument Must Be FPn
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.FMOV.	mne
+	  IFOKBWLS
+	    LIST
+	mne	D0,FP0
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	(A0),FP1
+	mne	(A1)+,FP2
+	mne	-(A2),FP3
+	mne	0x1234(A3),FP4
+	mne	(2,A4,D2.W),FP5
+	mne	(2,A5,D4.L),FP6
+	mne	(0x1024).W,FP7
+	mne	(0x1234).L,FP0
+	mne	*0xFFFFFFF0,FP1
+	mne	 0x00010004,FP2
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),FP3
+	mne	([2,A1,A2],4),FP4
+	mne	([6,A2],D3,8),FP5
+	    NLIST
+	  ENDCPU
+	  IFOKBWLS
+	    LIST
+	mne	#1024.,FP6
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	0x1234(PC),FP4
+	mne	(2,PC,D2.W),FP5
+	mne	(2,PC,D4.L),FP6
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,PC,D1),FP7
+	mne	([2,PC,A2],4),FP0
+	mne	([6,PC],D3,8),FP1
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFOKBWLS
+	    LIST
+	mne	FP0,D0
+	    NLIST
+	  ENDOK
+	  LIST
+	mne	FP1,(A0)
+	mne	FP2,(A1)+
+	mne	FP3,-(A2)
+	mne	FP4,0x1234(A3)
+	mne	FP5,(2,A4,D2.W)
+	mne	FP6,(2,A5,D4.L)
+	mne	FP7,(0x1234).W
+	mne	FP0,(0x1234).L
+	mne	FP1,*0xFFFFFFF0
+	mne	FP2, 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	FP3,(0x1234,A0,D1)
+	mne	FP4,([2,A1,A2],4)
+	mne	FP5,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	    NLIST
+	    IFOKBWLS
+	    ELSEOK
+	      LIST
+	mne	D0,FP0		; Bad Mnemonic Or Not .B/.W/.L/.S
+	mne	FP0,D0		; Bad Mnemonic Or Not .B/.W/.L/.S
+	mne	#0x4321,FP3	; Bad Mnemonic Or Not .B/.W/.L/.S
+	      NLIST
+	    ENDOK
+	    LIST
+	mne	FP3,#0x4321	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FP4,0x1234(PC)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FP5,(2,PC,D2.W)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FP6,(2,PC,D4.L)	; Bad Mnemonic Or Invalid Addressing Mode
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	FP7,(0x1234,PC,D1)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FP0,([2,PC,A2],4)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FP1,([6,PC],D3,8)	; Bad Mnemonic Or Invalid Addressing Mode
+	      NLIST
+	    ENDCPU
+	  LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	F_MOV	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_MOV:						*
+	;*	FMOVE						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	fmove
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OKL. = 0
+		.iifidn	mne base	.OKL. = 1
+		.iifidn	mne base'.l	.OKL. = 1
+		IFOKL
+		  .FMOV.L.  mne
+		ELSEOK
+		  IFERR
+		    .FMOV.L.  mne
+		  ENDERR
+		ENDOK
+		.OKP. = 0
+		.iifidn	mne base'.p	.OKP. = 1
+		IFOKP
+		  .FMOV.P.  mne
+		ELSEOK
+		  IFERR
+		    .FMOV.P.  mne
+		  ENDERR
+		ENDOK
+		.OK. = 1
+		.OKBWLS. = 0
+		.iifidn	mne base'.b	.OKBWLS. = 1
+		.iifidn	mne base'.w	.OKBWLS. = 1
+		.iifidn	mne base'.l	.OKBWLS. = 1
+		.iifidn	mne base'.s	.OKBWLS. = 1
+		IFOK
+		  .FMOV.  mne
+		ELSEOK
+		  IFERR
+		    .FMOV.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For F_MVCR Instructions - FMOVECR
+
+	.macro	.FMVCR.	mne
+	  LIST
+	mne	#0x0F,FP1
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne				; Bad Mnemonic Or Missing Arguments
+	mne	#0x3F			; Bad Mnemonic Or Missing Arguments
+	mne	#0x40,FP2		; Bad Mnemonic Or Not In Range 0x00-0x3F
+	mne	#0x0F,FP8		; Bad Mnemonic Or Not FP0-FP7
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	F_MVCR	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_MVCR:						*
+	;*	FMOVECR						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	fmovecr
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+	        .iifidn	mne base	.OK. = 1
+	        .iifidn	mne base'.x	.OK. = 1
+	        IFOK
+		  .FMVCR.  mne
+	        ELSEOK
+		  IFERR
+		    .FMVCR.  mne
+		  ENDERR
+	        ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For F_MOVM Instructions - FMOVEM
+
+	.macro	.FMVMC.	mne
+	  LIST
+	mne	FPCR,D0
+	mne	FPIAR,A1
+	mne	FPSR,(A2)
+	mne	FPCR/FPSR,(A3)+
+	mne	FPCR/FPSR/FPIAR,-(A4)
+	mne	FPCR/FPIAR,1(A5)
+	mne	FPSR/FPIAR,6(A6,D7.W)
+	mne	FPSR/FPIAR,6(A6,D7.L)
+	mne	FPCR/FPIAR,(0x1234).W
+	mne	FPCR/FPIAR,(0x1234).L
+	mne	FPCR/FPSR/FPIAR,*0xFFFFFFF0
+	mne	FPCR/FPSR/FPIAR, 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	FPCR/FPSR,(0x1234,A0,D1)
+	mne	FPSR/FPIAR,([2,A1,A2],4)
+	mne	FPCR/FPSR/FPIAR,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	mne	D0,FPCR
+	mne	A1,FPIAR
+	mne	(A2),FPSR
+	mne	(A3)+,FPCR/FPSR
+	mne	-(A4),FPCR/FPSR/FPIAR
+	mne	1(A5),FPCR/FPIAR
+	mne	6(A6,D7.W),FPSR/FPIAR
+	mne	6(A6,D7.L),FPSR/FPIAR
+	mne	(0x1234).W,FPCR/FPIAR
+	mne	(0x1234).L,FPCR/FPIAR
+	mne	*0xFFFFFFF0,FPCR/FPSR/FPIAR
+	mne	 0x00010004,FPCR/FPSR/FPIAR
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),FPCR/FPSR
+	mne	([2,A1,A2],4),FPSR/FPIAR
+	mne	([6,A2],D3,8),FPCR/FPSR/FPIAR
+	    NLIST
+	  ENDCPU
+	  LIST
+	mne	#7,FPSR
+	mne	1(PC),FPCR/FPIAR
+	mne	6(PC,D7.W),FPCR/FPIAR
+	mne	6(PC,D7.L),FPCR/FPIAR
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,PC,D1),FPCR/FPSR
+	mne	([2,PC,A2],4),FPSR/FPIAR
+	mne	([6,PC],D3,8),FPCR/FPSR/FPIAR
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	FPCR/FPIAR,A1		; Bad Mnemonic Or Only FPIAR With An
+	mne	A1,FPCR/FPIAR		; Bad Mnemonic Or Only FPIAR With An
+	mne	FPCR/FPIAR,D2		; Bad Mnemonic Or Only A Single Rgister With Dn
+	mne	FPCR/FPIAR,1(PC)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FPSR/FPIAR,6(PC,D7.W)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FPSR/FPIAR,6(PC,D7.L)	; Bad Mnemonic Or Invalid Addressing Mode
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	FPCR/FPSR,(0x1234,PC,D1)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FPSR/FPIAR,([2,PC,A2],4)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FPCR/FPSR/FPIAR,([6,PC],D3,8)	; Bad Mnemonic Or Invalid Addressing Mode
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.FMVMF.	mne
+	  LIST
+	mne	FP0,(A2)
+	mne	FP1/FP2,-(A4)
+	mne	FP1-FP3,1(A5)
+	mne	FP5-FP7/FP0,6(A6,D7.W)
+	mne	FP1-FP3/FP5-FP7,6(A6,D7.L)
+	mne	FP0/FP2/FP4/FP6,(0x1234).W
+	mne	FP0/FP2/FP4/FP6,(0x1234).L
+	mne	FP0-FP7,*0xFFFFFFF0
+	mne	FP7/FP6/FP5, 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	FP7/FP5/FP0-FP3,(0x1234,A0,D1)
+	mne	FP0-FP7,([2,A1,A2],4)
+	mne	FP1-FP3/FP5-FP7,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	mne	(A2),FP0
+	mne	(A3)+,FP1/FP2
+	mne	1(A5),FP1-FP3
+	mne	6(A6,D7.W),FP5-FP7/FP0
+	mne	6(A6,D7.L),FP1-FP3/FP5-FP7
+	mne	(0x1234).W,FP0/FP2/FP4/FP6
+	mne	(0x1234).L,FP0/FP2/FP4/FP6
+	mne	*0xFFFFFFF0,FP0-FP7
+	mne	 0x00010004,FP7/FP6/FP5
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),FP1-FP3/FP5-FP7
+	mne	([2,A1,A2],4),FP0/FP2/FP4/FP6
+	mne	([6,A2],D3,8),FP7/FP6/FP5
+	    NLIST
+	  ENDCPU
+	  LIST
+	mne	1(PC),FP1/FP2
+	mne	6(PC,D7.W),FP1-FP3
+	mne	6(PC,D7.L),FP5-FP7/FP0
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,PC,D1),FP1/FP2
+	mne	([2,PC,A2],4),FP1-FP3
+	mne	([6,PC],D3,8),FP5-FP7/FP0
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	FP0,D0			; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FP1,A1			; Bad Mnemonic Or Invalid Addressing Mode
+	mne	D0,FP2			; Bad Mnemonic Or Invalid Addressing Mode
+	mne	A1,FP3			; Bad Mnemonic Or Invalid Addressing Mode
+	mne	-(A4),FP4-FP6		; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FP1-FP3/FP6,(A3)+	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FPCR/FPIAR,A1		; Bad Mnemonic Or Only FPIAR With An
+	mne	A1,FPCR/FPIAR		; Bad Mnemonic Or Only FPIAR With An
+	mne	#7,FP0			; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FP0/FP1,1(PC)		; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FP2/FP3/FP4,6(PC,D7.W)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	FP2-FP4,6(PC,D7.L)	; Bad Mnemonic Or Invalid Addressing Mode
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	FP1/FP2,(0x1234,PC,D1)
+	mne	FP1-FP3,([2,PC,A2],4)
+	mne	FP5-FP7/FP0,([6,PC],D3,8)
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.FMVMD.	mne
+	  LIST
+	mne	D0,(A2)
+	mne	D1,-(A4)
+	mne	D2,1(A5)
+	mne	D3,6(A6,D7.W)
+	mne	D3,6(A6,D7.L)
+	mne	D4,(0x1234).W
+	mne	D4,(0x1234).L
+	mne	D5,*0xFFFFFFF0
+	mne	D6, 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	D7,(0x1234,A0,D1)
+	mne	D0,([2,A1,A2],4)
+	mne	D1,([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	mne	(A2),D0
+	mne	(A3)+,D1
+	mne	1(A5),D2
+	mne	6(A6,D7.W),D3
+	mne	6(A6,D7.L),D3
+	mne	(0x1234).W,D4
+	mne	(0x1234).L,D4
+	mne	*0xFFFFFFF0,D5
+	mne	 0x00010004,D6
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1),D7
+	mne	([2,A1,A2],4),D0
+	mne	([6,A2],D3,8),D1
+	    NLIST
+	  ENDCPU
+	  LIST
+	mne	1(PC),D3
+	mne	6(PC,D7.W),D4
+	mne	6(PC,D7.L),D4
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,PC,D1),D5
+	mne	([2,PC,A2],4),D6
+	mne	([6,PC],D3,8),D7
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0,D0			; Bad Mnemonic Or Invalid Addressing Mode
+	mne	D1,A1			; Bad Mnemonic Or Invalid Addressing Mode
+	mne	D2,(A2)+		; Bad Mnemonic Or Invalid Addressing Mode
+	mne	#7,D2			; Bad Mnemonic Or Invalid Addressing Mode
+	mne	D3,1(PC)		; Bad Mnemonic Or Invalid Addressing Mode
+	mne	D4,6(PC,D7.W)		; Bad Mnemonic Or Invalid Addressing Mode
+	mne	D5,6(PC,D7.L)		; Bad Mnemonic Or Invalid Addressing Mode
+	mne	D6,D7			; Bad Mnemonic Or Invalid Addressing Mode
+	mne	A1,D0			; Bad Mnemonic Or Invalid Addressing Mode
+	mne	-(a2),D1		; Bad Mnemonic Or Invalid Addressing Mode
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	D2,(0x1234,PC,D1)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	D3,([2,PC,A2],4)	; Bad Mnemonic Or Invalid Addressing Mode
+	mne	D4,([6,PC],D3,8)	; Bad Mnemonic Or Invalid Addressing Mode)
+	      NLIST
+	    ENDCPU
+	    LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	F_MOVM	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_MOVM:						*
+	;*	FMOVEM						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	fmovem
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+		.OKL. = 0
+	        .iifidn	mne base	.OKL. = 1
+		.iifidn	mne base'.l	.OKL. = 1
+	        IFOKL
+		  .FMVMC.  mne
+	        ELSEOK
+		  IFERR
+		    .FMVMC.  mne
+		  ENDERR
+	        ENDOK
+		.OKX. = 0
+	        .iifidn	mne base	.OKX. = 1
+		.iifidn	mne base'.x	.OKX. = 1
+	        IFOKX
+		  .FMVMF.  mne
+		  .FMVMD.  mne
+	        ELSEOK
+		  IFERR
+		    .FMVMF.  mne
+		    .FMVMD.  mne
+		  ENDERR
+	        ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_SCC Instructions -
+        ; FSF, FSEQ, FSOGT, FSOGE, FSOLT, FSOLE, FSOGL, FSOR
+	; FSUN, FSUEQ, FSUGT, FSUGE, FSULT, FSULE, FSNE, FST
+	; FSSF,FSSEQ,FSGT,FSGE,FSLT,FSLE,FSGL,FSGLE
+	; FSNGLE,FSNGL,FSNLE,FSNLT,FSNGE,FSNGT,FSSNE,FSST
+
+	.macro	.FSCC.	mne
+	  LIST
+	mne	D7
+	mne	(A1)
+	mne	(A2)+
+	mne	-(A3)
+	mne	1(A4)
+	mne	2(A5,D7.W)
+	mne	2(A5,D7.L)
+	mne	(0x1234).W
+	mne	(0x1234).L
+	mne	*0xFFFFFFF0
+	mne	 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1)
+	mne	([2,A1,A2],4)
+	mne	([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	A0		; Bad Mnemonic Or Invalid Argument
+	mne	#7,D2		; Bad Mnemonic Or Invalid Argument
+	mne	5(PC)		; Bad Mnemonic Or Invalid Argument
+	mne	6(PC,A7.W)	; Bad Mnemonic Or Invalid Argument
+	mne	6(PC,A7.L)	; Bad Mnemonic Or Invalid Argument
+	    NLIST
+	    IFCPU20	; 68020
+	      LIST
+	mne	(0x1234,PC,D1)	; Bad Mnemonic Or Invalid Argument
+	mne	([2,PC,A2],4)	; Bad Mnemonic Or Invalid Argument
+	mne	([6,PC],D3,8)	; Bad Mnemonic Or Invalid Argument
+	      NLIST
+	    ENDCPU
+	  LIST
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	F_SCC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_SCC:						*
+	;*	FSF, FSEQ, FSOGT, FSOGE,			*
+	;*	FSOLT, FSOLE, FSOGL, FSOR			*
+	;*	FSUN, FSUEQ, FSUGT, FSUGE,			*
+	;*	FSULT, FSULE, FSNE, FST,			*
+	;*	FSSF,FSSEQ,FSGT,FSGE,				*
+	;*	FSLT,FSLE,FSGL,FSGLE,				*
+	;*	FSNGLE,FSNGL,FSNLE,FSNLT,			*
+	;*	FSNGE,FSNGT,FSSNE,FSST				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  ; Set 1
+	  .irp	base	fsf, fseq, fsogt, fsoge, fsolt, fsole, fsogl, fsor
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+		.OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn mne base'.b	.OK. = 1
+		IFOK
+		  .FSCC.  mne
+		ELSEOK
+		  IFERR
+		    .FSCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  ; Set 2
+	  .irp	base	fsun, fsueq, fsugt, fsuge, fsult, fsule, fsne, fst
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+		.OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn mne base'.b	.OK. = 1
+		IFOK
+		  .FSCC.  mne
+		ELSEOK
+		  IFERR
+		    .FSCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  ; Set 3
+	  .irp	base	fssf,fsseq,fsgt,fsge,fslt,fsle,fsgl,fsgle
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+		.OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn mne base'.b	.OK. = 1
+		IFOK
+		  .FSCC.  mne
+		ELSEOK
+		  IFERR
+		    .FSCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  ; Set 4
+	  .irp	base	fsngle,fsngl,fsnle,fsnlt,fsnge,fsngt,fssne,fsst
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+		.OK. = 0
+		.iifidn	mne base	.OK. = 1
+		.iifidn mne base'.b	.OK. = 1
+		IFOK
+		  .FSCC.  mne
+		ELSEOK
+		  IFERR
+		    .FSCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For F_DBCC Instructions - FDBcc
+
+	.macro	.FDCC.	base
+	  LIST
+	base	D0,.
+	base	D1,. + 0x02
+	base	D2,. + 0x1002
+	base'.w	D3,. + 0x12
+	base'.w	D4,. + 0x1002
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	base	A0,.		; Bad Mnemonic Or First ARgument Must Be Dn
+	base'.b	D0,. + 0x200	; Bad Mnemonic
+	base'.w	D1,. + 0x8004	; Branch Out Of Range
+	base'.l	D2,. + 0x02	; Bad Mnemonic
+	base'.s	D3,. + 0x02	; Bad Mnemonic
+	base'.d	D4,. + 0x02	; Bad Mnemonic
+	base'.x	D5,. + 0x02	; Bad Mnemonic
+	base'.p	D6,. + 0x02	; Bad Mnemonic
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	F_DCC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_DBCC:						*
+	;*	FDBF, FDBEQ, FDBOGT, FDBOGE, 			*
+	;*	FDBOLT, FDBOLE, FDBOGL, FDBOR,			*
+	;*	FDBUN, FDBUEQ, FDBUGT, FDBUGE,			*
+	;*	FDBULT, FDBULE, FDBNE, FDBT,			*
+	;*	FDBSF, FDBSEQ, FDBGT, FDBGE,			*
+	;*	FDBLT, FDBLE, FDBGL, FDBGLE,			*
+	;*	FDBNGLE,FDBNGL, FDBNLE, FDBNLT,			*
+	;*	FDBNGE, FDBNGT, FDBSNE, FDBST			*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	fdbf, fdbeq, fdbogt, fdboge, fdbolt, fdbole, fdbogl, fdbor
+	    .ifnb base
+	      ; ---
+		.FDCC.  base
+	      ; ---
+	    .endif
+	  .endm
+	  .irp	base	fdbun, fdbueq, fdbugt, fdbuge, fdbult, fdbule, fdbne, fdbt
+	    .ifnb base
+	      ; ---
+		.FDCC.  base
+	      ; ---
+	    .endif
+	  .endm
+	  .irp	base	fdbsf, fdbseq, fdbgt, fdbge, fdblt, fdble, fdbgl, fdbgle
+	    .ifnb base
+	      ; ---
+		.FDCC.  base
+	      ; ---
+	    .endif
+	  .endm
+	  .irp	base	fdbngle,fdbngl, fdbnle, fdbnlt, fdbnge, fdbngt, fdbsne, fdbst
+	    .ifnb base
+	      ; ---
+		.FDCC.  base
+	      ; ---
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For S_TCC Instructions - FTRAPcc
+
+	.macro	.TCC.  mne
+	  IFOKB
+	    LIST
+	mne
+	mne	#0x000F
+	mne	#0x000F0000
+
+	    NLIST
+	  ELSEOK
+	    LIST
+	mne	#15
+
+	    NLIST
+	  ENDOK
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	(A0)		; Bad Mnemonic Or Requires A # Or Blank Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	F_TCC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_TCC:						*
+	;*	FTRAPF, FTRAPEQ, FTRAPOGT, FTRAPOGE, 		*
+	;*	FTRAPOLT, FTRAPOLE, FTRAPOGL, FTRAPOR,		*
+	;*	FTRAPUN, FTRAPUEQ, FTRAPUGT, FTRAPUGE,		*
+	;*	FTRAPULT, FTRAPULE, FTRAPNE, FTRAPT,		*
+	;*	FTRAPSF, FTRAPSEQ, FTRAPGT, FTRAPGE,		*
+	;*	FTRAPLT, FTRAPLE, FTRAPGL, FTRAPGLE,		*
+	;*	FTRAPNGLE,FTRAPNGL, FTRAPNLE, FTRAPNLT,		*
+	;*	FTRAPNGE, FTRAPNGT, FTRAPSNE, FTRAPST		*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  ; Set 1
+	  .irp	base	ftrapf, ftrapeq, ftrapogt, ftrapoge, ftrapolt, ftrapole, ftrapogl, ftrapor
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+		.OKB. = 0
+		.iifidn  mne base	.OK. = 1
+		.iifidn  mne base	.OKB. = 1
+		.iifidn  mne base'.w	.OK. = 1
+		.iifidn  mne base'.l	.OK. = 1
+		IFOK
+		  .TCC.  mne
+		ELSEOK
+		  IFERR
+		    .TCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  ; Set 2
+	  .irp	base	ftrapun, ftrapueq, ftrapugt, ftrapuge, ftrapult, ftrapule, ftrapne, ftrapt
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+		.OKB. = 0
+		.iifidn  mne base	.OK. = 1
+		.iifidn  mne base	.OKB. = 1
+		.iifidn  mne base'.w	.OK. = 1
+		.iifidn  mne base'.l	.OK. = 1
+		IFOK
+		  .TCC.  mne
+		ELSEOK
+		  IFERR
+		    .TCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  ; Set 3
+	  .irp	base	ftrapsf, ftrapseq, ftrapgt, ftrapge, ftraplt, ftraple, ftrapgl, ftrapgle
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+		.OKB. = 0
+		.iifidn  mne base	.OK. = 1
+		.iifidn  mne base	.OKB. = 1
+		.iifidn  mne base'.w	.OK. = 1
+		.iifidn  mne base'.l	.OK. = 1
+		IFOK
+		  .TCC.  mne
+		ELSEOK
+		  IFERR
+		    .TCC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  ; Set 4
+	  .irp	base	ftrapngle,ftrapngl, ftrapnle, ftrapnlt, ftrapnge, ftrapngt, ftrapsne, ftrapst
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+		.OKB. = 0
+		.iifidn  mne base	.OK. = 1
+		.iifidn  mne base	.OKB. = 1
+		.iifidn  mne base'.w	.OK. = 1
+		.iifidn  mne base'.l	.OK. = 1
+		IFOK
+		  .TRPC.  mne
+		ELSEOK
+		  IFERR
+		    .TRPC.  mne
+		  ENDERR
+		ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For F_NOP Instructions - FNOP
+
+	.macro	.FNOP.	mne
+	  LIST
+	mne
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0		; Bad Mnemonic Or Non Blank Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	F_NOP	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_NOP:						*
+	;*	FNOP						*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	fnop
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+	        .iifidn	mne base	.OK. = 1
+	        IFOK
+		  .FNOP.  mne
+	        ELSEOK
+		  IFERR
+		    .FNOP.  mne
+		  ENDERR
+	        ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For F_BCC Instructions - FBcc
+
+	.macro	.FBCC.	base
+	  LIST
+	base	.
+	base	. + 0x02
+	base	. + 0x1002
+	base	. + 0x20002
+	base'.w	. + 0x12
+	base'.l	. + 0x12
+	base'.w	. + 0x1002
+	base'.l	. + 0x1002
+	base'.l	. + 0x20002
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	base'.w	. + 0x8002	; Branch Out Of Range
+	base'.b	. + 0x200	; Bad Mnemonic
+	base'.s	. + 0x02	; Bad Mnemonic
+	base'.d	. + 0x02	; Bad Mnemonic
+	base'.x	. + 0x02	; Bad Mnemonic
+	base'.p	. + 0x02	; Bad Mnemonic
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	F_BCC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_BCC:						*
+	;*	FBF, FBEQ, FBOGT, FBOGE, 			*
+	;*	FBOLT, FBOLE, FBOGL, FBOR,			*
+	;*	FBUN, FBUEQ, FBUGT, FBUGE,			*
+	;*	FBULT, FBULE, FBNE, FBT,			*
+	;*	FBSF, FBSEQ, FBGT, FBGE,			*
+	;*	FBLT, FBLE, FBGL, FBGLE,			*
+	;*	FBNGLE,FBNGL, FBNLE, FBNLT,			*
+	;*	FBNGE, FBNGT, FBSNE, FBST			*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	fbf, fbeq, fbogt, fboge, fbolt, fbole, fboge, fbor
+	    .ifnb base
+	      ; ---
+		.FBCC.  base
+	      ; ---
+	    .endif
+	  .endm
+	  .irp	base	fbun, fbueq, fbugt, fbuge, fbult, fbule, fbne, fbt
+	    .ifnb base
+	      ; ---
+		.FBCC.  base
+	      ; ---
+	    .endif
+	  .endm
+	  .irp	base	fbsf, fbseq, fbgt, fbge, fblt, fble, fbgl, fbgle
+	    .ifnb base
+	      ; ---
+		.FBCC.  base
+	      ; ---
+	    .endif
+	  .endm
+	  .irp	base	fbngle,fbngl, fbnle, fbnlt, fbnge, fbngt, fbsne, fbst
+	    .ifnb base
+	      ; ---
+		.FBCC.  base
+	      ; ---
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For F_SVRS Instructions - FSAVE, FRESTORE
+
+	.macro	.FSV.  mne
+	  LIST
+	mne	(A1)
+	mne	(A2)
+	mne	-(A3)
+	mne	1(A4)
+	mne	2(A5,D7.W)
+	mne	2(A5,D7.L)
+	mne	(0x1234).W
+	mne	(0x1234).L
+	mne	*0xFFFFFFF0
+	mne	 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1)
+	mne	([2,A1,A2],4)
+	mne	([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0		; Bad Mnemonic Or Invalid Argument
+	mne	A1		; Bad Mnemonic Or Invalid Argument
+	mne	(A2)+		; Bad Mnemonic Or Invalid Argument
+	mne	(2,PC)		; Bad Mnemonic Or Invalid Argument
+	mne	(4,PC,A2)	; Bad Mnemonic Or Invalid Argument
+	mne	(0x1234,PC,D1)	; Bad Mnemonic Or Invalid Argument
+	mne	([2,PC,A2],4)	; Bad Mnemonic Or Invalid Argument
+	mne	([6,PC],D3,8)	; Bad Mnemonic Or Invalid Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.FRS.  mne
+	  LIST
+	mne	(A1)
+	mne	(A2)+
+	mne	1(A4)
+	mne	2(A5,D7.W)
+	mne	2(A5,D7.L)
+	mne	(0x1234).W
+	mne	(0x1234).L
+	mne	*0xFFFFFFF0
+	mne	 0x00010004
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,A0,D1)
+	mne	([2,A1,A2],4)
+	mne	([6,A2],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+	mne	5(PC)
+	mne	6(PC,A7.W)
+	mne	6(PC,A7.L)
+	  NLIST
+	  IFCPU20	; 68020
+	    LIST
+	mne	(0x1234,PC,D1)
+	mne	([2,PC,A2],4)
+	mne	([6,PC],D3,8)
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  NLIST
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D0		; Bad Mnemonic Or Invalid Argument
+	mne	A1		; Bad Mnemonic Or Invalid Argument
+	mne	-(A2)		; Bad Mnemonic Or Invald Argument
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	F_SVRS	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_SVRS:						*
+	;*	FSAVE, FRESTORE					*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .irp	base	fsave
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+	        .iifidn	mne base	.OK. = 1
+	        IFOK
+		  .FSV.  mne
+	        ELSEOK
+		  IFERR
+		    .FSV.  mne
+		  ENDERR
+	        ENDOK
+	      .endm
+	    .endif
+	  .endm
+	  .irp	base	frestore
+	    .ifnb base
+	      .irp	mne base, base'.b, base'.w, base'.l, base'.s, base'.d, base'.x, base'.p
+	        .OK. = 0
+	        .iifidn	mne base	.OK. = 1
+	        IFOK
+		  .FRS.  mne
+	        ELSEOK
+		  IFERR
+		    .FRS.  mne
+		  ENDERR
+	        ENDOK
+	      .endm
+	    .endif
+	  .endm
+	.endm
+
+
+	; Macro For External Branch Testing 
+	; FB_XPC
+
+	.macro	.FB_XPCW.  mne	i, ?a
+	  LIST
+a':	mne	'a + 0x200	; 64 00 01 FE
+	  NLIST
+	  .xpc  b'i
+	  LIST
+	mne	b'i + 0x200	; 64 FF 00 00 01 FE
+	  NLIST
+	  .xpc  b'i'W
+	  LIST
+	mne'.w	b'i'W + 0x200	; 64 00 01 FE
+	  NLIST
+	  .xpc  b'i'L
+	  LIST
+	mne'.l	b'i'L + 0x200	; 64 FF 00 00 01 FE
+
+	  NLIST
+	  IFERR
+	    .xpc  b'i'WE
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne'.w	b'i'WE + 0x8200	; Branch Out Of Range
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.FB_XPCL.  mne	i, ?a
+	  LIST
+a':	mne	'a + 0x20000	; 64 FF 00 01 FF FE
+	  NLIST
+	  .xpc  b'i
+	  LIST
+	mne	b'i + 0x20000	; 64 FF 00 01 FF FE
+	  NLIST
+	  .xpc  b'i'L
+	  LIST
+	mne'.l	b'i'L + 0x20000	; 64 FF 00 01 FF FE
+
+	  NLIST
+	.endm
+
+ 	.macro	FB_XPC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_FBcc:						*
+	;*	External Branching Test				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .FB_XPCW.  FBT 1
+	  .FB_XPCL.  FBT 2
+	
+	  NLIST
+	.endm
+
+
+	; Macro For External Branch Testing 
+	; FDB_XPC
+
+	.macro	.FDB_XPCW.  mne	i, ?a
+	  LIST
+a':	mne	D1,'a + 0x200		; 64 00 01 FE
+	  NLIST
+	  .xpc  db'i
+	  LIST
+	mne	D2,db'i + 0x200		; 64 FF 00 00 01 FE
+	  NLIST
+	  .xpc  db'i'W
+	  LIST
+	mne'.w	D3,db'i'W + 0x200	; 64 00 01 FE
+
+	  NLIST
+	  IFERR
+	    .xpc  db'i'WE
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne'.w	D0,b'i'WE + 0x8200	; Bad Mnemonic Or Branch Out Of Range
+;/
+;////////////////////////////////////////////////////////////////////////////////
+	    NLIST
+	    .xpc  db'i'L
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne'.l	D4,db'i'L + 0x200	; Bad Mnemonic Or .L Not Allowed
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+	.macro	.FDB_XPCL.  mne	i, ?a
+	  IFERR
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+a':	mne	D5,'a + 0x20000		; Bad Mnemonic Or Branch Out Of Range
+;/
+;////////////////////////////////////////////////////////////////////////////////
+	    NLIST
+	    .xpc  db'i
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne	D6,db'i + 0x20000	; Bad Mnemonic Or Branch Out Of Range
+;/
+;////////////////////////////////////////////////////////////////////////////////
+	    NLIST
+	    .xpc  db'i'L
+	    LIST
+;////////////////////////////////////////////////////////////////////////////////
+;/
+	mne'.l	D7,db'i'L + 0x20000	; Bad Mnemonic Or .L Not Allowed
+;/
+;////////////////////////////////////////////////////////////////////////////////
+
+	    NLIST
+	  ENDERR
+	.endm
+
+ 	.macro	FDB_XPC	argerr
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;*  F_FBcc:						*
+	;*	External Branching Test				*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	  NLIST
+	  .iifnb	^/argerr/	.err. = argerr
+	  .iifb		^/argerr/	.err. = 0
+	  .FDB_XPCW.  FDBT 1
+	  .FDB_XPCL.  FDBT 2
+	
+	  NLIST
+	.endm
+
+
+	.macro	FLOAT
+	  LIST
+
+	;******-----*****-----*****-----*****-----*****-----*****
+	;*							*
+	;* Floating Point:					*
+	;*	.flt16, .flt32, .flt64, .flt96, .fltpk		*
+	;*							*
+	;******-----*****-----*****-----*****-----*****-----*****
+
+	.flt16	111.11111	; 43 DE
+	.flt32	111.11111	; 43 DE 38 E3
+	.flt64	111.11111	; 40 7B C7 1C 6D 1E 10
+				; 8C
+	.flt96	111.11111	;
+				;
+	.fltpk	111.11111	;
+				;
+
+	    NLIST
+	  ENDERR
+	.endm
+
+
+ 	; Exhaustive Addressing Mode Checks
+	; Source And Destination Addressing Use The Same Routines
+	; For Processor and Float Point Processor Addressing
+
+	.macro	SRCCHK
+	  LIST
+
+	  ; Dn
+
+	cmp	D0,D1
+
+	  ; An
+
+	cmp	A1,D2
+
+	  ; (An)
+
+	cmp	(A2),D3
+
+	  ; (An)+
+
+	cmp	(A3)+,D4
+
+	  ; -(An)
+
+	cmp	-(A4),D5
+
+	  ; d16(An) / (d16,An)
+
+	cmp	0x0012(A5),D6
+	cmp	0x1234(A5),D6
+	cmp	(0x0012,A5),D7
+	cmp	(0x1234,A5),D7
+
+	  ; d8(An,Xn) / (d8,An,Xn)
+
+	cmp	4(A6,D1.W),D0
+	cmp	4(A6,A7.L),D1
+	cmp	(4,A6,D1.W),D2
+	cmp	(4,A6,A7.L),D3
+
+	  NLIST
+	  IFCPU20
+	    LIST
+	  ;
+	  ; Addressimg Modes Of Type ([bd,An,Xn],od)
+	  ;
+	  ; ([An]) / ([bd.W,An]) / ([bd.L,An])
+
+	cmp	([A1]),D1
+	cmp	([0x1234,A1]),D1
+	cmp	([0x12345678,A1]),D1
+
+	  ; ([An,Xn]) / ([An,Xn.W]) / ([An,Xn.L])
+
+	cmp	([A1,D1]),D2
+	cmp	([A1,A2]),D2
+	cmp	([A1,D1.W]),D2
+	cmp	([A1,A2.L]),D2
+	cmp	([A1,D1.W*2]),D2
+	cmp	([A1,A2.L*4]),D2
+
+	  ; ([bd.W,An,Xn]) / ([bd.W,An,Xn.W]) / ([bd.W,An,Xn.L])
+
+	cmp	([0x1234,A1,D1]),D3
+	cmp	([0x1234,A1,A2]),D3
+	cmp	([0x1234,A1,D1.W]),D3
+	cmp	([0x1234,A1,A2.L]),D3
+	cmp	([0x1234,A1,D1.W*2]),D3
+	cmp	([0x1234,A1,A2.L*4]),D3
+
+	  ; ([bd.L,An,Xn]) / ([bd.L,An,Xn.W]) / ([bd.L,An,Xn.L])
+
+	cmp	([0x12345678,A1,D1]),D4
+	cmp	([0x12345678,A1,A2]),D4
+	cmp	([0x12345678,A1,D1.W]),D4
+	cmp	([0x12345678,A1,A2.L]),D4
+	cmp	([0x12345678,A1,D1.W*2]),D4
+	cmp	([0x12345678,A1,A2.L*4]),D4
+
+	  ; ([An],od.W) / ([bd.W,An],od.W) / ([bd.L,An],od.W)
+
+	cmp	([A1],0x4321),D1
+	cmp	([0x1234,A1],0x4321),D1
+	cmp	([0x12345678,A1],0x4321),D1
+
+	  ; ([An,Xn],od.W) / ([An,Xn.W(SC)],od.W) / ([An,Xn.L(SC)],od.W
+
+	cmp	([A1,D1],0x4321),D2
+	cmp	([A1,A2],0x4321),D2
+	cmp	([A1,D1.W],0x4321),D2
+	cmp	([A1,A2.L],0x4321),D2
+	cmp	([A1,D1.W*2],0x4321),D2
+	cmp	([A1,A2.L*4],0x4321),D2
+
+	  ; ([bd.W,An,Xn],od.W) / ([bd.W,An,Xn.W(SC)],od.W) / ([bd.W,An,Xn.L(SC)],od.W
+
+	cmp	([0x1234,A1,D1],0x4321),D3
+	cmp	([0x1234,A1,A2],0x4321),D3
+	cmp	([0x1234,A1,D1.W],0x4321),D3
+	cmp	([0x1234,A1,A2.L],0x4321),D3
+	cmp	([0x1234,A1,D1.W*2],0x4321),D3
+	cmp	([0x1234,A1,A2.L*4],0x4321),D3
+
+	  ; ([bd.L,An,Xn],od.W) / ([bd.L,An,Xn.W(SC)],od.W) / ([bd.L,An,Xn.L(SC)],od.W
+
+	cmp	([0x12345678,A1,D1],0x4321),D4
+	cmp	([0x12345678,A1,A2],0x4321),D4
+	cmp	([0x12345678,A1,D1.W],0x4321),D4
+	cmp	([0x12345678,A1,A2.L],0x4321),D4
+	cmp	([0x12345678,A1,D1.W*2],0x4321),D4
+	cmp	([0x12345678,A1,A2.L*4],0x4321),D4
+
+	  ; ([An],od.L) / ([bd.W,An],od.L) / ([bd.L,An],od.L
+
+	cmp	([A1],0x87654321),D1
+	cmp	([0x1234,A1],0x87654321),D1
+	cmp	([0x12345678,A1],0x87654321),D1
+
+	  ; ([An,Xn],od.L) / ([An,Xn.W(SC)],od.L) / ([An,Xn.L(SC)],od.L
+
+	cmp	([A1,D1],0x87654321),D2
+	cmp	([A1,A2],0x87654321),D2
+	cmp	([A1,D1.W],0x87654321),D2
+	cmp	([A1,A2.L],0x87654321),D2
+	cmp	([A1,D1.W*2],0x87654321),D2
+	cmp	([A1,A2.L*4],0x87654321),D2
+
+	  ; ([bd.W,An,Xn],od.L) / ([bd.W,An,Xn.W(SC)],od.L) / ([bd.W,An,Xn.L(SC)],od.L
+
+	cmp	([0x1234,A1,D1],0x87654321),D3
+	cmp	([0x1234,A1,A2],0x87654321),D3
+	cmp	([0x1234,A1,D1.W],0x87654321),D3
+	cmp	([0x1234,A1,A2.L],0x87654321),D3
+	cmp	([0x1234,A1,D1.W*2],0x87654321),D3
+	cmp	([0x1234,A1,A2.L*4],0x87654321),D3
+
+	  ; ([bd.L,An,Xn],od.L) / ([bd.L,An,Xn.W(SC)],od.L) / ([bd.L,An,Xn.L(SC)],od.L
+
+	cmp	([0x12345678,A1,D1],0x87654321),D4
+	cmp	([0x12345678,A1,A2],0x87654321),D4
+	cmp	([0x12345678,A1,D1.W],0x87654321),D4
+	cmp	([0x12345678,A1,A2.L],0x87654321),D4
+	cmp	([0x12345678,A1,D1.W*2],0x87654321),D4
+	cmp	([0x12345678,A1,A2.L*4],0x87654321),D4
+
+	  ;
+	  ; Addressimg Modes Of Type ([bd,An,Xn],od)
+	  ; Testing For Blank Arguments And Optional Commas
+	  ;
+	  ; ([An]) / ([bd.W,An]) / ([bd.L,An])
+
+	cmp	([,A1,],),D1
+	cmp	([0x1234,A1,],),D1
+	cmp	([0x12345678,A1,],),D1
+
+	  ; ([An,Xn]) / ([An,Xn.W]) / ([An,Xn.L])
+
+	cmp	([,A1,D1],),D2
+	cmp	([,A1,A2],),D2
+	cmp	([,A1,D1.W],),D2
+	cmp	([,A1,A2.L],),D2
+	cmp	([,A1,D1.W*2],),D2
+	cmp	([,A1,A2.L*4],),D2
+
+	  ; ([bd.W,An,Xn]) / ([bd.W,An,Xn.W]) / ([bd.W,An,Xn.L])
+
+	cmp	([0x1234,A1,D1],),D3
+	cmp	([0x1234,A1,A2],),D3
+	cmp	([0x1234,A1,D1.W],),D3
+	cmp	([0x1234,A1,A2.L],),D3
+	cmp	([0x1234,A1,D1.W*2],),D3
+	cmp	([0x1234,A1,A2.L*4],),D3
+
+	  ; ([bd.L,An,Xn]) / ([bd.L,An,Xn.W]) / ([bd.L,An,Xn.L])
+
+	cmp	([0x12345678,A1,D1],),D4
+	cmp	([0x12345678,A1,A2],),D4
+	cmp	([0x12345678,A1,D1.W],),D4
+	cmp	([0x12345678,A1,A2.L],),D4
+	cmp	([0x12345678,A1,D1.W*2],),D4
+	cmp	([0x12345678,A1,A2.L*4],),D4
+
+	  ; ([An],od.W) / ([bd.W,An],od.W) / ([bd.L,An],od.W)
+
+	cmp	([,A1,],0x4321),D1
+	cmp	([0x1234,A1]0x4321),D1
+	cmp	([0x12345678,A1,]0x4321),D1
+
+	  ; ([An,Xn],od.W) / ([An,Xn.W(SC)],od.W) / ([An,Xn.L(SC)],od.W
+
+	cmp	([,A1,D1],0x4321),D2
+	cmp	([,A1,A2],0x4321),D2
+	cmp	([,A1,D1.W]0x4321),D2
+	cmp	([,A1,A2.L]0x4321),D2
+	cmp	([,A1,D1.W*2]0x4321),D2
+	cmp	([,A1,A2.L*4]0x4321),D2
+
+	  ; ([bd.W,An,Xn],od.W) / ([bd.W,An,Xn.W(SC)],od.W) / ([bd.W,An,Xn.L(SC)],od.W
+
+	cmp	([0x1234,A1,D1]0x4321),D3
+	cmp	([0x1234,A1,A2]0x4321),D3
+	cmp	([0x1234,A1,D1.W]0x4321),D3
+	cmp	([0x1234,A1,A2.L]0x4321),D3
+	cmp	([0x1234,A1,D1.W*2]0x4321),D3
+	cmp	([0x1234,A1,A2.L*4]0x4321),D3
+
+	  ; ([bd.L,An,Xn],od.W) / ([bd.L,An,Xn.W(SC)],od.W) / ([bd.L,An,Xn.L(SC)],od.W
+
+	cmp	([0x12345678,A1,D1]0x4321),D4
+	cmp	([0x12345678,A1,A2]0x4321),D4
+	cmp	([0x12345678,A1,D1.W]0x4321),D4
+	cmp	([0x12345678,A1,A2.L]0x4321),D4
+	cmp	([0x12345678,A1,D1.W*2]0x4321),D4
+	cmp	([0x12345678,A1,A2.L*4]0x4321),D4
+
+	  ; ([An],od.L) / ([bd.W,An],od.L) / ([bd.L,An],od.L
+
+	cmp	([,A1,]0x87654321),D1
+	cmp	([0x1234,A1,]0x87654321),D1
+	cmp	([0x12345678,A1,]0x87654321),D1
+
+	  ; ([An,Xn],od.L) / ([An,Xn.W(SC)],od.L) / ([An,Xn.L(SC)],od.L
+
+	cmp	([,A1,D1]0x87654321),D2
+	cmp	([,A1,A2]0x87654321),D2
+	cmp	([,A1,D1.W]0x87654321),D2
+	cmp	([,A1,A2.L]0x87654321),D2
+	cmp	([,A1,D1.W*2]0x87654321),D2
+	cmp	([,A1,A2.L*4]0x87654321),D2
+
+	  ; ([bd.W,An,Xn],od.L) / ([bd.W,An,Xn.W(SC)],od.L) / ([bd.W,An,Xn.L(SC)],od.L
+
+	cmp	([0x1234,A1,D1]0x87654321),D3
+	cmp	([0x1234,A1,A2]0x87654321),D3
+	cmp	([0x1234,A1,D1.W]0x87654321),D3
+	cmp	([0x1234,A1,A2.L]0x87654321),D3
+	cmp	([0x1234,A1,D1.W*2]0x87654321),D3
+	cmp	([0x1234,A1,A2.L*4]0x87654321),D3
+
+	  ; ([bd.L,An,Xn],od.L) / ([bd.L,An,Xn.W(SC)],od.L) / ([bd.L,An,Xn.L(SC)],od.L
+
+	cmp	([0x12345678,A1,D1]0x87654321),D4
+	cmp	([0x12345678,A1,A2]0x87654321),D4
+	cmp	([0x12345678,A1,D1.W]0x87654321),D4
+	cmp	([0x12345678,A1,A2.L]0x87654321),D4
+	cmp	([0x12345678,A1,D1.W*2]0x87654321),D4
+	cmp	([0x12345678,A1,A2.L*4]0x87654321),D4
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  ; *addr / addr / (addr).W / (addr).L
+
+	cmp	*0xFFFFFFF0,D5
+	cmp	 0x00000004,D5
+	cmp	 0x00010004,D5
+	cmp	(0x1234).W,D5
+	cmp	(0x1234).L,D5
+
+	  ; #
+
+	cmp	#0x00000007,D6
+	cmp.w	#0x00007007,D6
+	cmp.l	#0x00070007,D6
+
+	  ; d16(PC) / (d16,PC)
+
+	cmp	0x0012(PC),D6
+	cmp	0x1234(PC),D6
+	cmp	(0x0012,PC),D7
+	cmp	(0x1234,PC),D7
+
+	  ; d8(PC,Xn) / (d8,PC,Xn)
+
+	cmp	4(PC,D1.W),D0
+	cmp	4(PC,A7.L),D1
+	cmp	(4,PC,D1.W),D2
+	cmp	(4,PC,A7.L),D3
+
+	  NLIST
+	  IFCPU20
+	    LIST
+	  ;
+	  ; Addressimg Modes Of Type ([bd,PC,Xn],od)
+	  ;
+	  ; ([PC]) / ([bd.W,PC]) / ([bd.L,PC])
+
+	cmp	([PC]),D1
+	cmp	([0x1234,PC]),D1
+	cmp	([0x12345678,PC]),D1
+
+	  ; ([PC,Xn]) / ([PC,Xn.W]) / ([PC,Xn.L])
+
+	cmp	([PC,D1]),D2
+	cmp	([PC,A2]),D2
+	cmp	([PC,D1.W]),D2
+	cmp	([PC,A2.L]),D2
+	cmp	([PC,D1.W*2]),D2
+	cmp	([PC,A2.L*4]),D2
+
+	  ; ([bd.W,PC,Xn]) / ([bd.W,PC,Xn.W]) / ([bd.W,PC,Xn.L])
+
+	cmp	([0x1234,PC,D1]),D3
+	cmp	([0x1234,PC,A2]),D3
+	cmp	([0x1234,PC,D1.W]),D3
+	cmp	([0x1234,PC,A2.L]),D3
+	cmp	([0x1234,PC,D1.W*2]),D3
+	cmp	([0x1234,PC,A2.L*4]),D3
+
+	  ; ([bd.L,PC,Xn]) / ([bd.L,PC,Xn.W]) / ([bd.L,PC,Xn.L])
+
+	cmp	([0x12345678,PC,D1]),D4
+	cmp	([0x12345678,PC,A2]),D4
+	cmp	([0x12345678,PC,D1.W]),D4
+	cmp	([0x12345678,PC,A2.L]),D4
+	cmp	([0x12345678,PC,D1.W*2]),D4
+	cmp	([0x12345678,PC,A2.L*4]),D4
+
+	  ; ([PC],od.W) / ([bd.W,PC],od.W) / ([bd.L,PC],od.W)
+
+	cmp	([PC],0x4321),D1
+	cmp	([0x1234,PC],0x4321),D1
+	cmp	([0x12345678,PC],0x4321),D1
+
+	  ; ([PC,Xn],od.W) / ([PC,Xn.W(SC)],od.W) / ([PC,Xn.L(SC)],od.W
+
+	cmp	([PC,D1],0x4321),D2
+	cmp	([PC,A2],0x4321),D2
+	cmp	([PC,D1.W],0x4321),D2
+	cmp	([PC,A2.L],0x4321),D2
+	cmp	([PC,D1.W*2],0x4321),D2
+	cmp	([PC,A2.L*4],0x4321),D2
+
+	  ; ([bd.W,PC,Xn],od.W) / ([bd.W,PC,Xn.W(SC)],od.W) / ([bd.W,PC,Xn.L(SC)],od.W
+
+	cmp	([0x1234,PC,D1],0x4321),D3
+	cmp	([0x1234,PC,A2],0x4321),D3
+	cmp	([0x1234,PC,D1.W],0x4321),D3
+	cmp	([0x1234,PC,A2.L],0x4321),D3
+	cmp	([0x1234,PC,D1.W*2],0x4321),D3
+	cmp	([0x1234,PC,A2.L*4],0x4321),D3
+
+	  ; ([bd.L,PC,Xn],od.W) / ([bd.L,PC,Xn.W(SC)],od.W) / ([bd.L,PC,Xn.L(SC)],od.W
+
+	cmp	([0x12345678,PC,D1],0x4321),D4
+	cmp	([0x12345678,PC,A2],0x4321),D4
+	cmp	([0x12345678,PC,D1.W],0x4321),D4
+	cmp	([0x12345678,PC,A2.L],0x4321),D4
+	cmp	([0x12345678,PC,D1.W*2],0x4321),D4
+	cmp	([0x12345678,PC,A2.L*4],0x4321),D4
+
+	  ; ([PC],od.L) / ([bd.W,PC],od.L) / ([bd.L,PC],od.L
+
+	cmp	([PC],0x87654321),D1
+	cmp	([0x1234,PC],0x87654321),D1
+	cmp	([0x12345678,PC],0x87654321),D1
+
+	  ; ([PC,Xn],od.L) / ([PC,Xn.W(SC)],od.L) / ([PC,Xn.L(SC)],od.L
+
+	cmp	([PC,D1],0x87654321),D2
+	cmp	([PC,A2],0x87654321),D2
+	cmp	([PC,D1.W],0x87654321),D2
+	cmp	([PC,A2.L],0x87654321),D2
+	cmp	([PC,D1.W*2],0x87654321),D2
+	cmp	([PC,A2.L*4],0x87654321),D2
+
+	  ; ([bd.W,PC,Xn],od.L) / ([bd.W,PC,Xn.W(SC)],od.L) / ([bd.W,PC,Xn.L(SC)],od.L
+
+	cmp	([0x1234,PC,D1],0x87654321),D3
+	cmp	([0x1234,PC,A2],0x87654321),D3
+	cmp	([0x1234,PC,D1.W],0x87654321),D3
+	cmp	([0x1234,PC,A2.L],0x87654321),D3
+	cmp	([0x1234,PC,D1.W*2],0x87654321),D3
+	cmp	([0x1234,PC,A2.L*4],0x87654321),D3
+
+	  ; ([bd.L,PC,Xn],od.L) / ([bd.L,PC,Xn.W(SC)],od.L) / ([bd.L,PC,Xn.L(SC)],od.L
+
+	cmp	([0x12345678,PC,D1],0x87654321),D4
+	cmp	([0x12345678,PC,A2],0x87654321),D4
+	cmp	([0x12345678,PC,D1.W],0x87654321),D4
+	cmp	([0x12345678,PC,A2.L],0x87654321),D4
+	cmp	([0x12345678,PC,D1.W*2],0x87654321),D4
+	cmp	([0x12345678,PC,A2.L*4],0x87654321),D4
+
+	  ;
+	  ; Addressimg Modes Of Type ([bd,PC,Xn],od)
+	  ; Testing For Blank Arguments And Optional Commas
+	  ;
+	  ; ([PC]) / ([bd.W,PC]) / ([bd.L,PC])
+
+	cmp	([,PC,],),D1
+	cmp	([0x1234,PC,],),D1
+	cmp	([0x12345678,PC,],),D1
+
+	  ; ([PC,Xn]) / ([PC,Xn.W]) / ([PC,Xn.L])
+
+	cmp	([,PC,D1],),D2
+	cmp	([,PC,A2],),D2
+	cmp	([,PC,D1.W],),D2
+	cmp	([,PC,A2.L],),D2
+	cmp	([,PC,D1.W*2],),D2
+	cmp	([,PC,A2.L*4],),D2
+
+	  ; ([bd.W,PC,Xn]) / ([bd.W,PC,Xn.W]) / ([bd.W,PC,Xn.L])
+
+	cmp	([0x1234,PC,D1],),D3
+	cmp	([0x1234,PC,A2],),D3
+	cmp	([0x1234,PC,D1.W],),D3
+	cmp	([0x1234,PC,A2.L],),D3
+	cmp	([0x1234,PC,D1.W*2],),D3
+	cmp	([0x1234,PC,A2.L*4]),D3
+
+	  ; ([bd.L,PC,Xn]) / ([bd.L,PC,Xn.W]) / ([bd.L,PC,Xn.L])
+
+	cmp	([0x12345678,PC,D1],),D4
+	cmp	([0x12345678,PC,A2],),D4
+	cmp	([0x12345678,PC,D1.W],),D4
+	cmp	([0x12345678,PC,A2.L],),D4
+	cmp	([0x12345678,PC,D1.W*2],),D4
+	cmp	([0x12345678,PC,A2.L*4],),D4
+
+	  ; ([PC],od.W) / ([bd.W,PC],od.W) / ([bd.L,PC],od.W)
+
+	cmp	([,PC,]0x4321),D1
+	cmp	([0x1234,PC,]0x4321),D1
+	cmp	([0x12345678,PC,]0x4321),D1
+
+	  ; ([PC,Xn],od.W) / ([PC,Xn.W(SC)],od.W) / ([PC,Xn.L(SC)],od.W
+
+	cmp	([PC,D1,]0x4321),D2
+	cmp	([PC,A2,]0x4321),D2
+	cmp	([PC,D1.W,]0x4321),D2
+	cmp	([PC,A2.L,]0x4321),D2
+	cmp	([PC,D1.W*2,]0x4321),D2
+	cmp	([PC,A2.L*4,]0x4321),D2
+
+	  ; ([bd.W,PC,Xn],od.W) / ([bd.W,PC,Xn.W(SC)],od.W) / ([bd.W,PC,Xn.L(SC)],od.W
+
+	cmp	([0x1234,PC,D1]0x4321),D3
+	cmp	([0x1234,PC,A2]0x4321),D3
+	cmp	([0x1234,PC,D1.W]0x4321),D3
+	cmp	([0x1234,PC,A2.L]0x4321),D3
+	cmp	([0x1234,PC,D1.W*2]0x4321),D3
+	cmp	([0x1234,PC,A2.L*4]0x4321),D3
+
+	  ; ([bd.L,PC,Xn],od.W) / ([bd.L,PC,Xn.W(SC)],od.W) / ([bd.L,PC,Xn.L(SC)],od.W
+
+	cmp	([0x12345678,PC,D1]0x4321),D4
+	cmp	([0x12345678,PC,A2]0x4321),D4
+	cmp	([0x12345678,PC,D1.W]0x4321),D4
+	cmp	([0x12345678,PC,A2.L]0x4321),D4
+	cmp	([0x12345678,PC,D1.W*2]0x4321),D4
+	cmp	([0x12345678,PC,A2.L*4]0x4321),D4
+
+	  ; ([PC],od.L) / ([bd.W,PC],od.L) / ([bd.L,PC],od.L
+
+	cmp	([,PC,]0x87654321),D1
+	cmp	([0x1234,PC,]0x87654321),D1
+	cmp	([0x12345678,PC,]0x87654321),D1
+
+	  ; ([PC,Xn],od.L) / ([PC,Xn.W(SC)],od.L) / ([PC,Xn.L(SC)],od.L
+
+	cmp	([,PC,D1]0x87654321),D2
+	cmp	([,PC,A2]0x87654321),D2
+	cmp	([,PC,D1.W]0x87654321),D2
+	cmp	([,PC,A2.L]0x87654321),D2
+	cmp	([,PC,D1.W*2]0x87654321),D2
+	cmp	([,PC,A2.L*4]0x87654321),D2
+
+	  ; ([bd.W,PC,Xn],od.L) / ([bd.W,PC,Xn.W(SC)],od.L) / ([bd.W,PC,Xn.L(SC)],od.L
+
+	cmp	([0x1234,PC,D1]0x87654321),D3
+	cmp	([0x1234,PC,A2]0x87654321),D3
+	cmp	([0x1234,PC,D1.W]0x87654321),D3
+	cmp	([0x1234,PC,A2.L]0x87654321),D3
+	cmp	([0x1234,PC,D1.W*2]0x87654321),D3
+	cmp	([0x1234,PC,A2.L*4]0x87654321),D3
+
+	  ; ([bd.L,PC,Xn],od.L) / ([bd.L,PC,Xn.W(SC)],od.L) / ([bd.L,PC,Xn.L(SC)],od.L
+
+	cmp	([0x12345678,PC,D1]0x87654321),D4
+	cmp	([0x12345678,PC,A2]0x87654321),D4
+	cmp	([0x12345678,PC,D1.W]0x87654321),D4
+	cmp	([0x12345678,PC,A2.L]0x87654321),D4
+	cmp	([0x12345678,PC,D1.W*2]0x87654321),D4
+	cmp	([0x12345678,PC,A2.L*4]0x87654321),D4
+	    NLIST
+	  ENDCPU
+	  LIST
+
+	  ;
+	  ; External Addressing
+	  ;
+
+	  ; d16(An) / (d16,An)
+
+	cmp	barg(A5),D6
+	cmp	warg(A5),D6
+	cmp	(barg,A5),D7
+	cmp	(warg,A5),D7
+
+	  ; d8(An,Xn) / (d8,An,Xn)
+
+	cmp	barg(A6,D1.W),D0
+	cmp	barg(A6,A7.L),D1
+	cmp	(barg,A6,D1.W),D2
+	cmp	(barg,A6,A7.L),D3
+
+	  NLIST
+	  IFCPU20
+	    LIST
+	  ;
+	  ; Addressimg Modes Of Type ([bd,An,Xn],od)
+	  ;
+
+	cmp	([A1]),D1
+	cmp	([A1],barg),D1
+	cmp	([A1],warg),D1
+	cmp	([A1],larg),D1
+
+	cmp	([barg,A1]),D1
+	cmp	([barg,A1],barg),D1
+	cmp	([barg,A1],warg),D1
+	cmp	([barg,A1],larg),D1
+
+	cmp	([warg,A1]),D1
+	cmp	([warg,A1],barg),D1
+	cmp	([warg,A1],warg),D1
+	cmp	([warg,A1],larg),D1
+
+	cmp	([larg,A1]),D1
+	cmp	([larg,A1],barg),D1
+	cmp	([larg,A1],warg),D1
+	cmp	([larg,A1],larg),D1
+
+	cmp	([A1,A7]),D1
+	cmp	([A1,A7],barg),D1
+	cmp	([A1,A7],warg),D1
+	cmp	([A1,A7],larg),D1
+
+	cmp	([barg,A1,A7]),D1
+	cmp	([barg,A1,A7],barg),D1
+	cmp	([barg,A1,A7],warg),D1
+	cmp	([barg,A1,A7],larg),D1
+
+	cmp	([warg,A1,A7]),D1
+	cmp	([warg,A1,A7],barg),D1
+	cmp	([warg,A1,A7],warg),D1
+	cmp	([warg,A1,A7],larg),D1
+
+	cmp	([larg,A1,A7]),D1
+	cmp	([larg,A1,A7],barg),D1
+	cmp	([larg,A1,A7],warg),D1
+	cmp	([larg,A1,A7],larg),D1
+
+	cmp	([A1],A7),D1
+	cmp	([A1],A7,barg),D1
+	cmp	([A1],A7,warg),D1
+	cmp	([A1],A7,larg),D1
+
+	cmp	([barg,A1],A7),D1
+	cmp	([barg,A1],A7,barg),D1
+	cmp	([barg,A1],A7,warg),D1
+	cmp	([barg,A1],A7,larg),D1
+
+	cmp	([warg,A1],A7),D1
+	cmp	([warg,A1],A7,barg),D1
+	cmp	([warg,A1],A7,warg),D1
+	cmp	([warg,A1],A7,larg),D1
+
+	cmp	([larg,A1],A7),D1
+	cmp	([larg,A1],A7,barg),D1
+	cmp	([larg,A1],A7,warg),D1
+	cmp	([larg,A1],A7,larg),D1
+
+	    NLIST
+	  ENDCPU
+	  LIST
+	  ; d16(PC) / (d16,PC)
+
+	cmp	barg(PC),D6
+	cmp	warg(PC),D6
+	cmp	(barg,PC),D7
+	cmp	(warg,PC),D7
+
+	  ; d8(An,Xn) / (d8,An,Xn)
+
+	cmp	barg(PC,D1.W),D0
+	cmp	barg(PC,A7.L),D1
+	cmp	(barg,PC,D1.W),D2
+	cmp	(barg,PC,A7.L),D3
+
+	  NLIST
+	  IFCPU20
+	    LIST
+	  ;
+	  ; Addressimg Modes Of Type ([bd,An,Xn],od)
+	  ;
+
+	cmp	([PC]),D1
+	cmp	([PC],barg),D1
+	cmp	([PC],warg),D1
+	cmp	([PC],larg),D1
+
+	cmp	([barg,PC]),D1
+	cmp	([barg,PC],barg),D1
+	cmp	([barg,PC],warg),D1
+	cmp	([barg,PC],larg),D1
+
+	cmp	([warg,PC]),D1
+	cmp	([warg,PC],barg),D1
+	cmp	([warg,PC],warg),D1
+	cmp	([warg,PC],larg),D1
+
+	cmp	([larg,PC]),D1
+	cmp	([larg,PC],barg),D1
+	cmp	([larg,PC],warg),D1
+	cmp	([larg,PC],larg),D1
+
+	cmp	([PC,A7]),D1
+	cmp	([PC,A7],barg),D1
+	cmp	([PC,A7],warg),D1
+	cmp	([PC,A7],larg),D1
+
+	cmp	([barg,PC,A7]),D1
+	cmp	([barg,PC,A7],barg),D1
+	cmp	([barg,PC,A7],warg),D1
+	cmp	([barg,PC,A7],larg),D1
+
+	cmp	([warg,PC,A7]),D1
+	cmp	([warg,PC,A7],barg),D1
+	cmp	([warg,PC,A7],warg),D1
+	cmp	([warg,PC,A7],larg),D1
+
+	cmp	([larg,PC,A7]),D1
+	cmp	([larg,PC,A7],barg),D1
+	cmp	([larg,PC,A7],warg),D1
+	cmp	([larg,PC,A7],larg),D1
+
+	cmp	([PC],A7),D1
+	cmp	([PC],A7,barg),D1
+	cmp	([PC],A7,warg),D1
+	cmp	([PC],A7,larg),D1
+
+	cmp	([barg,PC],A7),D1
+	cmp	([barg,PC],A7,barg),D1
+	cmp	([barg,PC],A7,warg),D1
+	cmp	([barg,PC],A7,larg),D1
+
+	cmp	([warg,PC],A7),D1
+	cmp	([warg,PC],A7,barg),D1
+	cmp	([warg,PC],A7,warg),D1
+	cmp	([warg,PC],A7,larg),D1
+
+	cmp	([larg,PC],A7),D1
+	cmp	([larg,PC],A7,barg),D1
+	cmp	([larg,PC],A7,warg),D1
+	cmp	([larg,PC],A7,larg),D1
+
+	    NLIST
+	  ENDCPU
+	.endm
+
+

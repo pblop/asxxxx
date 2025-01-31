@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="8.00"
 	Name="as430"
-	ProjectGUID="{2836601A-3F0B-4C0C-90B9-3EECA03C41F7}"
+	ProjectGUID="{241CCF7F-7F65-4d54-B272-F994CE2CAF33}"
 	RootNamespace="as430"
 	>
 	<Platforms>

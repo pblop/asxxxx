@@ -1,7 +1,7 @@
 /* f2mc8mch.c */
 
 /*
- *  Copyright (C) 2005-2014  Alan R. Baldwin
+ *  Copyright (C) 2005-2023  Alan R. Baldwin
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -34,8 +34,8 @@ char	*dsft	= "asm";
 #define	OPCY_SDP	((char) (0xFF))
 #define	OPCY_ERR	((char) (0xFE))
 
-/*	OPCY_NONE	((char) (0x80))	*/
-/*	OPCY_MASK	((char) (0x7F))	*/
+#define	OPCY_NONE	((char) (0x80))
+#define	OPCY_MASK	((char) (0x7F))
 
 #define	OPCY_CPU	((char) (OPCY_NONE | 0xFD))
 
@@ -95,6 +95,7 @@ static char  f8xcyc[256] = {
 };
 
 int	mchtyp;
+struct	area *zpg;
 
 /*
  * Process a machine op.
@@ -105,10 +106,16 @@ struct mne *mp;
 {
 	int c, op;
 	struct expr e1, e2, e3;
+	struct sym *sp;
 	int t1, t2;
 	int v1, v2, v3;
-	struct area *espa;
 	char id[NCPS];
+
+	/*
+	 * Using Internal Format
+	 * For Cycle Counting
+	 */
+	opcycles = OPCY_NONE;
 
 	clrexpr(&e1);
 	clrexpr(&e2);
@@ -125,35 +132,44 @@ struct mne *mp;
 
 	case S_SDP:
 		opcycles = OPCY_SDP;
-		espa = NULL;
+		zpg = dot.s_area;
 		if (more()) {
 			expr(&e1, 0);
 			if (e1.e_flag == 0 && e1.e_base.e_ap == NULL) {
 				if (e1.e_addr) {
-					err('b');
+					e1.e_addr = 0;
+					xerr('b', "Only Page 0 Allowed.");
 				}
 			}
 			if ((c = getnb()) == ',') {
 				getid(id, -1);
-				espa = alookup(id);
-				if (espa == NULL) {
-					err('u');
+				zpg = alookup(id);
+				if (zpg == NULL) {
+					zpg = dot.s_area;
+					xerr('u', "Undefined Area.");
 				}
 			} else {
 				unget(c);
 			}
 		}
-		if (espa) {
-			outdp(espa, &e1, 0);
-		} else {
-			outdp(dot.s_area, &e1, 0);
-		}
+		outdp(zpg, &e1, 0);
 		lmode = SLIST;
 		break;
 
+	case S_PGD:
+		do {
+			getid(id, -1);
+			sp = lookup(id);
+			sp->s_flag &= ~S_LCL;
+			sp->s_flag |=  S_GBL;
+			sp->s_area = (zpg != NULL) ? zpg : dot.s_area;
+ 		} while (comma(0));
+		lmode = SLIST;
+		break;
+ 
 	case S_AOP:
 		if ((t1 = addr(&e1)) != S_A) {
-			aerr();
+			xerr('a', "Requires the argument A.");
 		}
 		outab(op);
 		break;
@@ -188,8 +204,11 @@ struct mne *mp;
 				if (v2 == S_A) {	/* MOV	A,@A	*/
 					outab(0x92);			break;
 				}
-				aerr();					break;
-			default:	aerr();				break;
+				xerr('a', "Indirect argument not IX, EP, or A.");
+				break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 			break;
 		}
@@ -212,8 +231,11 @@ struct mne *mp;
 				if (v1 == S_EP) {	/* MOV	@EP,A	*/
 					outab(0x47);			break;
 				}
-				aerr();					break;
-			default:	aerr();				break;
+				xerr('a', "Indirect argument not IX or EP.");
+				break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 			break;
 		}
@@ -231,10 +253,13 @@ struct mne *mp;
 				if (v1 == S_EP) {	/* MOV	@EP,#	*/
 					outab(0x87);  	outrb(&e2, 0);	break;
 				}
-				aerr();					break;
+				xerr('a', "Indirect argument not IX or EP.");
+				break;
 			case S_R:			/* MOV	Rn,#	*/
 				outab(0x88 + v1);	outrb(&e2, 0);	break;
-			default:	aerr();				break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 			break;
 		}
@@ -243,7 +268,7 @@ struct mne *mp;
 			outab(0x82);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_MOVW:
@@ -273,7 +298,9 @@ struct mne *mp;
 				} else
 				if (v2 == S_A) {	/* MOVW	A,@A	*/
 					outab(0x93);			break;
-				}					break;
+				}
+				xerr('a', "Indirect argument not IX, EP, or A.");
+				break;
 			case S_PC:			/* MOVW	A,PC	*/
 				outab(0xF0);				break;
 			case S_SP:			/* MOVW	A,SP	*/
@@ -284,7 +311,9 @@ struct mne *mp;
 				outab(0xF3);				break;
 			case S_PS:			/* MOVW	A,PS	*/
 				outab(0x70);				break;
-			default:	aerr();				break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 			break;
 		}
@@ -307,7 +336,9 @@ struct mne *mp;
 				} else
 				if (v1 == S_A) {	/* MOVW	@A,A	*/
 					outab(0x93);			break;
-				}					break;
+				}
+				xerr('a', "Indirect argument not IX, EP, or A.");
+				break;
 			case S_PC:			/* JMP	@A	*/
 				outab(0xE0);				break;
 			case S_SP:			/* MOVW	SP,A	*/
@@ -318,7 +349,9 @@ struct mne *mp;
 				outab(0xE3);				break;
 			case S_PS:			/* MOVW	PS,A	*/
 				outab(0x71);				break;
-			default:	aerr();				break;
+			default:
+				xerr('a', "Invalid Addressing Mode.");
+				break;
 			}
 			break;
 		}
@@ -330,7 +363,9 @@ struct mne *mp;
 				outab(0xE6);	outrw(&e2, 0);		break;
 			case S_EP:			/* MOVW	EP,#	*/
 				outab(0xE7);	outrw(&e2, 0);		break;
-			default:	aerr();				break;
+			default:
+				xerr('a', "First argument not SP, IX, or EP.");
+				break;
 			}
 			break;
 		}
@@ -339,7 +374,7 @@ struct mne *mp;
 			outab(0x83);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_OP:
@@ -350,7 +385,7 @@ struct mne *mp;
 			break;
 		}
 		if (mp->m_flag) {
-			aerr();				/* OPW	opcode error	*/
+			xerr('a',"Invalid word operation argument.");
 		}
 		comma(1);
 		t2 = addr(&e2);
@@ -371,12 +406,15 @@ struct mne *mp;
 				if (v1 == S_EP) {		/* CMP @EP,#	*/
 					outab(0x97);	outrb(&e2, 0);	break;
 				}
-				aerr();					break;
+				xerr('a', "Indirect argument not IX or EP.");
+				break;
 			case S_R:				/* CMP	Rn,#	*/
 				outab(0x98 + v1);	outrb(&e2, 0);	break;
 			default:
-				aerr();					break;
-			}						break;
+				xerr('a', "Invalid Addressing Mode.");
+				break;
+			}
+			break;
 		}
 		if (t1 == S_A) {
 			switch(t2) {
@@ -392,14 +430,17 @@ struct mne *mp;
 				if (v2 == S_EP) {		/* OP	A,@EP	*/
 					outab(op + 5);			break;
 				}
-				aerr();					break;
+				xerr('a', "Indirect argument not IX or EP.");
+				break;
 			case S_R:				/* OP	A,Rn	*/
 				outab(op + 6 + aindex);			break;
 			default:
-				aerr();					break;
-			}						break;
+				xerr('a', "Invalid Addressing Mode.");
+				break;
+			}
+			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_JMP:
@@ -413,7 +454,7 @@ struct mne *mp;
 			outrw(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_CALL:
@@ -423,7 +464,7 @@ struct mne *mp;
 			outrw(&e1, 0);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_CALLV:
@@ -432,7 +473,7 @@ struct mne *mp;
 			outrbm(&e1, R_3BIT | R_MBRO, op);
 			break;
 		}
-		aerr();
+		xerr('a', "Invalid Addressing Mode.");
 		break;
 
 	case S_PUSH:
@@ -445,7 +486,7 @@ struct mne *mp;
 			outab(op + 1);
 			break;
 		}
-		aerr();
+		xerr('a', "Allowed arguments are A and IX.");
 		break;
 
 	case S_XCH:
@@ -456,12 +497,12 @@ struct mne *mp;
 			outab(op);
 			break;
 		}
-		aerr();
+		xerr('a', "XCH A,T is the only allowed form.");
 		break;
 
 	case S_XCHW:
 		if ((t1 = addr(&e1)) != S_A) {
-			aerr();
+			xerr('a', "First argument must be A.");
 		}
 		comma(1);
 		t2 = addr(&e2);
@@ -473,17 +514,17 @@ struct mne *mp;
 			outab(0xF4 + aindex);
 			break;
 		}
-		aerr();
+		xerr('a', "T, PC, SP, IX, and EP are valid second arguments.");
 		break;
 
 	case S_BIT:
 		t1 = addr(&e1);
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "An address is required.");
 			break;
 		}
 		if ((c = getnb()) != ':') {
-			qerr();
+			xerr('q', "':' is required.");
 			break;
 		}
 		expr(&e2, 0);
@@ -494,11 +535,11 @@ struct mne *mp;
 	case S_BRAB:
 		t1 = addr(&e1);
 		if ((t1 != S_DIR) && (t1 != S_EXT)) {
-			aerr();
+			xerr('a', "An address is required.");
 			break;
 		}
 		if ((c = getnb()) != ':') {
-			qerr();
+			xerr('q', "':' is required.");
 			break;
 		}
 		expr(&e2, 0);
@@ -506,10 +547,9 @@ struct mne *mp;
 		expr(&e3, 0);
 		outrbm(&e2, R_3BIT | R_MBRO, op);
 		outrb(&e1, R_PAG0);
-		if (mchpcr(&e3)) {
-			v3 = (int) (e3.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e3, &v3, 1)) {
 			if ((v3 < -128) || (v3 > 127))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outab(v3);
 		} else {
 			outrb(&e3, R_PCR);
@@ -524,7 +564,7 @@ struct mne *mp;
 			outab(op + aindex);
 			break;
 		}
-		aerr();
+		xerr('a',"Allowed arguments are A, SP, IX and EP.");
 		break;
 
 	case S_DEC:
@@ -533,16 +573,15 @@ struct mne *mp;
 			outab(op + aindex);
 			break;
 		}
-		aerr();
+		xerr('a',"Allowed arguments are R0 - R7.");
 		break;
 
 	case S_BRA:
 		expr(&e1, 0);
 		outab(op);
-		if (mchpcr(&e1)) {
-			v1 = (int) (e1.e_addr - dot.s_addr - 1);
+		if (mchpcr(&e1, &v1, 1)) {
 			if ((v1 < -128) || (v1 > 127))
-				aerr();
+				xerr('a', "Branching Range Exceeded.");
 			outab(v1);
 		} else {
 			outrb(&e1, R_PCR);
@@ -557,7 +596,7 @@ struct mne *mp;
 
 	default:
 		opcycles = OPCY_ERR;
-		err('o');
+		xerr('o', "Internal Opcode Error.");
 		break;
 	}
 
@@ -568,16 +607,39 @@ struct mne *mp;
 		case X_8FX:	opcycles = f8xcyc[cb[0] & 0xFF];	break;
 		}
 	}
+	/*
+	 * Translate To External Format
+	 */
+	if (opcycles == OPCY_NONE) { opcycles  =  CYCL_NONE; } else
+	if (opcycles  & OPCY_NONE) { opcycles |= (CYCL_NONE | 0x3F00); }
 }
 
 /*
  * Branch/Jump PCR Mode Check
  */
 int
-mchpcr(esp)
+mchpcr(esp, v, n)
 struct expr *esp;
+int *v;
+int n;
 {
 	if (esp->e_base.e_ap == dot.s_area) {
+		if (v != NULL) {
+#if 1
+			/* Allows branching from top-to-bottom and bottom-to-top */
+ 			*v = (int) (esp->e_addr - dot.s_addr - n);
+			/* only bits 'a_mask' are significant, make circular */
+			if (*v & s_mask) {
+				*v |= (int) ~a_mask;
+			}
+			else {
+				*v &= (int) a_mask;
+			}
+#else
+			/* Disallows branching from top-to-bottom and bottom-to-top */
+			*v = (int) ((esp->e_addr & a_mask) - (dot.s_addr & a_mask) - n);
+#endif
+		}
 		return(1);
 	}
 	if (esp->e_flag==0 && esp->e_base.e_ap==NULL) {
@@ -606,9 +668,12 @@ minit()
 	 */
 	hilo = 1;
 
-	if (pass == 0) {
-		mchtyp = X_8L;
-		sym[2].s_addr = X_8L;
-	}
+	/*
+	 * Zero Page
+	 */
+	zpg = NULL;
+
+	mchtyp = X_8L;
+	sym[2].s_addr = X_8L;
 }
 
