@@ -1,0 +1,6 @@
+-a COP4A=0x0000
+-a COP4B=0x0040
+-i
+-u
+tmace
+-e

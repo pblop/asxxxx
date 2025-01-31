@@ -1,0 +1,2258 @@
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                        Page 1
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+LOHI Ordering
+
+                                      1 	.sbttl	LOHI Ordering
+                                      2 
+                                      3 	.lohi				; LOHI Ordering
+                                      4 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                        Page 2
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+24-Bit Addressing
+
+                                      1 	.sbttl	24-Bit Addressing
+                                      2 
+                                      3 	.24bit				; 24-bit addressing
+                                      4 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                        Page 3
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+24-Bit Addressing
+
+                                      1 	.title	Machine Independent Assembler Test
+                                      2 	.module Asmtst
+                                      3 
+                                      4 	;  The file 'asmt3blo.asm' must be assembled with
+                                      5 	; a LO/HI assembler (in file ___ext.c, hilo = 0).
+                                      6 	;
+                                      7 	;  The file 'asmt3bhi.asm' must be assembled with
+                                      8 	; a HI/LO assembler (in file ___ext.c, hilo = 1).
+                                      9 	;
+                                     10 	;	asmt:
+                                     11 	;		3	3-byte PC addressing
+                                     12 	;		b	1 byte data addressing
+                                     13 	;		lo	LO/HI assembler
+                                     14 	;		hi	HI/LO assembler
+                                     15 	;
+                                     16 	; All .areas must be of type DSEG.
+                                     17 
+                                     18 	.sbttl	Memory Allocation Directives
+                                     19 
+                                     20 	.area	_DATA	(abs,ovr)        ; Data Area
+                                     21 
+                                     22 	.radix	O			; set default to octal
+                                     23 
+                                     24 					; binary constants
+      000000 C0                      25 	.byte	0b11000000		; C0
+      000001 0E                      26 	.byte	0B1110			; 0E
+      000002 C0                      27 	.byte	$%11000000		; C0
+                                     28 
+                                     29 					; octal constants
+      000003 14                      30 	.byte	24			; 14
+      000004 14                      31 	.byte	024			; 14
+      000005 14                      32 	.byte	0q024			; 14
+      000006 14                      33 	.byte	0Q024			; 14
+      000007 14                      34 	.byte	0o024			; 14
+      000008 14                      35 	.byte	0O024			; 14
+      000009 14                      36 	.byte	$&24			; 14
+                                     37 
+                                     38 					; decimal constant
+      00000A 18                      39 	.byte	0d024			; 18
+      00000B 18                      40 	.byte	0D024			; 18
+      00000C 18                      41 	.byte	$#24			; 18
+                                     42 
+                                     43 					; hexidecimal constants
+      00000D 24                      44 	.byte	0h024			; 24
+      00000E 24                      45 	.byte	0H024			; 24
+      00000F 24                      46 	.byte	0x024			; 24
+      000010 24                      47 	.byte	0X024			; 24
+      000011 24                      48 	.byte	$@24			; 24
+                                     49 
+      000012 00                      50 	.db	0			; 00
+      000013 00 00                   51 	.dw	0			; 00 00
+                                     52 
+                                     53 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                        Page 4
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Memory Allocation Directives
+
+                                     55 	.radix	D			; set default to decimal
+                                     56 
+      000015 01 02 03                57 	.byte	1,2,3			; 01 02 03
+      000018 04 05 06                58 	.byte	4,5,6			; 04 05 06
+      00001B 07 08 09                59 	.byte	7,8,9			; 07 08 09
+      00001E 01 00 02 00 03 00       60 	.word	1,2,3			; 01 00 02 00 03 00
+      000024 04 00 05 00 06 00       61 	.word	4,5,6			; 04 00 05 00 06 00
+      00002A 07 00 08 00 09 00       62 	.word	7,8,9			; 07 00 08 00 09 00
+                                     63 
+      000030                         64 	.blkb	16
+      000040                         65 	.ds	16
+                                     66 
+      000050                         67 	.blkw	16
+      000070                         68 	.ds	16*2
+                                     69 
+      000090r92s00                   70 word:	.word	.+2			;r92s00
+      000092r90s00                   71 	.word	.-2			;r90s00
+      000094r96s00                   72 	.word	2+.			;r96s00
+      000096 04 00                   73 	.word	.-(word+2)		; 04 00
+                                     74 
+      000098r9As00R00                75 byte3:	.3byte	.+2			;r9As00R00
+      00009Br99s00R00                76 	.3byte	.-2			;r99s00R00
+      00009ErA0s00R00                77 	.3byte	2+.			;rA0s00R00
+      0000A1 06 00 00                78 	.3byte	.-(byte3+3)		; 06 00 00
+                                     79 
+                                     80 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                        Page 5
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Boundary Directives
+
+                                     82 	.sbttl	Boundary Directives
+                                     83 
+                                     84 	.area	bndry_1	(ABS,OVR,DSEG)
+      000000                         85 	.org	0
+      000000                         86 bndry_1:
+                                     87 
+      000000                         88 	.even
+      000000 00                      89 1$:	.byte	1$ - bndry_1		; 00
+      000002                         90 	.even
+      000002 02                      91 2$:	.byte	2$ - bndry_1		; 02
+      000004                         92 	.even
+      000005                         93 	.odd
+      000005 05                      94 3$:	.byte	3$ - bndry_1		; 05
+      000007                         95 	.odd
+      000007 07                      96 4$:	.byte	4$ - bndry_1		; 07
+      000009                         97 	.odd
+      00000A                         98 	.even
+      00000A 0A 00                   99 5$:	.word	5$ - bndry_1		; 0A 00
+      00000D                        100 	.odd
+      00000D 0D 00                  101 6$:	.word	6$ - bndry_1		; 0D 00
+      000010                        102 	.even
+      000010 10 00                  103 7$:	.word	7$ - bndry_1		; 10 00
+                                    104 
+                                    105 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                        Page 6
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Power of 2 Boundary Modes
+
+                                    107 	.sbttl	Power of 2 Boundary Modes
+                                    108 
+                                    109 	.area	bndry_2	(ABS,OVR,DSEG)
+      000000                        110 	.org	0
+                                    111 
+      000000                        112 	.even			; Address == 0
+      000000                        113 	.bndry	2		; Address == 0
+      000000                        114 	.bndry	4		; Address == 0
+      000000                        115 	.bndry	8		; Address == 0
+      000000                        116 	.bndry	16		; Address == 0
+      000000                        117 	.bndry	32		; Address == 0
+      000000                        118 	.bndry	64		; Address == 0
+      000000                        119 	.bndry	128		; Address == 0
+      000000                        120 	.bndry	256		; Address == 0
+      000000                        121 	.bndry	512		; Address == 0
+      000000                        122 	.bndry	1024		; Address == 0
+                                    123 
+      000000                        124 	.org	0
+      000000                        125 bndry_2:
+                                    126 
+      000000                        127 	.org	0
+      000000                        128 	.even			; Address == 0
+      000000 00 00                  129 1$:	.word	1$ - bndry_2	; 00 00
+                                    130 
+      000000                        131 	.org	0
+      000000                        132 	.bndry	2		; Address == 0
+      000000 00 00                  133 2$:	.word	2$ - bndry_2	; 00 00
+                                    134 
+      000000                        135 	.org	0
+      000000                        136 	.bndry	4		; Address == 0
+      000000 00 00                  137 3$:	.word	3$ - bndry_2	; 00 00
+                                    138 
+      000000                        139 	.org	0
+      000000                        140 	.bndry	8		; Address == 0
+      000000 00 00                  141 4$:	.word	4$ - bndry_2	; 00 00
+                                    142 
+      000000                        143 	.org	0
+      000000                        144 	.bndry	16		; Address == 0
+      000000 00 00                  145 5$:	.word	5$ - bndry_2	; 00 00
+                                    146 
+      000000                        147 	.org	0
+      000000                        148 	.bndry	32		; Address == 0
+      000000 00 00                  149 6$:	.word	6$ - bndry_2	; 00 00
+                                    150 
+      000000                        151 	.org	0
+      000000                        152 	.bndry	64		; Address == 0
+      000000 00 00                  153 7$:	.word	7$ - bndry_2	; 00 00
+                                    154 
+      000000                        155 	.org	0
+      000000                        156 	.bndry	128		; Address == 0
+      000000 00 00                  157 8$:	.word	8$ - bndry_2	; 00 00
+                                    158 
+      000000                        159 	.org	0
+      000000                        160 	.bndry	256		; Address == 0
+      000000 00 00                  161 9$:	.word	9$ - bndry_2	; 00 00
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                        Page 7
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Power of 2 Boundary Modes
+
+                                    162 
+      000000                        163 	.org	0
+      000000                        164 	.bndry	512		; Address == 0
+      000000 00 00                  165 10$:	.word	10$ - bndry_2	; 00 00
+                                    166 
+      000000                        167 	.org	0
+      000000                        168 	.bndry	1024		; Address == 0
+      000000 00 00                  169 11$:	.word	11$ - bndry_2	; 00 00
+                                    170 
+                                    171 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                        Page 8
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Power of 2 Boundary Modes
+
+                                    173 
+                                    174 	.area	bndry_3	(ABS,OVR,DSEG)
+      000001                        175 	.org	1
+                                    176 
+      000002                        177 	.even			; Address == 2
+      000002                        178 	.bndry	2		; Address == 2
+      000004                        179 	.bndry	4		; Address == 4
+      000008                        180 	.bndry	8		; Address == 8
+      000010                        181 	.bndry	16		; Address == 16
+      000020                        182 	.bndry	32		; Address == 32
+      000040                        183 	.bndry	64		; Address == 64
+      000080                        184 	.bndry	128		; Address == 128
+      000100                        185 	.bndry	256		; Address == 256
+      000200                        186 	.bndry	512		; Address == 512
+      000400                        187 	.bndry	1024		; Address == 1024
+                                    188 
+      000000                        189 	.org	0
+      000000                        190 bndry_3:
+                                    191 
+      000001                        192 	.org	1
+      000002                        193 	.even			; Address == 2
+      000002 02 00                  194 1$:	.word	1$ - bndry_3	; 02 00
+                                    195 
+      000001                        196 	.org	1
+      000002                        197 	.bndry	2		; Address == 2
+      000002 02 00                  198 2$:	.word	2$ - bndry_3	; 02 00
+                                    199 
+      000001                        200 	.org	1
+      000004                        201 	.bndry	4		; Address == 4
+      000004 04 00                  202 3$:	.word	3$ - bndry_3	; 04 00
+                                    203 
+      000001                        204 	.org	1
+      000008                        205 	.bndry	8		; Address == 8
+      000008 08 00                  206 4$:	.word	4$ - bndry_3	; 08 00
+                                    207 
+      000001                        208 	.org	1
+      000010                        209 	.bndry	16		; Address == 16
+      000010 10 00                  210 5$:	.word	5$ - bndry_3	; 10 00
+                                    211 
+      000001                        212 	.org	1
+      000020                        213 	.bndry	32		; Address == 32
+      000020 20 00                  214 6$:	.word	6$ - bndry_3	; 20 00
+                                    215 
+      000001                        216 	.org	1
+      000040                        217 	.bndry	64		; Address == 64
+      000040 40 00                  218 7$:	.word	7$ - bndry_3	; 40 00
+                                    219 
+      000001                        220 	.org	1
+      000080                        221 	.bndry	128		; Address == 128
+      000080 80 00                  222 8$:	.word	8$ - bndry_3	; 80 00
+                                    223 
+      000001                        224 	.org	1
+      000100                        225 	.bndry	256		; Address == 256
+      000100 00 01                  226 9$:	.word	9$ - bndry_3	; 00 01
+                                    227 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                        Page 9
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Power of 2 Boundary Modes
+
+      000001                        228 	.org	1
+      000200                        229 	.bndry	512		; Address == 512
+      000200 00 02                  230 10$:	.word	10$ - bndry_3	; 00 02
+                                    231 
+      000001                        232 	.org	1
+      000400                        233 	.bndry	1024		; Address == 1024
+      000400 00 04                  234 11$:	.word	11$ - bndry_3	; 00 04
+                                    235 
+                                    236 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 10
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Non Power of 2 Boundary Modes
+
+                                    238 	.sbttl	Non Power of 2 Boundary Modes
+                                    239 
+                                    240 	.area	bndry_4	(ABS,OVR,DSEG)
+      000000                        241 	.org	0
+                                    242 
+      000000                        243 	.bndry	1		; Address == 0
+      000000                        244 	.bndry	3		; Address == 0
+      000000                        245 	.bndry	7		; Address == 0
+      000000                        246 	.bndry	15		; Address == 0
+      000000                        247 	.bndry	31		; Address == 0
+                                    248 
+      000000                        249 	.org	0
+      000000                        250 bndry_4:
+                                    251 
+      000000                        252 	.org	0
+      000000                        253 	.bndry	1		; Address == 0
+      000000 00 00                  254 1$:	.word	1$ - bndry_4	; 00 00
+                                    255 
+      000000                        256 	.org	0
+      000000                        257 	.bndry	3		; Address == 0
+      000000 00 00                  258 2$:	.word	2$ - bndry_4	; 00 00
+                                    259 
+      000000                        260 	.org	0
+      000000                        261 	.bndry	7		; Address == 0
+      000000 00 00                  262 3$:	.word	3$ - bndry_4	; 00 00
+                                    263 
+      000000                        264 	.org	0
+      000000                        265 	.bndry	15		; Address == 0
+      000000 00 00                  266 4$:	.word	4$ - bndry_4	; 00 00
+                                    267 
+      000000                        268 	.org	0
+      000000                        269 	.bndry	31		; Address == 0
+      000000 00 00                  270 5$:	.word	5$ - bndry_4	; 00 00
+                                    271 
+                                    272 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 11
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Non Power of 2 Boundary Modes
+
+                                    274 
+                                    275 	.area	bndry_5	(ABS,OVR,DSEG)
+      000001                        276 	.org	1
+                                    277 
+      000003                        278 	.bndry	3		; Address == 3
+      000005                        279 	.bndry	5		; Address == 5
+      000009                        280 	.bndry	9		; Address == 9
+      000011                        281 	.bndry	17		; Address == 17
+      000021                        282 	.bndry	33		; Address == 33
+                                    283 
+      000000                        284 	.org	0
+      000000                        285 bndry_5:
+                                    286 
+      000001                        287 	.org	1
+      000003                        288 	.bndry	3		; Address == 3
+      000003 03 00                  289 1$:	.word	1$ - bndry_5	; 03 00
+                                    290 
+      000001                        291 	.org	1
+      000005                        292 	.bndry	5		; Address == 5
+      000005 05 00                  293 2$:	.word	2$ - bndry_5	; 05 00
+                                    294 
+      000001                        295 	.org	1
+      000009                        296 	.bndry	9		; Address == 9
+      000009 09 00                  297 3$:	.word	3$ - bndry_5	; 09 00
+                                    298 
+      000001                        299 	.org	1
+      000011                        300 	.bndry	17		; Address == 17
+      000011 11 00                  301 4$:	.word	4$ - bndry_5	; 11 00
+                                    302 
+      000001                        303 	.org	1
+      000021                        304 	.bndry	33		; Address == 33
+      000021 21 00                  305 5$:	.word	5$ - bndry_5	; 21 00
+                                    306 
+                                    307 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 12
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Non Power of 2 Boundary Modes
+
+                                    309 
+                                    310 	.area	bndry_6	(ABS,OVR,DSEG)
+      00002F                        311 	.org	47
+                                    312 
+      000030                        313 	.bndry	3		; Address == 48
+      000030                        314 	.bndry	6		; Address == 48
+      000030                        315 	.bndry	12		; Address == 48
+      000030                        316 	.bndry	24		; Address == 48
+      000030                        317 	.bndry	48		; Address == 48
+      000060                        318 	.bndry	96		; Address == 96
+      0000C0                        319 	.bndry	192		; Address == 192
+      000180                        320 	.bndry	384		; Address == 384
+      000300                        321 	.bndry	768		; Address == 768
+      000600                        322 	.bndry	1536		; Address == 1536
+                                    323 
+      000000                        324 	.org	0
+      000000                        325 bndry_6:
+                                    326 
+      00002F                        327 	.org	47
+      000030                        328 	.bndry	3		; Address == 48
+      000030 30 00                  329 1$:	.word	1$ - bndry_6	; 30 00
+                                    330 
+      00002F                        331 	.org	47
+      000030                        332 	.bndry	6		; Address == 48
+      000030 30 00                  333 2$:	.word	2$ - bndry_6	; 30 00
+                                    334 
+      00002F                        335 	.org	47
+      000030                        336 	.bndry	12		; Address == 48
+      000030 30 00                  337 3$:	.word	3$ - bndry_6	; 30 00
+                                    338 
+      00002F                        339 	.org	47
+      000030                        340 	.bndry	24		; Address == 48
+      000030 30 00                  341 4$:	.word	4$ - bndry_6	; 30 00
+                                    342 
+      00002F                        343 	.org	47
+      000030                        344 	.bndry	48		; Address == 48
+      000030 30 00                  345 5$:	.word	5$ - bndry_6	; 30 00
+                                    346 
+      00002F                        347 	.org	47
+      000060                        348 	.bndry	96		; Address == 96
+      000060 60 00                  349 6$:	.word	6$ - bndry_6	; 60 00
+                                    350 
+      00002F                        351 	.org	47
+      0000C0                        352 	.bndry	192		; Address == 192
+      0000C0 C0 00                  353 7$:	.word	7$ - bndry_6	; C0 00
+                                    354 
+      00002F                        355 	.org	47
+      000180                        356 	.bndry	384		; Address == 384
+      000180 80 01                  357 8$:	.word	8$ - bndry_6	; 80 01
+                                    358 
+      00002F                        359 	.org	47
+      000300                        360 	.bndry	768		; Address == 768
+      000300 00 03                  361 9$:	.word	9$ - bndry_6	; 00 03
+                                    362 
+      00002F                        363 	.org	47
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 13
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Non Power of 2 Boundary Modes
+
+      000600                        364 	.bndry	1536		; Address == 1536
+      000600 00 06                  365 10$:	.word	10$ - bndry_6	; 00 06
+                                    366 
+                                    367 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 14
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+String Directives
+
+                                    369 	.sbttl	String Directives
+                                    370 
+                                    371 	.area	_DATA			; Data Area
+                                    372 
+      0000A4 61 62 63 64 65         373 	.ascii	"abcde"			; 61 62 63 64 65
+      0000A9 61 62 63 64 65 00      374 	.asciz	"abcde"			; 61 62 63 64 65 00
+      0000AF 61 62 63 64 E5         375 	.ascis	"abcde"			; 61 62 63 64 E5
+                                    376 
+      0000B4 61 0D 62 0A            377 	.ascii	/a/(13)/b/(10)		; 61 0D 62 0A
+      0000B8 61 0D 62 0A 00         378 	.asciz	/a/(13)/b/(10)		; 61 0D 62 0A 00
+      0000BD 61 0D 62 8A            379 	.ascis	/a/(13)/b/(10)		; 61 0D 62 8A
+                                    380 
+      0000C1 0D 61                  381 	.ascii	(13)/a/			; 0D 61
+      0000C3 0D 61 00               382 	.asciz	(13)/a/			; 0D 61 00
+      0000C6 0D E1                  383 	.ascis	(13)/a/			; 0D E1
+                                    384 
+                                    385 
+                                    386 	.sbttl	Expression Evaluation
+                                    387 
+                           000000   388 	n0x00	=	0x00
+                           000001   389 	n0x01	=	0x01
+                           000010   390 	n0x10	=	0x10
+                           0000FF   391 	n0xff	=	0xff
+                           00EEFF   392 	n0xeeff =	0xeeff
+                                    393 
+                           0000FF   394 	n	=	< n0xeeff	; 0xff		low byte
+      0000C8 00 FF                  395 	.byte	>n,<n			; 00 FF
+                           0000EE   396 	n	=	> n0xeeff	; 0xee		high byte
+      0000CA 00 EE                  397 	.byte	>n,<n			; 00 EE
+                                    398 
+                                    399 
+                           000041   400 	n	=	'A		; 0x41		single character
+      0000CC 00 41                  401 	.byte	>n,<n			; 00 41
+                           004241   402 	n	=	"AB		; 0x4142	double character
+      0000CE 42 41                  403 	.byte	>n,<n			; 42 41
+                           000001   404 	n	=	n0x01		; 0x01		assignment
+      0000D0 00 01                  405 	.byte	>n,<n			; 00 01
+                           000002   406 	n	=	n + n0x01	; 0x02		addition
+      0000D2 00 02                  407 	.byte	>n,<n			; 00 02
+                           000001   408 	n	=	n - n0x01	; 0x01		subtraction
+      0000D4 00 01                  409 	.byte	>n,<n			; 00 01
+                           000005   410 	n	=	n * 0x05	; 0x05		multiplication
+      0000D6 00 05                  411 	.byte	>n,<n			; 00 05
+                           000002   412 	n	=	n / 0x02	; 0x02		division
+      0000D8 00 02                  413 	.byte	>n,<n			; 00 02
+                           000001   414 	n	=	n0x10 % 0x05	; 0x01		modulus
+      0000DA 00 01                  415 	.byte	>n,<n			; 00 01
+                           000011   416 	n	=	n0x10 | n0x01	; 0x11		or
+      0000DC 00 11                  417 	.byte	>n,<n			; 00 11
+                           000001   418 	n	=	n0xff & n0x01	; 0x01		and
+      0000DE 00 01                  419 	.byte	>n,<n			; 00 01
+                           000010   420 	n	=	n0x01 << 4	; 0x10		left shift
+      0000E0 00 10                  421 	.byte	>n,<n			; 00 10
+                           000001   422 	n	=	n0x10 >> 4	; 0x01		right shift
+      0000E2 00 01                  423 	.byte	>n,<n			; 00 01
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 15
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Expression Evaluation
+
+                           0000EF   424 	n	=	n0xff ^ n0x10	; 0xef		xor
+      0000E4 00 EF                  425 	.byte	>n,<n			; 00 EF
+                           0000FF   426 	n	=	n ^ n0x10	; 0xff		xor
+      0000E6 00 FF                  427 	.byte	>n,<n			; 00 FF
+                           FFFFEF   428 	n	=	~n0x10		; 0xffef	1's complement
+      0000E8 FF EF                  429 	.byte	>n,<n			; FF EF
+                           FFFFF0   430 	n	=	-n0x10		; 0xfff0	2's complement
+      0000EA FF F0                  431 	.byte	>n,<n			; FF F0
+                                    432 
+                                    433 
+                                    434 
+                           0000FF   435 	n	=	n0xeeff & 0xff	; 0xff		low byte
+      0000EC 00 FF                  436 	.byte	>n,<n			; 00 FF
+                           0000EE   437 	n = (n0xeeff & 0xff00)/0x100	; 0xee		high byte
+      0000EE 00 EE                  438 	.byte	>n,<n			; 00 EE
+                                    439 
+                                    440 
+                           0000FF   441 	n	=	n0xeeff % 0x100 ; 0xff		low byte
+      0000F0 00 FF                  442 	.byte	>n,<n			; 00 FF
+                           0000EE   443 	n	=	n0xeeff / 0x100 ; 0xee		high byte
+      0000F2 00 EE                  444 	.byte	>n,<n			; 00 EE
+                                    445 
+                                    446 
+                           00004E   447 	n	=	3*(2 + 4*(6))	; 0x4e		expression evaluation
+      0000F4 00 4E                  448 	.byte	>n,<n			; 00 4E
+                           00021E   449 	n	=	2*(0x20 + <~n0x10)	; 0x21e
+      0000F6 02 1E                  450 	.byte	>n,<n			; 02 1E
+                                    451 
+                                    452 
+                                    453 	.sbttl	arithmatic tests
+                                    454 	;
+                                    455 	; The following series of tests verify that
+                                    456 	; the arithmetic is 24-Bit and unsigned.
+                                    457 
+                                    458 
+                                    459 	.sbttl	Addition
+                                    460 
+                           000002   461 	n =	 1 +  1			; 0x000001 + 0x000001 ; 0x000002
+      0000F8 00 02                  462 	.byte	>n,<n			; 00 02
+                           000000   463 	n =	-1 +  1			; 0xFFFFFF + 0x000001 ; 0x000000
+      0000FA 00 00                  464 	.byte	>n,<n			; 00 00
+                           FFFFFE   465 	n =	-1 + -1			; 0xFFFFFF + 0xFFFFFF ; 0xFFFFFE
+      0000FC FF FE                  466 	.byte	>n,<n			; FF FE
+                                    467 
+                           010000   468 	n =	 32768 +  32768		; 0x008000 + 0x008000 ; 0x010000
+      0000FE 00 00                  469 	.byte	>n,<n			; 00 00
+                           000000   470 	n =	-32768 +  32768		; 0xFF8000 + 0x008000 ; 0x000000
+      000100 00 00                  471 	.byte	>n,<n			; 00 00
+                           FF0000   472 	n =	-32768 + -32768		; 0xFF8000 + 0xFF8000 ; 0xFF0000
+      000102 00 00                  473 	.byte	>n,<n			; 00 00
+                                    474 
+                           010000   475 	n =	 65535 +  1		; 0x00FFFF + 0x000001 ; 0x010000
+      000104 00 00                  476 	.byte	>n,<n			; 00 00
+                           00FFFE   477 	n =	 65535 + -1		; 0x00FFFF + 0xFFFFFF ; 0x00FFFE
+      000106 FF FE                  478 	.byte	>n,<n			; FF FE
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 16
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Addition
+
+                                    479 
+                                    480 
+                                    481 	.sbttl	Subtraction
+                                    482 
+                           000000   483 	n =	 1 -  1			; 0x000001 - 0x000001 ; 0x000000
+      000108 00 00                  484 	.byte	>n,<n			; 00 00
+                           FFFFFE   485 	n =	-1 -  1			; 0xFFFFFF - 0x000001 ; 0xFFFFFE
+      00010A FF FE                  486 	.byte	>n,<n			; FF FE
+                           000000   487 	n =	-1 - -1			; 0xFFFFFF - 0xFFFFFF ; 0x000000
+      00010C 00 00                  488 	.byte	>n,<n			; 00 00
+                                    489 
+                           000000   490 	n =	 32768 -  32768		; 0x008000 - 0xFF8000 ; 0x000000
+      00010E 00 00                  491 	.byte	>n,<n			; 00 00
+                           FF0000   492 	n =	-32768 -  32768		; 0xFF8000 - 0x008000 ; 0xFF0000
+      000110 00 00                  493 	.byte	>n,<n			; 00 00
+                           000000   494 	n =	-32768 - -32768		; 0xFF8000 - 0xFF8000 ; 0x000000
+      000112 00 00                  495 	.byte	>n,<n			; 00 00
+                                    496 
+                           00FFFE   497 	n =	 65535 -  1		; 0x00FFFF - 0x000001 ; 0x00FFFE
+      000114 FF FE                  498 	.byte	>n,<n			; FF FE
+                           010000   499 	n =	 65535 - -1		; 0x00FFFF - 0xFFFFFF ; 0x010000
+      000116 00 00                  500 	.byte	>n,<n			; 00 00
+                                    501 
+                                    502 
+                                    503 	.sbttl	Multiplication
+                                    504 
+                           000001   505 	n =	 1 *  1			; 0x000001 * 0x000001 ; 0x000001
+      000118 00 01                  506 	.byte	>n,<n			; 00 01
+                           FFFFFF   507 	n =	 1 * -1			; 0x000001 * 0xFFFFFF ; 0xFFFFFF
+      00011A FF FF                  508 	.byte	>n,<n			; FF FF
+                           000001   509 	n =	-1 * -1			; 0xFFFFFF * 0xFFFFFF ; 0x000001
+      00011C 00 01                  510 	.byte	>n,<n			; 00 01
+                                    511 
+                           010000   512 	n =	 256 *  256		; 0x000100 * 0x000100 ; 0x010000
+      00011E 00 00                  513 	.byte	>n,<n			; 00 00
+                           FF0000   514 	n =	 256 * -256		; 0x000100 * 0xFFFF00 ; 0xFF0000
+      000120 00 00                  515 	.byte	>n,<n			; 00 00
+                           010000   516 	n =	-256 * -256		; 0xFFFF00 * 0xFFFF00 ; 0xFF0000
+      000122 00 00                  517 	.byte	>n,<n			; 00 00
+                                    518 
+                                    519 
+                                    520 	.sbttl	Division
+                                    521 
+                           000001   522 	n =	 1 /  1			; 0x000001 / 0x000001 ; 0x000001
+      000124 00 01                  523 	.byte	>n,<n			; 00 01
+                           000005   524 	n =	10 /  2			; 0x00000A / 0x000002 ; 0x000005
+      000126 00 05                  525 	.byte	>n,<n			; 00 05
+                           000080   526 	n =	512 / 4			; 0x000200 / 0x000004 ; 0x000080
+      000128 00 80                  527 	.byte	>n,<n			; 00 80
+                           004000   528 	n =	32768 / 2		; 0x008000 / 0x000002 ; 0x004000
+      00012A 40 00                  529 	.byte	>n,<n			; 40 00
+                           007FFF   530 	n =	65535 / 2		; 0x00FFFF / 0x000002 ; 0x007FFF
+      00012C 7F FF                  531 	.byte	>n,<n			; 7F FF
+                                    532 
+                           000000   533 	n = 	 1 / -1			; 0x000001 / 0xFFFFFF ; 0x000000
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 17
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Division
+
+      00012E 00 00                  534 	.byte	>n,<n			; 00 00
+                           000000   535 	n =	 32767 / -1		; 0x007FFF / 0xFFFFFF ; 0x000000
+      000130 00 00                  536 	.byte	>n,<n			; 00 00
+                           000000   537 	n =	 32768 / -1		; 0x008000 / 0xFFFFFF ; 0x000000
+      000132 00 00                  538 	.byte	>n,<n			; 00 00
+                           000000   539 	n =	 65534 / -1		; 0x00FFFE / 0xFFFFFF ; 0x000000
+      000134 00 00                  540 	.byte	>n,<n			; 00 00
+                           000000   541 	n =	 65535 / -1		; 0x00FFFF / 0xFFFFFF ; 0x000000
+      000136 00 00                  542 	.byte	>n,<n			; 00 00
+                           000001   543 	n =	-1 / -1			; 0xFFFFFF / 0xFFFFFF ; 0x000001
+      000138 00 01                  544 	.byte	>n,<n			; 00 01
+                           000000   545 	n =	-2 / -1			; 0xFFFFFE / 0xFFFFFF ; 0x000000
+      00013A 00 00                  546 	.byte	>n,<n			; 00 00
+                           000000   547 	n =	-32768 / -1		; 0xFF8000 / 0xFFFFFF ; 0x000000
+      00013C 00 00                  548 	.byte	>n,<n			; 00 00
+                           000000   549 	n =	-32769 / -1		; 0xFF7FFF / OxFFFFFF ; 0x000000
+      00013E 00 00                  550 	.byte	>n,<n			; 00 00
+                           000000   551 	n =	-65535 / -1		; 0xFF0001 / 0xFFFFFF ; 0x000000
+      000140 00 00                  552 	.byte	>n,<n			; 00 00
+                           000000   553 	n =	-65536 / -1		; 0xFF0000 / 0xFFFFFF ; 0x000000
+      000142 00 00                  554 	.byte	>n,<n			; 00 00
+                                    555 
+                           000000   556 	n =	-256 /   -1		; 0xFFFF00 / 0xFFFFFF ; 0x000000
+      000144 00 00                  557 	.byte	>n,<n			; 00 00
+                           000000   558 	n =	-256 / -255		; 0xFFFF00 / 0xFFFF01 ; 0x000000
+      000146 00 00                  559 	.byte	>n,<n			; 00 00
+                           000001   560 	n =	-256 / -256		; 0xFFFF00 / 0xFFFF00 ; 0x000001
+      000148 00 01                  561 	.byte	>n,<n			; 00 01
+                           000001   562 	n =	-256 / -257		; 0xFFFF00 / 0xFFFEFF ; 0x000001
+      00014A 00 01                  563 	.byte	>n,<n			; 00 01
+                           000001   564 	n =	-256 / -32767		; 0xFFFF00 / 0xFF8001 ; 0x000001
+      00014C 00 01                  565 	.byte	>n,<n			; 00 01
+                           000001   566 	n =	-256 / -32768		; 0xFFFF00 / 0xFF8000 ; 0x000001
+      00014E 00 01                  567 	.byte	>n,<n			; 00 01
+                           0001FF   568 	n =	-256 /  32768		; 0xFFFF00 / 0x008000 ; 0x0001FF
+      000150 01 FF                  569 	.byte	>n,<n			; 01 FF
+                           000101   570 	n =	-256 /  65280		; 0xFFFF00 / 0x00FF00 ; 0x000101
+      000152 01 01                  571 	.byte	>n,<n			; 01 01
+                           000100   572 	n =	-256 /  65281		; 0xFFFF00 / 0x00FF01 ; 0x000100
+      000154 01 00                  573 	.byte	>n,<n			; 01 00
+                           000100   574 	n =	-256 /  65535		; 0xFFFF00 / 0x00FFFF ; 0x000100
+      000156 01 00                  575 	.byte	>n,<n			; 01 00
+                                    576 
+                                    577 
+                                    578 	.sbttl	Modulus
+                                    579 
+                           000000   580 	n =	 1 %  1			; 0x000001 % 0x000001 ; 0x000000
+      000158 00 00                  581 	.byte	>n,<n			; 00 00
+                           000000   582 	n =	10 %  2			; 0x00000A % 0x000002 ; 0x000000
+      00015A 00 00                  583 	.byte	>n,<n			; 00 00
+                           000000   584 	n =	512 % 4			; 0x000200 % 0x000004 ; 0x000000
+      00015C 00 00                  585 	.byte	>n,<n			; 00 00
+                           000000   586 	n =	32768 % 2		; 0x008000 % 0x000002 ; 0x000000
+      00015E 00 00                  587 	.byte	>n,<n			; 00 00
+                           000001   588 	n =	65535 % 2		; 0x00FFFF % 0x000002 ; 0x000001
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 18
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Modulus
+
+      000160 00 01                  589 	.byte	>n,<n			; 00 01
+                                    590 
+                           000001   591 	n = 	 1 % -1			; 0x000001 % 0xFFFFFF ; 0x000001
+      000162 00 01                  592 	.byte	>n,<n			; 00 01
+                           007FFF   593 	n =	 32767 % -1		; 0x007FFF % 0xFFFFFF ; 0x007FFF
+      000164 7F FF                  594 	.byte	>n,<n			; 7F FF
+                           008000   595 	n =	 32768 % -1		; 0x008000 % 0xFFFFFF ; 0x008000
+      000166 80 00                  596 	.byte	>n,<n			; 80 00
+                           00FFFE   597 	n =	 65534 % -1		; 0x00FFFE % 0xFFFFFF ; 0x00FFFE
+      000168 FF FE                  598 	.byte	>n,<n			; FF FE
+                           00FFFF   599 	n =	 65535 % -1		; 0x00FFFF % 0xFFFFFF ; 0x00FFFF
+      00016A FF FF                  600 	.byte	>n,<n			; FF FF
+                           000000   601 	n =	-1 % -1			; 0xFFFFFF % 0xFFFFFF ; 0x000000
+      00016C 00 00                  602 	.byte	>n,<n			; 00 00
+                           FFFFFE   603 	n =	-2 % -1			; 0xFFFFFE % 0xFFFFFF ; 0xFFFFFE
+      00016E FF FE                  604 	.byte	>n,<n			; FF FE
+                           FF8000   605 	n =	-32768 % -1		; 0xFF8000 % 0xFFFFFF ; 0xFF8000
+      000170 80 00                  606 	.byte	>n,<n			; 80 00
+                           FF7FFF   607 	n =	-32769 % -1		; 0xFF7FFF % 0xFFFFFF ; 0xFF7FFF
+      000172 7F FF                  608 	.byte	>n,<n			; 7F FF
+                           FF0001   609 	n =	-65535 % -1		; 0xFF0001 % 0xFFFFFF ; 0xFF0001
+      000174 00 01                  610 	.byte	>n,<n			; 00 01
+                           FF0000   611 	n =	-65536 % -1		; 0xFF0000 % 0xFFFFFF ; 0xFF0000
+      000176 00 00                  612 	.byte	>n,<n			; 00 00
+                                    613 
+                           FFFF00   614 	n =	-256 %   -1		; 0xFFFF00 % 0xFFFFFF ; 0XFFFFF0
+      000178 FF 00                  615 	.byte	>n,<n			; FF 00
+                           FFFF00   616 	n =	-256 % -255		; 0xFFFF00 % 0xFFFF01 ; 0xFFFF00
+      00017A FF 00                  617 	.byte	>n,<n			; FF 00
+                           000000   618 	n =	-256 % -256		; 0xFFFF00 % 0xFFFF00 ; 0X000000
+      00017C 00 00                  619 	.byte	>n,<n			; 00 00
+                           000001   620 	n =	-256 % -257		; 0xFFFF00 % 0XFFFF01 ; 0xFF0001
+      00017E 00 01                  621 	.byte	>n,<n			; 00 01
+                           007EFF   622 	n =	-256 % -32767		; 0xFFFF00 % 0xFF8001 ; 0x007EFF
+      000180 7E FF                  623 	.byte	>n,<n			; 7E FF
+                           007F00   624 	n =	-256 % -32768		; 0xFFFF00 % 0xFF8000 ; 0xFF7F00
+      000182 7F 00                  625 	.byte	>n,<n			; 7F 00
+                           007F00   626 	n =	-256 %  32768		; 0xFFFF00 % 0x008000 ; 0x007F00
+      000184 7F 00                  627 	.byte	>n,<n			; 7F 00
+                           000000   628 	n =	-256 %  65280		; 0xFFFF00 % 0x00FF00 ; 0x000000
+      000186 00 00                  629 	.byte	>n,<n			; 00 00
+                           00FE00   630 	n =	-256 %  65281		; 0xFFFF00 % 0x00FF01 ; 0x00FE00
+      000188 FE 00                  631 	.byte	>n,<n			; FE 00
+                           000000   632 	n =	-256 %  65535		; 0xFFFF00 % 0x00FFFF ; 0x000000
+      00018A 00 00                  633 	.byte	>n,<n			; 00 00
+                                    634 
+                                    635 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 19
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+IF, ELSE, and ENDIF
+
+                                    637 	.sbttl	IF, ELSE, and ENDIF
+                                    638 
+                                    639 	;*******************************************************
+                                    640 
+                           000000   641 	n = 0
+                           000000   642 	m = 0
+                                    643 
+                           000000   644 	.if	0
+                                    645 		n = 1
+                                    646 		.if	0
+                                    647 		m = 1
+                                    648 		.else
+                                    649 		m = 2
+                                    650 		.endif
+                           000001   651 	.else
+                           000002   652 		n = 2
+                                    653 	.endif
+                                    654 
+                                    655 					; n = 2, m = 0
+      00018C 02 00                  656 	.byte	n,m			; 02 00
+                                    657 
+                                    658 
+                           000000   659 	n = 0
+                           000000   660 	m = 0
+                                    661 
+                           000001   662 	.if	1
+                           000001   663 		n = 1
+                           000000   664 		.if	0
+                                    665 		m = 1
+                           000001   666 		.else
+                           000002   667 		m = 2
+                                    668 		.endif
+                           000000   669 	.else
+                                    670 		n = 2
+                                    671 	.endif
+                                    672 
+                                    673 					; n = 1, m = 2
+      00018E 01 02                  674 	.byte	n,m			; 01 02
+                                    675 
+                                    676 	;*******************************************************
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 20
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+IF, ELSE, and ENDIF
+
+                                    678 	;*******************************************************
+                                    679 
+                           000000   680 	n = 0
+                           000000   681 	m = 0
+                                    682 
+                           000000   683 	.if	0
+                                    684 		n = 1
+                                    685 		.if	1
+                                    686 		m = 1
+                                    687 		.else
+                                    688 		m = 2
+                                    689 		.endif
+                           000001   690 	.else
+                           000002   691 		n = 2
+                                    692 	.endif
+                                    693 
+                                    694 					; n = 2, m = 0
+      000190 02 00                  695 	.byte	n,m			; 02 00
+                                    696 
+                                    697 
+                           000000   698 	n = 0
+                           000000   699 	m = 0
+                                    700 
+                           000001   701 	.if	1
+                           000001   702 		n = 1
+                           000001   703 		.if	1
+                           000001   704 		m = 1
+                           000000   705 		.else
+                                    706 		m = 2
+                                    707 		.endif
+                           000000   708 	.else
+                                    709 		n = 2
+                                    710 	.endif
+                                    711 
+                                    712 					; n = 1, m = 1
+      000192 01 01                  713 	.byte	n,m			; 01 01
+                                    714 
+                                    715 	;*******************************************************
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 21
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+IF, ELSE, and ENDIF
+
+                                    717 	;*******************************************************
+                                    718 
+                           000000   719 	n = 0
+                           000000   720 	m = 0
+                                    721 
+                           000000   722 	.if	0
+                                    723 		n = 1
+                           000001   724 	.else
+                           000000   725 		.if	0
+                                    726 		m = 1
+                           000001   727 		.else
+                           000002   728 		m = 2
+                                    729 		.endif
+                           000002   730 		n = 2
+                                    731 	.endif
+                                    732 
+                                    733 					; n = 2, m = 2
+      000194 02 02                  734 	.byte	n,m			; 02 02
+                                    735 
+                                    736 
+                           000000   737 	n = 0
+                           000000   738 	m = 0
+                                    739 
+                           000001   740 	.if	1
+                           000001   741 		n = 1
+                           000000   742 	.else
+                                    743 		.if	0
+                                    744 		m = 1
+                                    745 		.else
+                                    746 		m = 2
+                                    747 		.endif
+                                    748 		n = 2
+                                    749 	.endif
+                                    750 
+                                    751 	;*******************************************************
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 22
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+IF, ELSE, and ENDIF
+
+                                    753 	;*******************************************************
+                                    754 					; n = 1, m = 0
+      000196 01 00                  755 	.byte	n,m			; 01 00
+                                    756 
+                                    757 
+                           000000   758 	n = 0
+                           000000   759 	m = 0
+                                    760 
+                           000000   761 	.if	0
+                                    762 		n = 1
+                           000001   763 	.else
+                           000001   764 		.if	1
+                           000001   765 		m = 1
+                           000000   766 		.else
+                                    767 		m = 2
+                                    768 		.endif
+                           000002   769 		n = 2
+                                    770 	.endif
+                                    771 
+                                    772 					; n = 2, m = 1
+      000198 02 01                  773 	.byte	n,m			; 02 01
+                                    774 
+                                    775 
+                           000000   776 	n = 0
+                           000000   777 	m = 0
+                                    778 
+                           000001   779 	.if	1
+                           000001   780 		n = 1
+                           000000   781 	.else
+                                    782 		.if	1
+                                    783 		m = 1
+                                    784 		.else
+                                    785 		m = 2
+                                    786 		.endif
+                                    787 		n = 2
+                                    788 	.endif
+                                    789 
+                                    790 					; n = 1, m = 0
+      00019A 01 00                  791 	.byte	n,m			; 01 00
+                                    792 
+                                    793 	;*******************************************************
+                                    794 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 23
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Signed Conditionals With -1
+
+                                    796 	.sbttl	Signed Conditionals With -1
+                                    797 
+                           FFFFFF   798 	n = -1
+                                    799 
+                           000000   800 	.ifeq	n
+                                    801 		.error	1		; n = -1, .ifeq n  != 0
+                                    802 	.endif
+                                    803 
+                           000001   804 	.ifne	n
+                           000000   805 	.else
+                                    806 		.error	1		; n = -1, .ifne n  != 0
+                                    807 	.endif
+                                    808 
+                           000000   809 	.ifgt	n
+                                    810 		.error	1		; n = -1, .ifgt n  !>= 0
+                                    811 	.endif
+                                    812 
+                           000001   813 	.iflt	n
+                           000000   814 	.else
+                                    815 		.error	1		; n = -1, .iflt n  !>= 0
+                                    816 	.endif
+                                    817 
+                           000000   818 	.ifge	n
+                                    819 		.error	1		; n = -1, .ifge n  !>= 0
+                                    820 	.endif
+                                    821 
+                           000001   822 	.ifle	n
+                           000000   823 	.else
+                                    824 		.error	1		; n = -1, .ifle n  !> 0
+                                    825 	.endif
+                                    826 
+                                    827 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 24
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Signed Conditionals With 0
+
+                                    829 	.sbttl	Signed Conditionals With 0
+                                    830 
+                           000000   831 	n = 0
+                                    832 
+                           000001   833 	.ifeq	n
+                           000000   834 	.else
+                                    835 		.error	1		; n = 0, .ifeq n  == 0
+                                    836 	.endif
+                                    837 
+                           000000   838 	.ifne	n
+                                    839 		.error	1		; n = 0, .ifne n  == 0
+                                    840 	.endif
+                                    841 
+                           000000   842 	.ifgt	n
+                                    843 		.error	1		; n = 0, .ifgt n  !> 0
+                                    844 	.endif
+                                    845 
+                           000000   846 	.iflt	n
+                                    847 		.error	1		; n = 0, .iflt n  !< 0
+                                    848 	.endif
+                                    849 
+                           000001   850 	.ifge	n
+                           000000   851 	.else
+                                    852 		.error	1		; n = 0, .ifge n  !< 0
+                                    853 	.endif
+                                    854 
+                           000001   855 	.ifle	n
+                           000000   856 	.else
+                                    857 		.error	1		; n = 0, .ifle n  !> 0
+                                    858 	.endif
+                                    859 
+                                    860 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 25
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Signed Conditionals With +1
+
+                                    862 	.sbttl	Signed Conditionals With +1
+                                    863 
+                           000001   864 	n = +1
+                                    865 
+                           000000   866 	.ifeq	n
+                                    867 		.error	1		; n = +1, .ifeq n  != 0
+                                    868 	.endif
+                                    869 
+                           000001   870 	.ifne	n
+                           000000   871 	.else
+                                    872 		.error	1		; n = +1, .ifne n  != 0
+                                    873 	.endif
+                                    874 
+                           000001   875 	.ifgt	n
+                           000000   876 	.else
+                                    877 		.error	1		; n = +1, .ifgt n  !<= 0
+                                    878 	.endif
+                                    879 
+                           000000   880 	.iflt	n
+                                    881 		.error	1		; n = +1, .iflt n  !<= 0
+                                    882 	.endif
+                                    883 
+                           000001   884 	.ifge	n
+                           000000   885 	.else
+                                    886 		.error	1		; n = +1, .ifge n  !< 0
+                                    887 	.endif
+                                    888 
+                           000000   889 	.ifle	n
+                                    890 		.error	1		; n = +1, .ifle n  !<= 0
+                                    891 	.endif
+                                    892 
+                                    893 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 26
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Alternate Signed Conditionals With -1
+
+                                    895 	.sbttl	Alternate Signed Conditionals With -1
+                                    896 
+                           FFFFFF   897 	n = -1
+                                    898 
+                           000000   899 	.if	eq	n
+                                    900 		.error	1		; n = -1, .ifeq n  != 0
+                                    901 	.endif
+                                    902 
+                           000001   903 	.if	ne	n
+                           000000   904 	.else
+                                    905 		.error	1		; n = -1, .ifne n  != 0
+                                    906 	.endif
+                                    907 
+                           000000   908 	.if	gt	n
+                                    909 		.error	1		; n = -1, .ifgt n  !>= 0
+                                    910 	.endif
+                                    911 
+                           000001   912 	.if	lt	n
+                           000000   913 	.else
+                                    914 		.error	1		; n = -1, .iflt n  !>= 0
+                                    915 	.endif
+                                    916 
+                           000000   917 	.if	ge	n
+                                    918 		.error	1		; n = -1, .ifge n  !>= 0
+                                    919 	.endif
+                                    920 
+                           000001   921 	.if	le	n
+                           000000   922 	.else
+                                    923 		.error	1		; n = -1, .ifle n  !> 0
+                                    924 	.endif
+                                    925 
+                                    926 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 27
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Alternate Signed Conditionals With 0
+
+                                    928 	.sbttl	Alternate Signed Conditionals With 0
+                                    929 
+                           000000   930 	n = 0
+                                    931 
+                           000001   932 	.if	eq	n
+                           000000   933 	.else
+                                    934 		.error	1		; n = 0, .ifeq n  == 0
+                                    935 	.endif
+                                    936 
+                           000000   937 	.if	ne	n
+                                    938 		.error	1		; n = 0, .ifne n  == 0
+                                    939 	.endif
+                                    940 
+                           000000   941 	.if	gt	n
+                                    942 		.error	1		; n = 0, .ifgt n  !> 0
+                                    943 	.endif
+                                    944 
+                           000000   945 	.if	lt	n
+                                    946 		.error	1		; n = 0, .iflt n  !< 0
+                                    947 	.endif
+                                    948 
+                           000001   949 	.if	ge	n
+                           000000   950 	.else
+                                    951 		.error	1		; n = 0, .ifge n  !< 0
+                                    952 	.endif
+                                    953 
+                           000001   954 	.if	le	n
+                           000000   955 	.else
+                                    956 		.error	1		; n = 0, .ifle n  !> 0
+                                    957 	.endif
+                                    958 
+                                    959 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 28
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Alternate Signed Conditionals With +1
+
+                                    961 	.sbttl	Alternate Signed Conditionals With +1
+                                    962 
+                           000001   963 	n = +1
+                                    964 
+                           000000   965 	.if	eq	n
+                                    966 		.error	1		; n = +1, .ifeq n  != 0
+                                    967 	.endif
+                                    968 
+                           000001   969 	.if	ne	n
+                           000000   970 	.else
+                                    971 		.error	1		; n = +1, .ifne n  != 0
+                                    972 	.endif
+                                    973 
+                           000001   974 	.if	gt	n
+                           000000   975 	.else
+                                    976 		.error	1		; n = +1, .ifgt n  !<= 0
+                                    977 	.endif
+                                    978 
+                           000000   979 	.if	lt	n
+                                    980 		.error	1		; n = +1, .iflt n  !<= 0
+                                    981 	.endif
+                                    982 
+                           000001   983 	.if	ge	n
+                           000000   984 	.else
+                                    985 		.error	1		; n = +1, .ifge n  !< 0
+                                    986 	.endif
+                                    987 
+                           000000   988 	.if	le	n
+                                    989 		.error	1		; n = +1, .ifle n  !<= 0
+                                    990 	.endif
+                                    991 
+                                    992 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 29
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Conditionals With String Tests
+
+                                    994 	.sbttl	Conditionals With String Tests
+                                    995 
+                           000000   996 	.ifb	J		; 0
+                                    997 	 .error	1		; .if b,J failed
+                                    998 	.endif
+                                    999 
+                           000001  1000 	.ifb			; 1
+      00019C 06                    1001 	 .byte	0x06	        ; 06
+                                   1002 	.endif
+                                   1003 
+                           000000  1004 	.ifnb			; 0
+                                   1005 	 .error	1		; .if nb failed
+                                   1006 	.endif
+                                   1007 
+                           000001  1008 	.ifnb	J		; 1
+      00019D 07                    1009 	 .byte	0x07		; 07
+                                   1010 	.endif
+                                   1011 
+                                   1012 	.undefine	defsym
+                           000000  1013 	.ifdef	defsym		; 0
+                                   1014 	 .error	1		; .if def,defsym failed
+                                   1015 	.endif
+                                   1016 
+                                   1017 	.define		defsym
+                           000001  1018 	.ifdef	defsym		; 1
+      00019E 08                    1019 	 .byte	0x08	        ; 08
+                                   1020 	.endif
+                                   1021 
+                           000000  1022 	.ifndef	defsym		; 0
+                                   1023 	 .error	1		; .if def,defsym failed
+                                   1024 	.endif
+                                   1025 
+                                   1026 	.undefine	defsym
+                           000001  1027 	.ifndef	defsym		; 1
+      00019F 09                    1028 	 .byte	0x09		; 09
+                                   1029 	.endif
+                                   1030 
+                           000000  1031 	.ifidn	A,B		; 0
+                                   1032 	 .error	1		; .if iden A,B failed
+                                   1033 	.endif
+                                   1034 
+                           000001  1035 	.ifidn	D,D		; 1
+      0001A0 0A                    1036 	 .byte	0x0A		; 0A
+                                   1037 	.endif
+                                   1038 
+                           000000  1039 	.ifdif	D,D		; 0
+                                   1040 	 .error	1		; .if dif D,D failed
+                                   1041 	.endif
+                                   1042 
+                           000001  1043 	.ifdif	A,B		; 1
+      0001A1 0B                    1044 	 .byte	0x0B		; 0B
+                                   1045 	.endif
+                                   1046 
+                                   1047 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 30
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Alternate Conditionals With String Tests
+
+                                   1049 	.sbttl	Alternate Conditionals With String Tests
+                                   1050 
+                           000000  1051 	.if	b	J	; 0
+                                   1052 	 .error	1		; .if b,J failed
+                                   1053 	.endif
+                                   1054 
+                           000001  1055 	.if	b		; 1
+      0001A2 06                    1056 	 .byte	0x06	        ; 06
+                                   1057 	.endif
+                                   1058 
+                           000000  1059 	.if	nb		; 0
+                                   1060 	 .error	1		; .if nb failed
+                                   1061 	.endif
+                                   1062 
+                           000001  1063 	.if	nb	J	; 1
+      0001A3 07                    1064 	 .byte	0x07		; 07
+                                   1065 	.endif
+                                   1066 
+                                   1067 	.undefine	defsym
+                           000000  1068 	.if	def	defsym	; 0
+                                   1069 	 .error	1		; .if def,defsym failed
+                                   1070 	.endif
+                                   1071 
+                                   1072 	.define		defsym
+                           000001  1073 	.if	def	defsym	; 1
+      0001A4 08                    1074 	 .byte	0x08	        ; 08
+                                   1075 	.endif
+                                   1076 
+                           000000  1077 	.if	ndef	defsym	; 0
+                                   1078 	 .error	1		; .if def,defsym failed
+                                   1079 	.endif
+                                   1080 
+                                   1081 	.undefine	defsym
+                           000001  1082 	.if	ndef	defsym	; 1
+      0001A5 09                    1083 	 .byte	0x09		; 09
+                                   1084 	.endif
+                                   1085 
+                           000000  1086 	.if	idn	A,B	; 0
+                                   1087 	 .error	1		; .if iden A,B failed
+                                   1088 	.endif
+                                   1089 
+                           000001  1090 	.if	idn	D,D	; 1
+      0001A6 0A                    1091 	 .byte	0x0A		; 0A
+                                   1092 	.endif
+                                   1093 
+                           000000  1094 	.if	dif	D,D	; 0
+                                   1095 	 .error	1		; .if dif D,D failed
+                                   1096 	.endif
+                                   1097 
+                           000001  1098 	.if	dif	A,B	; 1
+      0001A7 0B                    1099 	 .byte	0x0B		; 0B
+                                   1100 	.endif
+                                   1101 
+                                   1102 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 31
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Signed Immediate Conditionals
+
+                                   1104 	.sbttl	Signed Immediate Conditionals
+                                   1105 
+                           FFFFFF  1106 	n = -1
+                                   1107 
+                                   1108 	.iifeq	n	.error	1	; n = -1, .ifeq n  != 0
+      0001A8 01                    1109 	.iifne	n	.byte	0x01	; 01
+                                   1110 	.iifgt	n	.error	1	; n = -1, .ifgt n  !>= 0
+      0001A9 02                    1111 	.iiflt	n	.byte	0x02	; 02
+                                   1112 	.iifge	n	.error	1	; n = -1, .ifge n  !>= 0
+      0001AA 03                    1113 	.iifle	n	.byte	0x03	; 03
+                                   1114 
+                                   1115 
+                           000000  1116 	n = 0
+                                   1117 
+      0001AB 04                    1118 	.iifeq	n	.byte	0x04	; 04
+                                   1119 	.iifne	n	.error	1	; n = 0, .ifne n  == 0
+                                   1120 	.iifgt	n	.error	1	; n = 0, .ifgt n  !> 0
+                                   1121 	.iiflt	n	.error	1	; n = 0, .iflt n  !< 0
+      0001AC 05                    1122 	.iifge	n	.byte	0x05	; 05
+      0001AD 06                    1123 	.iifle	n	.byte	0x06; 06
+                                   1124 
+                                   1125 
+                           000001  1126 	n = +1
+                                   1127 
+                                   1128 	.iifeq	n	.error	1	; n = +1, .ifeq n  != 0
+      0001AE 07                    1129 	.iifne	n	.byte	0x07; 07
+      0001AF 08                    1130 	.iifgt	n	.byte	0x08; 08
+                                   1131 	.iiflt	n	.error	1	; n = +1, .iflt n  !<= 0
+      0001B0 09                    1132 	.iifge	n	.byte	0x09; 09
+                                   1133 	.iifle	n	.error	1	; n = +1, .ifle n  !<= 0
+                                   1134 
+                                   1135 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 32
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Alternate Signed Immediate Conditionals
+
+                                   1137 	.sbttl	Alternate Signed Immediate Conditionals
+                                   1138 
+                           FFFFFF  1139 	n = -1
+                                   1140 
+                                   1141 	.iif	eq,n	.error	1	; n = -1, .ifeq n  != 0
+      0001B1 01                    1142 	.iif	ne,n	.byte	0x01	; 01
+                                   1143 	.iif	gt,n	.error	1	; n = -1, .ifgt n  !>= 0
+      0001B2 02                    1144 	.iif	lt,n	.byte	0x02	; 02
+                                   1145 	.iif	ge,n	.error	1	; n = -1, .ifge n  !>= 0
+      0001B3 03                    1146 	.iif	le,n	.byte	0x03	; 03
+                                   1147 
+                                   1148 
+                           000000  1149 	n = 0
+                                   1150 
+      0001B4 04                    1151 	.iif	eq,n	.byte	0x04	; 04
+                                   1152 	.iif	ne,n	.error	1	; n = 0, .ifne n  == 0
+                                   1153 	.iif	gt,n	.error	1	; n = 0, .ifgt n  !> 0
+                                   1154 	.iif	lt,n	.error	1	; n = 0, .iflt n  !< 0
+      0001B5 05                    1155 	.iif	ge,n	.byte	0x05	; 05
+      0001B6 06                    1156 	.iif	le,n	.byte	0x06	; 06
+                                   1157 
+                                   1158 
+                           000001  1159 	n = +1
+                                   1160 
+                                   1161 	.iif	eq,n	.error	1	; n = +1, .ifeq n  != 0
+      0001B7 07                    1162 	.iif	ne,n	.byte	0x07	; 07
+      0001B8 08                    1163 	.iif	gt,n	.byte	0x08	; 08
+                                   1164 	.iif	lt,n	.error	1	; n = +1, .iflt n  !<= 0
+      0001B9 09                    1165 	.iif	ge,n	.byte	0x09	; 09
+                                   1166 	.iif	le,n	.error	1	; n = +1, .ifle n  !<= 0
+                                   1167 
+                                   1168 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 33
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Immediate Conditionals With Strings
+
+                                   1170 	.sbttl	Immediate Conditionals With Strings
+                                   1171 
+                                   1172 	.iifb	J	 .error	1	; .if b,J failed
+      0001BA 01                    1173 	.iifb	^!!	 .byte	0x01	; 01
+                                   1174 	.iifnb	^!!	 .error	1	; .if nb failed
+      0001BB 02                    1175 	.iifnb	J	 .byte	0x02	; 02
+                                   1176 
+                                   1177 	.undefine  defsym
+                                   1178 	.iifdef	defsym	 .error	1	; .if def,defsym failed
+                                   1179 
+                                   1180 	.define  defsym
+      0001BC 03                    1181 	.iifdef	defsym	.byte	0x03	; 03
+                                   1182 	.iifndef defsym	.error	1	; .if def,defsym failed
+                                   1183 
+                                   1184 	.undefine  defsym
+      0001BD 04                    1185 	.iifndef defsym	 .byte	0x04	; 04
+                                   1186 
+                                   1187 	.iifidn	A,B	.error	1	; .if iden A,B failed
+      0001BE 05                    1188 	.iifidn	D,D	.byte	0x05	; 05
+                                   1189 	.iifdif	D,D	.error	1	; .if dif D,D failed
+      0001BF 06                    1190 	.iifdif	A,B	.byte	0x06	; 06
+                                   1191 
+                                   1192 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 34
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Alternate Immediate Conditionals With Strings
+
+                                   1194 	.sbttl	Alternate Immediate Conditionals With Strings
+                                   1195 
+                                   1196 	.iif	b,J	 .error	1	; .if b,J failed
+      0001C0 01                    1197 	.iif	b,^!!	 .byte	0x01	; 01
+                                   1198 	.iif	nb,^!!	 .error	1	; .if nb failed
+      0001C1 02                    1199 	.iif	nb,J	 .byte	0x02	; 02
+                                   1200 
+                                   1201 	.undefine  defsym
+                                   1202 	.iif	def,defsym	 .error	1	; .if def,defsym failed
+                                   1203 
+                                   1204 	.define  defsym
+      0001C2 03                    1205 	.iif	def,defsym	.byte	0x03	; 03
+                                   1206 	.iif	ndef,defsym	.error	1	; .if def,defsym failed
+                                   1207 
+                                   1208 	.undefine  defsym
+      0001C3 04                    1209 	.iif	ndef,defsym	 .byte	0x04	; 04
+                                   1210 
+                                   1211 	.iif	idn	A,B	.error	1	; .if iden A,B failed
+      0001C4 05                    1212 	.iif	idn	D,D	.byte	0x05	; 05
+                                   1213 	.iif	dif	D,D	.error	1	; .if dif D,D failed
+      0001C5 06                    1214 	.iif	dif	A,B	.byte	0x06	; 06
+                                   1215 
+                                   1216 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 35
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Local Symbols
+
+                                   1218 	.sbttl	Local Symbols
+                                   1219 
+      000000                       1220 	.org	0
+                                   1221 
+      000000                       1222 lclsym0:
+                                   1223 					; forward references
+      000000r14s00r16s00           1224 	.word	0$,1$			;r14s00r16s00
+      000004r18s00r1As00           1225 	.word	2$,3$			;r18s00r1As00
+      000008r1Cs00r1Es00           1226 	.word	4$,5$			;r1Cs00r1Es00
+      00000Cr20s00r22s00           1227 	.word	6$,7$			;r20s00r22s00
+      000010r24s00r26s00           1228 	.word	8$,9$			;r24s00r26s00
+                                   1229 
+      000014r26s00                 1230 0$:	.word	9$			;r26s00
+      000016r24s00                 1231 1$:	.word	8$			;r24s00
+      000018r22s00                 1232 2$:	.word	7$			;r22s00
+      00001Ar20s00                 1233 3$:	.word	6$			;r20s00
+      00001Cr1Es00                 1234 4$:	.word	5$			;r1Es00
+      00001Er1Cs00                 1235 5$:	.word	4$			;r1Cs00
+      000020r1As00                 1236 6$:	.word	3$			;r1As00
+      000022r18s00                 1237 7$:	.word	2$			;r18s00
+      000024r16s00                 1238 8$:	.word	1$			;r16s00
+      000026r14s00                 1239 9$:	.word	0$			;r14s00
+      000028                       1240 10$:
+                                   1241 
+                                   1242 					; backward references
+      000028r14s00r16s00           1243 	.word	0$,1$			;r14s00r16s00
+      00002Cr18s00r1As00           1244 	.word	2$,3$			;r18s00r1As00
+      000030r1Cs00r1Es00           1245 	.word	4$,5$			;r1Cs00r1Es00
+      000034r20s00r22s00           1246 	.word	6$,7$			;r20s00r22s00
+      000038r24s00r26s00           1247 	.word	8$,9$			;r24s00r26s00
+                                   1248 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 36
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Local Symbols
+
+                                   1250 
+      00003C                       1251 lclsym1:
+                                   1252 					; forward references
+      00003Cr50s00r52s00           1253 	.word	0$,1$			;r50s00r52s00
+      000040r54s00r56s00           1254 	.word	2$,3$			;r54s00r56s00
+      000044r58s00r5As00           1255 	.word	4$,5$			;r58s00r5As00
+      000048r5Cs00r5Es00           1256 	.word	6$,7$			;r5Cs00r5Es00
+      00004Cr60s00r62s00           1257 	.word	8$,9$			;r60s00r62s00
+                                   1258 
+      000050r62s00                 1259 0$:	.word	9$			;r62s00
+      000052r60s00                 1260 1$:	.word	8$			;r60s00
+      000054r5Es00                 1261 2$:	.word	7$			;r5Es00
+      000056r5Cs00                 1262 3$:	.word	6$			;r5Cs00
+      000058r5As00                 1263 4$:	.word	5$			;r5As00
+      00005Ar58s00                 1264 5$:	.word	4$			;r58s00
+      00005Cr56s00                 1265 6$:	.word	3$			;r56s00
+      00005Er54s00                 1266 7$:	.word	2$			;r54s00
+      000060r52s00                 1267 8$:	.word	1$			;r52s00
+      000062r50s00                 1268 9$:	.word	0$			;r50s00
+      000064                       1269 10$:
+                                   1270 
+                                   1271 					; backward references
+      000064r50s00r52s00           1272 	.word	0$,1$			;r50s00r52s00
+      000068r54s00r56s00           1273 	.word	2$,3$			;r54s00r56s00
+      00006Cr58s00r5As00           1274 	.word	4$,5$			;r58s00r5As00
+      000070r5Cs00r5Es00           1275 	.word	6$,7$			;r5Cs00r5Es00
+      000074r60s00r62s00           1276 	.word	8$,9$			;r60s00r62s00
+                                   1277 
+                                   1278 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 37
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Offset calculations
+
+                                   1280 	.sbttl	Offset calculations
+                                   1281 
+                           000014  1282 	ofsbyte	=	(10$-0$)	; 0x0014
+                           00000A  1283 	ofsword	=	ofsbyte/2	; 0x000A
+                                   1284 
+                                   1285 					; 1$ + 0x001E
+      000078r70s00                 1286 	.word	1$+ofsbyte+ofsword	;r70s00
+                                   1287 
+                                   1288 	.sbttl	Lower/Upper Byte Selections
+                                   1289 
+                                   1290 	.globl	extern
+                                   1291 
+                                   1292 					; low byte
+      00007Ar01                    1293 	.byte	< (extern + 0x0001)	;r01
+                                   1294 
+                                   1295 					; low byte
+      00007Br00                    1296 	.byte	< (extern + 0x0200)	;r00
+                                   1297 
+                                   1298 					; high byte
+      00007Cs00                    1299 	.byte	> (extern + 0x0003)	;s00
+                                   1300 
+                                   1301 					; high byte
+      00007Ds04                    1302 	.byte	> (extern + 0x0400)	;s04
+                                   1303 
+                                   1304 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 38
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Area Definitions
+
+                                   1306 	.sbttl	Area Definitions
+                                   1307 
+                                   1308 	.globl	code0
+                                   1309 	.globl	cnstnt1,cnstnt2
+                                   1310 
+                           00ABCD  1311 	cnstnt0 == 0xabcd		; global equate
+                                   1312 
+      00007Er00s00                 1313 code0:	.word	a00			;r00s00
+      000080 CD AB                 1314 	.word	cnstnt0			; CD AB
+                                   1315 
+                                   1316 	; Bank selected as _DSEG
+                                   1317 	; Overlay and Data Segment
+                                   1318 	.area	AreaA (OVR,DSEG,BANK=_DSEG)
+                                   1319 
+                           001234  1320 	cnstnt1 = 0x1234
+                                   1321 
+      000000 FF 00                 1322 a00:	.word	0x00ff			; FF 00
+                                   1323 
+                                   1324 	; Bank selected as _DSEG
+                                   1325 	; Overlay and Data Segment
+                                   1326 	.area	AreaB (ABS,OVR,DSEG,BANK=_DSEG)
+                                   1327 
+                           005678  1328 	cnstnt2 = 0x5678
+                                   1329 
+      000000r00s00                 1330 	.word	a10			;r00s00
+                                   1331 
+                                   1332 	.area	AreaA
+                                   1333 
+                           000022  1334 	.=.+0x0020
+      000022r00s00                 1335 	.word	a20			;r00s00
+                                   1336 
+                                   1337 	.area	AreaB
+      000040                       1338 	.org	0x40
+                                   1339 
+      000040r00s00r00s00r00s00     1340 	.word	a00,a10,a20		;r00s00r00s00r00s00
+      000046r00s00r00s00           1341 	.word	AreaB,OVR		;r00s00r00s00
+                                   1342 
+      00004A                       1343 abcdabcd::				; global symbol
+                                   1344 
+                                   1345 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 39
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Macro Processor Tests
+
+                                   1347 	.sbttl	Macro Processor Tests
+                                   1348 
+                                   1351 
+                                   1352 	.radix	X
+                                   1353 
+                                   1354 	;	The Macro Processor directives are:
+                                   1355 	;
+                                   1356 	;	.macro	arg(,arg ...)		Create a Macro Definition
+                                   1357 	;	.endm				End of Macro Definition
+                                   1358 	;
+                                   1359 	;	.mexit				Unconditional GoTo .endm
+                                   1360 	;
+                                   1361 	;	.irp	arg(,arg ...)		Indefinite Repeat Block
+                                   1362 	;	.irpc	acbdefg			Indefinite Repeat on Characters
+                                   1363 	;	.rept	arg			Repeat Code Block arg Times
+                                   1364 	;
+                                   1365 	;	.mdelete  arg(,arg ...)		Delete Macro Definitions
+                                   1366 	;
+                                   1367 	;	.nchr	arg			Number of Characters in String
+                                   1368 	;	.narg	sym			Return Number of args in .macro call
+                                   1369 	;	.ntyp	typ,symbol		Return Symbol Type - (ABS = 0, REL = 1)
+                                   1370 	;	.nval	val,symbol		Return Value of Symbol (As Absolute Value)
+                                   1371 	;
+                                   1372 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 40
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Macro Creation
+
+                                   1374 	.sbttl	Macro Creation
+                                   1375 
+                                   1376 	; Macro definition with the
+                                   1377 	; name 'seta' and two arguments.
+                                   1378 	;
+                                   1379 	.macro	seta	A,B	; Define macro seta
+                                   1380 	  .byte	A,B		; 01 6A
+                                   1381 	.endm
+                                   1382 
+      000000                       1383 	.org	0
+                                   1384 	seta	0x01, 'j
+      000000 01 6A                 1380 	  .byte	0x01,'j		; 01 6A
+                                   1385 
+                                   1386 	.mdelete	seta
+                                   1387 
+                                   1388 
+                                   1389 	; Macro definition with the
+                                   1390 	; name 'setb' and a regular
+                                   1391 	; argument and a dumby argument.
+                                   1392 	;
+                                   1393 	.macro	setb	A,?B	; Define macro setb
+                                   1394 B:	  .byte	A		; 02
+                                   1395 	  .word	B		;r00s00
+                                   1396 	.endm
+                                   1397 
+      000000                       1398 	.org	0
+                                   1399 	setb	0x02, K		; Use label K
+      000000 02                    1394 K:	  .byte	0x02		; 02
+      000001r00s00                 1395 	  .word	K		;r00s00
+                                   1400 
+                                   1401 	.mdelete	setb
+                                   1402 
+                                   1403 
+                                   1404 	.macro	setb	A,?B	; Define macro setb
+                                   1405 B:	  .byte	A		; 03
+                                   1406 	  .word	B		;r03s00
+                                   1407 	.endm
+                                   1408 
+                                   1409 	setb	0x03		; Create a local symbol
+      000003 03                    1405 10000$:	  .byte	0x03		; 03
+      000004r03s00                 1406 	  .word	10000$		;r03s00
+                                   1410 
+                                   1411 	.mdelete	setb
+                                   1412 
+                                   1413 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 41
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Macro Creation
+
+                                   1415 	; Macro definition with the
+                                   1416 	; name 'setc' and two regular
+                                   1417 	; arguments with concatenation.
+                                   1418 	;
+                                   1419 	.macro setc	A,B	; Define macro setc
+                                   1420 A'B:	  .byte	0x04		; 04
+                                   1421 	  .word	A'B		;r00s00
+                                   1422 	.endm
+                                   1423 
+      000000                       1424 	.org	0
+                                   1425 	setc	J, K
+      000000 04                    1420 JK:	  .byte	0x04		; 04
+      000001r00s00                 1421 	  .word	JK		;r00s00
+                                   1426 
+                                   1427 	.mdelete	.setc
+                                   1428 
+                                   1429 
+                                   1430 	; Macro definition with the
+                                   1431 	; name 'setd' and three regular
+                                   1432 	; arguments with concatenation.
+                                   1433 	;
+                                   1434 	.macro setd	A,B,C	; Define macro setd
+                                   1435 A'B:	  .byte	0x05		; 05
+                                   1436 	  .word	A'B		;r00s00
+                                   1437 A'C:	  .byte	0x06		; 06
+                                   1438 	  .word	A'C		;r03s00
+                                   1439 B'C:	  .byte	0x07		; 07
+                                   1440 	  .word	B'C		;r06s00
+                                   1441 A''B''C:  .byte	0x08		; 08
+                                   1442 	  .word	A''B''C		;r09s00
+                                   1443 	.endm
+                                   1444 
+      000000                       1445 	.org	0
+                                   1446 	setd	X, Y, Z
+      000000 05                    1435 XY:	  .byte	0x05		; 05
+      000001r00s00                 1436 	  .word	XY		;r00s00
+      000003 06                    1437 XZ:	  .byte	0x06		; 06
+      000004r03s00                 1438 	  .word	XZ		;r03s00
+      000006 07                    1439 YZ:	  .byte	0x07		; 07
+      000007r06s00                 1440 	  .word	YZ		;r06s00
+      000009 08                    1441 XYZ:  .byte	0x08		; 08
+      00000Ar09s00                 1442 	  .word	XYZ		;r09s00
+                                   1447 
+                                   1448 	.mdelete	.setd
+                                   1449 
+                                   1450 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 42
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Macro Creation
+
+                                   1452 	; Macro definition with the
+                                   1453 	; name 'sete' and two regular
+                                   1454 	; arguments.  The second
+                                   1455 	; argument is converted to
+                                   1456 	; a numerical value.
+                                   1457 	.macro	sete	A,B	; Define macro sete
+                                   1458 	 ...A = A
+                                   1459 	 ...B = B
+                                   1460 	 .byte	A,B
+                                   1461 	 A = A + 1
+                                   1462 	.endm
+                                   1463 
+                           000000  1464 	qxd = 0
+                                   1465 	sete	qxd, \(qxd+1)
+                           000000  1458 	 ...A = qxd
+                           000001  1459 	 ...B = 1
+      00000C 00 01                 1460 	 .byte	qxd,1
+                           000001  1461 	 qxd = qxd + 1
+                                   1466 	.iif	ne,...A-0	.error	1	; ...A != 0
+                                   1467 	.iif	ne,...B-1	.error	1	; ...B != 1
+                                   1468 	sete	qxd, \(qxd+2)
+                           000001  1458 	 ...A = qxd
+                           000003  1459 	 ...B = 3
+      00000E 01 03                 1460 	 .byte	qxd,3
+                           000002  1461 	 qxd = qxd + 1
+                                   1469 	.iif	ne,...A-1	.error	1	; ...A != 1
+                                   1470 	.iif	ne,...B-3	.error	1	; ...B != 3
+                                   1471 	sete	qxd, \(qxd+3)
+                           000002  1458 	 ...A = qxd
+                           000005  1459 	 ...B = 5
+      000010 02 05                 1460 	 .byte	qxd,5
+                           000003  1461 	 qxd = qxd + 1
+                                   1472 	.iif	ne,...A-2	.error	1	; ...A != 2
+                                   1473 	.iif	ne,...B-5	.error	1	; ...B != 5
+                                   1474 
+                                   1475 	.mdelete	.sete
+                                   1476 
+                                   1477 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 43
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Macro Creation
+
+                                   1479 	; Macro definition with
+                                   1480 	; conditional exits.
+                                   1481 	.macro	cond	A,B,C	; Define macro cond
+                                   1482 	...A = 0
+                                   1483 	.if	nb,^!A!
+                                   1484 	  .if	nb,^!B!
+                                   1485 	    .if	nb,^!C!
+                                   1486 	      ...A = 3
+                                   1487 	      .mexit	; C
+                                   1488 	    .endif
+                                   1489 	    ...A = 2
+                                   1490 	    .mexit	; B
+                                   1491 	  .endif
+                                   1492 	  ...A = 1
+                                   1493 	  .mexit	; A
+                                   1494 	.endif
+                                   1495 	.endm
+                                   1496 
+                                   1497 	cond
+                           000000  1482 	...A = 0
+                           000000  1483 	.if	nb,^!!
+                                   1484 	  .if	nb,^!!
+                                   1485 	    .if	nb,^!!
+                                   1486 	      ...A = 3
+                                   1487 	      .mexit	; C
+                                   1488 	    .endif
+                                   1489 	    ...A = 2
+                                   1490 	    .mexit	; B
+                                   1491 	  .endif
+                                   1492 	  ...A = 1
+                                   1493 	  .mexit	; A
+                                   1494 	.endif
+                                   1498 	.iif	ne,...A-0	.error	1	; ...A != 0
+                                   1499 	cond	1
+                           000000  1482 	...A = 0
+                           000001  1483 	.if	nb,^!1!
+                           000000  1484 	  .if	nb,^!!
+                                   1485 	    .if	nb,^!!
+                                   1486 	      ...A = 3
+                                   1487 	      .mexit	; C
+                                   1488 	    .endif
+                                   1489 	    ...A = 2
+                                   1490 	    .mexit	; B
+                                   1491 	  .endif
+                           000001  1492 	  ...A = 1
+                                   1493 	  .mexit	; A
+                                   1500 	.iif	ne,...A-1	.error	1	; ...A != 1
+                                   1501 	cond	1,2
+                           000000  1482 	...A = 0
+                           000001  1483 	.if	nb,^!1!
+                           000001  1484 	  .if	nb,^!2!
+                           000000  1485 	    .if	nb,^!!
+                                   1486 	      ...A = 3
+                                   1487 	      .mexit	; C
+                                   1488 	    .endif
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 44
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Macro Creation
+
+                           000002  1489 	    ...A = 2
+                                   1490 	    .mexit	; B
+                                   1502 	.iif	ne,...A-2	.error	1	; ...A != 2
+                                   1503 	cond	1,2,3
+                           000000  1482 	...A = 0
+                           000001  1483 	.if	nb,^!1!
+                           000001  1484 	  .if	nb,^!2!
+                           000001  1485 	    .if	nb,^!3!
+                           000003  1486 	      ...A = 3
+                                   1487 	      .mexit	; C
+                                   1504 	.iif	ne,...A-3	.error	1	; ...A != 3
+                                   1505 
+                                   1506 	.mdelete	cond
+                                   1507 
+                                   1508 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 45
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Repeat Macro
+
+                                   1510 	.sbttl	Repeat Macro
+                                   1511 	; Repeat Macro Definition.
+                                   1512 
+                                   1513 	.macro	RMD	J,K
+                                   1514 	 .byte	...cnt	J'K
+                                   1515 	.endm
+                                   1516 
+                           000000  1517 	...cnt = 0
+                                   1518 	.rept	0d5
+                                   1519 	 RMD	^!; 0!,\...cnt
+                                   1520 	 ...cnt = ...cnt + 1
+                                   1521 	.endm
+                                   1519 	 RMD	^!; 0!,\...cnt
+      000012 00                    1514 	 .byte	...cnt	; 00
+                           000001  1520 	 ...cnt = ...cnt + 1
+                                   1519 	 RMD	^!; 0!,\...cnt
+      000013 01                    1514 	 .byte	...cnt	; 01
+                           000002  1520 	 ...cnt = ...cnt + 1
+                                   1519 	 RMD	^!; 0!,\...cnt
+      000014 02                    1514 	 .byte	...cnt	; 02
+                           000003  1520 	 ...cnt = ...cnt + 1
+                                   1519 	 RMD	^!; 0!,\...cnt
+      000015 03                    1514 	 .byte	...cnt	; 03
+                           000004  1520 	 ...cnt = ...cnt + 1
+                                   1519 	 RMD	^!; 0!,\...cnt
+      000016 04                    1514 	 .byte	...cnt	; 04
+                           000005  1520 	 ...cnt = ...cnt + 1
+                                   1522 	.iif	ne,...cnt - 5	.error	1	; ...cnt != 5
+                                   1523 
+                                   1524 
+                           000000  1525 	...cnt = 0
+                                   1526 	.rept	0d10
+                                   1527 	 RMD	^!; 0!,\...cnt
+                                   1528 	 ...cnt = ...cnt + 1
+                                   1529 	 .iif	eq,...cnt - 5	.mexit
+                                   1530 	 .iif	gt,...cnt - 5	.error	1	; ...cnt >  5
+                                   1531 	.endm
+                                   1527 	 RMD	^!; 0!,\...cnt
+      000017 00                    1514 	 .byte	...cnt	; 00
+                           000001  1528 	 ...cnt = ...cnt + 1
+                                   1529 	 .iif	eq,...cnt - 5	.mexit
+                                   1530 	 .iif	gt,...cnt - 5	.error	1	; ...cnt >  5
+                                   1527 	 RMD	^!; 0!,\...cnt
+      000018 01                    1514 	 .byte	...cnt	; 01
+                           000002  1528 	 ...cnt = ...cnt + 1
+                                   1529 	 .iif	eq,...cnt - 5	.mexit
+                                   1530 	 .iif	gt,...cnt - 5	.error	1	; ...cnt >  5
+                                   1527 	 RMD	^!; 0!,\...cnt
+      000019 02                    1514 	 .byte	...cnt	; 02
+                           000003  1528 	 ...cnt = ...cnt + 1
+                                   1529 	 .iif	eq,...cnt - 5	.mexit
+                                   1530 	 .iif	gt,...cnt - 5	.error	1	; ...cnt >  5
+                                   1527 	 RMD	^!; 0!,\...cnt
+      00001A 03                    1514 	 .byte	...cnt	; 03
+                           000004  1528 	 ...cnt = ...cnt + 1
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 46
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Repeat Macro
+
+                                   1529 	 .iif	eq,...cnt - 5	.mexit
+                                   1530 	 .iif	gt,...cnt - 5	.error	1	; ...cnt >  5
+                                   1527 	 RMD	^!; 0!,\...cnt
+      00001B 04                    1514 	 .byte	...cnt	; 04
+                           000005  1528 	 ...cnt = ...cnt + 1
+                                   1529 	 .iif	eq,...cnt - 5	.mexit
+                                   1532 	.iif	ne,...cnt - 5	.error	1	; ...cnt != 5
+                                   1533 
+                                   1534 	.mdelete	RMD
+                                   1535 
+                                   1536 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 47
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Indefinite Repeat Macro
+
+                                   1538 	.sbttl	Indefinite Repeat Macro
+                                   1539 
+                           00000C  1540 	...val = 0d12
+                                   1541 	.irp	sym	A,B,\...val
+                                   1542 	 .globl	val'sym
+                                   1543 	 .word	val'sym		;r00s00
+                                   1544 	.endm
+                                   1542 	 .globl	valA
+      00001Cr00s00                 1543 	 .word	valA		;r00s00
+                                   1542 	 .globl	valB
+      00001Er00s00                 1543 	 .word	valB		;r00s00
+                                   1542 	 .globl	valC
+      000020r00s00                 1543 	 .word	valC		;r00s00
+                                   1545 
+                                   1546 
+                                   1547 	.irp	sym	^!.word	0x1234		; 34 12!,	^!.byte	0xFF		; FF!
+                                   1548 	 sym
+                                   1549 	.endm
+      000022 34 12                 1548 	 .word	0x1234		; 34 12
+      000024 FF                    1548 	 .byte	0xFF		; FF
+                                   1550 
+                                   1551 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 48
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Indefinite Repeat on Character
+
+                                   1553 	.sbttl	Indefinite Repeat on Character
+                                   1554 	;
+                                   1555 	; Note that these macros are used to create
+                                   1556 	; comments.  The comment delimiter ';' always
+                                   1557 	; terminates the macro substitution scan when
+                                   1558 	; found in a macro call.
+                                   1559 	;(even if the ';' is within a delimited string !!!)
+                                   1560 	;
+                                   1561 	; The ';' character is thus placed in the last
+                                   1562 	; argument of the macro call.
+                                   1563 	;
+                                   1564 
+                                   1565 	.macro	irpcm1	I	J,K,L,M
+                                   1566 	 .byte	''I,''I - '0	M'J'K'L
+                                   1567 	.endm
+                                   1568 
+                                   1569 	.macro	irpcm2	I	J,K
+                                   1570 	 .asciz	"'I"			K'J' 00
+                                   1571 	.endm
+                                   1572 
+                                   1573 	.irpc	sym	0123456789abcdef
+                                   1574 	 ...sym = ''sym
+                                   1575 	 .if	ge,''sym - '0
+                                   1576 	  .if	le,''sym - '9
+                                   1577 	   irpcm1	sym	\''sym, ^! 0!, \(''sym-'0), ^!; !
+                                   1578 	  .else
+                                   1579 	   irpcm2	sym	\''sym, ^!; !
+                                   1580 	  .endif
+                                   1581 	 .endif
+                                   1582 	.endm
+                           000030  1574 	 ...sym = '0
+                           000001  1575 	 .if	ge,'0 - '0
+                           000001  1576 	  .if	le,'0 - '9
+                                   1577 	   irpcm1	0	\'0, ^! 0!, \('0-'0), ^!; !
+      000025 30 00                 1566 	 .byte	'0,'0 - '0	; 30 00
+                           000000  1578 	  .else
+                                   1579 	   irpcm2	0	\'0, ^!; !
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000031  1574 	 ...sym = '1
+                           000001  1575 	 .if	ge,'1 - '0
+                           000001  1576 	  .if	le,'1 - '9
+                                   1577 	   irpcm1	1	\'1, ^! 0!, \('1-'0), ^!; !
+      000027 31 01                 1566 	 .byte	'1,'1 - '0	; 31 01
+                           000000  1578 	  .else
+                                   1579 	   irpcm2	1	\'1, ^!; !
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000032  1574 	 ...sym = '2
+                           000001  1575 	 .if	ge,'2 - '0
+                           000001  1576 	  .if	le,'2 - '9
+                                   1577 	   irpcm1	2	\'2, ^! 0!, \('2-'0), ^!; !
+      000029 32 02                 1566 	 .byte	'2,'2 - '0	; 32 02
+                           000000  1578 	  .else
+                                   1579 	   irpcm2	2	\'2, ^!; !
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 49
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Indefinite Repeat on Character
+
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000033  1574 	 ...sym = '3
+                           000001  1575 	 .if	ge,'3 - '0
+                           000001  1576 	  .if	le,'3 - '9
+                                   1577 	   irpcm1	3	\'3, ^! 0!, \('3-'0), ^!; !
+      00002B 33 03                 1566 	 .byte	'3,'3 - '0	; 33 03
+                           000000  1578 	  .else
+                                   1579 	   irpcm2	3	\'3, ^!; !
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000034  1574 	 ...sym = '4
+                           000001  1575 	 .if	ge,'4 - '0
+                           000001  1576 	  .if	le,'4 - '9
+                                   1577 	   irpcm1	4	\'4, ^! 0!, \('4-'0), ^!; !
+      00002D 34 04                 1566 	 .byte	'4,'4 - '0	; 34 04
+                           000000  1578 	  .else
+                                   1579 	   irpcm2	4	\'4, ^!; !
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000035  1574 	 ...sym = '5
+                           000001  1575 	 .if	ge,'5 - '0
+                           000001  1576 	  .if	le,'5 - '9
+                                   1577 	   irpcm1	5	\'5, ^! 0!, \('5-'0), ^!; !
+      00002F 35 05                 1566 	 .byte	'5,'5 - '0	; 35 05
+                           000000  1578 	  .else
+                                   1579 	   irpcm2	5	\'5, ^!; !
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000036  1574 	 ...sym = '6
+                           000001  1575 	 .if	ge,'6 - '0
+                           000001  1576 	  .if	le,'6 - '9
+                                   1577 	   irpcm1	6	\'6, ^! 0!, \('6-'0), ^!; !
+      000031 36 06                 1566 	 .byte	'6,'6 - '0	; 36 06
+                           000000  1578 	  .else
+                                   1579 	   irpcm2	6	\'6, ^!; !
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000037  1574 	 ...sym = '7
+                           000001  1575 	 .if	ge,'7 - '0
+                           000001  1576 	  .if	le,'7 - '9
+                                   1577 	   irpcm1	7	\'7, ^! 0!, \('7-'0), ^!; !
+      000033 37 07                 1566 	 .byte	'7,'7 - '0	; 37 07
+                           000000  1578 	  .else
+                                   1579 	   irpcm2	7	\'7, ^!; !
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000038  1574 	 ...sym = '8
+                           000001  1575 	 .if	ge,'8 - '0
+                           000001  1576 	  .if	le,'8 - '9
+                                   1577 	   irpcm1	8	\'8, ^! 0!, \('8-'0), ^!; !
+      000035 38 08                 1566 	 .byte	'8,'8 - '0	; 38 08
+                           000000  1578 	  .else
+                                   1579 	   irpcm2	8	\'8, ^!; !
+                                   1580 	  .endif
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 50
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Indefinite Repeat on Character
+
+                                   1581 	 .endif
+                           000039  1574 	 ...sym = '9
+                           000001  1575 	 .if	ge,'9 - '0
+                           000001  1576 	  .if	le,'9 - '9
+                                   1577 	   irpcm1	9	\'9, ^! 0!, \('9-'0), ^!; !
+      000037 39 09                 1566 	 .byte	'9,'9 - '0	; 39 09
+                           000000  1578 	  .else
+                                   1579 	   irpcm2	9	\'9, ^!; !
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000061  1574 	 ...sym = 'a
+                           000001  1575 	 .if	ge,'a - '0
+                           000000  1576 	  .if	le,'a - '9
+                                   1577 	   irpcm1	a	\'a, ^! 0!, \('a-'0), ^!; !
+                           000001  1578 	  .else
+                                   1579 	   irpcm2	a	\'a, ^!; !
+      000039 61 00                 1570 	 .asciz	"a"			; 61 00
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000062  1574 	 ...sym = 'b
+                           000001  1575 	 .if	ge,'b - '0
+                           000000  1576 	  .if	le,'b - '9
+                                   1577 	   irpcm1	b	\'b, ^! 0!, \('b-'0), ^!; !
+                           000001  1578 	  .else
+                                   1579 	   irpcm2	b	\'b, ^!; !
+      00003B 62 00                 1570 	 .asciz	"b"			; 62 00
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000063  1574 	 ...sym = 'c
+                           000001  1575 	 .if	ge,'c - '0
+                           000000  1576 	  .if	le,'c - '9
+                                   1577 	   irpcm1	c	\'c, ^! 0!, \('c-'0), ^!; !
+                           000001  1578 	  .else
+                                   1579 	   irpcm2	c	\'c, ^!; !
+      00003D 63 00                 1570 	 .asciz	"c"			; 63 00
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000064  1574 	 ...sym = 'd
+                           000001  1575 	 .if	ge,'d - '0
+                           000000  1576 	  .if	le,'d - '9
+                                   1577 	   irpcm1	d	\'d, ^! 0!, \('d-'0), ^!; !
+                           000001  1578 	  .else
+                                   1579 	   irpcm2	d	\'d, ^!; !
+      00003F 64 00                 1570 	 .asciz	"d"			; 64 00
+                                   1580 	  .endif
+                                   1581 	 .endif
+                           000065  1574 	 ...sym = 'e
+                           000001  1575 	 .if	ge,'e - '0
+                           000000  1576 	  .if	le,'e - '9
+                                   1577 	   irpcm1	e	\'e, ^! 0!, \('e-'0), ^!; !
+                           000001  1578 	  .else
+                                   1579 	   irpcm2	e	\'e, ^!; !
+      000041 65 00                 1570 	 .asciz	"e"			; 65 00
+                                   1580 	  .endif
+                                   1581 	 .endif
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 51
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Indefinite Repeat on Character
+
+                           000066  1574 	 ...sym = 'f
+                           000001  1575 	 .if	ge,'f - '0
+                           000000  1576 	  .if	le,'f - '9
+                                   1577 	   irpcm1	f	\'f, ^! 0!, \('f-'0), ^!; !
+                           000001  1578 	  .else
+                                   1579 	   irpcm2	f	\'f, ^!; !
+      000043 66 00                 1570 	 .asciz	"f"			; 66 00
+                                   1580 	  .endif
+                                   1581 	 .endif
+                                   1583 
+                                   1584 	.mdelete	irpcm1, irpcm2
+                                   1585 
+                                   1586 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 52
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Macro Definitions and User Labels
+
+                                   1588 	.sbttl	Macro Definitions and User Labels
+                                   1589 
+                                   1590 	.macro	DUL	A	B,C
+                                   1591 	 .byte	A	C'B
+                                   1592 	.endm
+                                   1593 
+                                   1594 	.macro	LESS	I,J	; Define macro LESS
+                                   1595 	  .iif	lt,(I - J)	DUL	I	\I, ^!; 0!
+                                   1596 	  .iif	gt,(I - J)	DUL	J	\J, ^!; 0!
+                                   1597 	  .iif	eq,(I - J)	DUL	0	\0, ^!; 0!
+                                   1598 	.endm
+                                   1599 
+                           000001  1600 	sym1	=	1
+                           000002  1601 	sym2	=	2
+                                   1602 
+      000000                       1603 	.org	0
+                                   1604 				;LESS is defined as a label
+      000000 02                    1605 LESS:	.byte	2	        ; 02
+                                   1606 	  ;
+                                   1607 	  ;
+                                   1608 	  ;			;LESS is considered to be a label
+      000001r00s00                 1609 	.word	LESS		;r00s00
+                                   1610 	  ;
+                                   1611 	  ;
+                                   1612 	  ;
+                                   1613 	LESS	sym1,sym2	;LESS is a macro call
+                                   1595 	  .iif	lt,(sym1 - sym2)	DUL	sym1	\sym1, ^!; 0!
+      000003 01                    1591 	 .byte	sym1	; 01
+                                   1596 	  .iif	gt,(sym1 - sym2)	DUL	sym2	\sym2, ^!; 0!
+                                   1597 	  .iif	eq,(sym1 - sym2)	DUL	0	\0, ^!; 0!
+                                   1614 
+                                   1615 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 53
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Immediate Conditional Macro Execution
+
+                                   1617 	.sbttl	Immediate Conditional Macro Execution
+                                   1618 
+                           000000  1619 	.if	ne,0
+                                   1620 	  .byte	0xE0
+                                   1621 	  .iif    f	LESS	sym1,sym2
+                                   1595 	  .iif	lt,(sym1 - sym2)	DUL	sym1	\sym1, ^!; 0!
+      000004 01                    1591 	 .byte	sym1	; 01
+                                   1596 	  .iif	gt,(sym1 - sym2)	DUL	sym2	\sym2, ^!; 0!
+                                   1597 	  .iif	eq,(sym1 - sym2)	DUL	0	\0, ^!; 0!
+                                   1622 	  .byte 0xE1
+                                   1623 	  .iif	  t	LESS	sym2,sym1
+                                   1624 	  .byte	0xE2
+                                   1625 	  .iif    tf	LESS	sym1,sym1
+                                   1595 	  .iif	lt,(sym1 - sym1)	DUL	sym1	\sym1, ^!; 0!
+                                   1596 	  .iif	gt,(sym1 - sym1)	DUL	sym1	\sym1, ^!; 0!
+                                   1597 	  .iif	eq,(sym1 - sym1)	DUL	0	\0, ^!; 0!
+      000005 00                    1591 	 .byte	0	; 00
+                                   1626 	  .byte	0xE3
+                                   1627 	.endif
+                                   1628 
+                           000001  1629 	.if	eq,0
+      000006 F0                    1630 	  .byte	0xF0
+                                   1631 	  .iif	  f	LESS	sym1,sym2
+      000007 F1                    1632 	  .byte	0xF1
+                                   1633 	  .iif    t	LESS	sym2,sym1
+                                   1595 	  .iif	lt,(sym2 - sym1)	DUL	sym2	\sym2, ^!; 0!
+                                   1596 	  .iif	gt,(sym2 - sym1)	DUL	sym1	\sym1, ^!; 0!
+      000008 01                    1591 	 .byte	sym1	; 01
+                                   1597 	  .iif	eq,(sym2 - sym1)	DUL	0	\0, ^!; 0!
+      000009 F2                    1634 	  .byte 0xF2
+                                   1635 	  .iif    tf	LESS	sym2,sym2
+                                   1595 	  .iif	lt,(sym2 - sym2)	DUL	sym2	\sym2, ^!; 0!
+                                   1596 	  .iif	gt,(sym2 - sym2)	DUL	sym2	\sym2, ^!; 0!
+                                   1597 	  .iif	eq,(sym2 - sym2)	DUL	0	\0, ^!; 0!
+      00000A 00                    1591 	 .byte	0	; 00
+      00000B F3                    1636 	  .byte	0xF3
+                                   1637 	.endif
+                                   1638 
+                                   1639 	.mdelete	DUL, LESS
+                                   1640 
+                                   1641 
+                                   1642 	.sbttl	Assembler Symbol Table Output
+                                   1643 
+                           000000  1644 .if 0
+                                   1645 
+                                   1646  Listing of Symbol Table
+                                   1647 
+                                   1648        assembled by:
+                                   1649                 asxxxx -gloxff out lohi.asm a24bit.asm asmt3blo.asm
+                                   1650 
+                                   1651 Symbol Table
+                                   1652 
+                                   1653     ...A           =   000003 G   |     ...B           =   000005 G
+                                   1654     ...cnt         =   000005 G   |     ...sym         =   000066 G
+                                   1655     ...val         =   00000C G   |     .__.$$$.       =   002711 L
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 54
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Assembler Symbol Table Output
+
+                                   1656     .__.ABS.       =   000000 G   |     .__.CPU.       =   000000 L
+                                   1657     .__.H$L.       =   000000 L   |     AreaB              ****** GX
+                                   1658   3 JK                 000000 GR  |   3 K                  000000 GR
+                                   1659   3 LESS               000000 GR  |     OVR                ****** GX
+                                   1660   3 XY                 000000 GR  |   3 XYZ                000009 GR
+                                   1661   3 XZ                 000003 GR  |   3 YZ                 000006 GR
+                                   1662   2 a00                000000 GR  |     a10                ****** GX
+                                   1663     a20                ****** GX  |   3 abcdabcd           00004A GR
+                                   1664   1 bndry_1            000000 GR  |   1 bndry_2            000000 GR
+                                   1665   1 bndry_3            000000 GR  |   1 bndry_4            000000 GR
+                                   1666   1 bndry_5            000000 GR  |   1 bndry_6            000000 GR
+                                   1667   1 byte3              000098 GR  |     cnstnt0        =   00ABCD G
+                                   1668     cnstnt1        =   001234 G   |     cnstnt2        =   005678 G
+                                   1669   1 code0              00007E GR  |     extern             ****** GX
+                                   1670   1 lclsym0            000000 GR  |   1 lclsym1            00003C GR
+                                   1671     m              =   000000 G   |     n              =   000001 G
+                                   1672     n0x00          =   000000 G   |     n0x01          =   000001 G
+                                   1673     n0x10          =   000010 G   |     n0xeeff        =   00EEFF G
+                                   1674     n0xff          =   0000FF G   |     ofsbyte        =   000014 G
+                                   1675     ofsword        =   00000A G   |     qxd            =   000003 G
+                                   1676     sym1           =   000001 G   |     sym2           =   000002 G
+                                   1677     valA               ****** GX  |     valB               ****** GX
+                                   1678     valC               ****** GX  |   1 word               000090 GR
+                                   1679 
+                                   1680 
+                                   1681 Area Table
+                                   1682 
+                                   1683 [_CSEG]
+                                   1684    0 _CODE            size      0   flags C080
+                                   1685 [_DSEG]
+                                   1686    1 _DATA            size     82   flags CDCC
+                                   1687    2 AreaA            size     24   flags C5C4
+                                   1688    3 AreaB            size      C   flags CDCC
+                                   1689 
+                                   1690 .endif
+                                   1691 
+                                   1692 
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 55
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Symbol Table
+
+    ...A           =   000003 G   |     ...B           =   000005 G
+    ...cnt         =   000005 G   |     ...sym         =   000066 G
+    ...val         =   00000C G   |     .__.$$$.       =   002711 L
+    .__.ABS.       =   000000 G   |     .__.CPU.       =   000000 L
+    .__.H$L.       =   000000 L   |     AreaB              ****** GX
+  9 JK                 000000 GR  |   9 K                  000000 GR
+  9 LESS               000000 GR  |     OVR                ****** GX
+  9 XY                 000000 GR  |   9 XYZ                000009 GR
+  9 XZ                 000003 GR  |   9 YZ                 000006 GR
+  8 a00                000000 GR  |     a10                ****** GX
+    a20                ****** GX  |   9 abcdabcd           00004A GR
+  2 bndry_1            000000 GR  |   3 bndry_2            000000 GR
+  4 bndry_3            000000 GR  |   5 bndry_4            000000 GR
+  6 bndry_5            000000 GR  |   7 bndry_6            000000 GR
+  1 byte3              000098 GR  |     cnstnt0        =   00ABCD G
+    cnstnt1        =   001234 G   |     cnstnt2        =   005678 G
+  1 code0              00007E GR  |     extern             ****** GX
+  1 lclsym0            000000 GR  |   1 lclsym1            00003C GR
+    m              =   000000 G   |     n              =   000001 G
+    n0x00          =   000000 G   |     n0x01          =   000001 G
+    n0x10          =   000010 G   |     n0xeeff        =   00EEFF G
+    n0xff          =   0000FF G   |     ofsbyte        =   000014 G
+    ofsword        =   00000A G   |     qxd            =   000003 G
+    sym1           =   000001 G   |     sym2           =   000002 G
+    valA               ****** GX  |     valB               ****** GX
+    valC               ****** GX  |   1 word               000090 GR
+
+ASxxxx Assembler V05.50  (ASxxxx Test Assembler)                       Page 56
+Hexadecimal [24-Bits]                                 Sun Aug 27 19:25:10 2023
+Machine Independent Assembler Test
+Area Table
+
+[_CSEG]
+   0 _CODE            size      0   flags C080
+   2 bndry_1          size     12   flags 4D4C
+   3 bndry_2          size      2   flags 4D4C
+   4 bndry_3          size    402   flags 4D4C
+   5 bndry_4          size      2   flags 4D4C
+   6 bndry_5          size     23   flags 4D4C
+   7 bndry_6          size    602   flags 4D4C
+[_DSEG]
+   1 _DATA            size     82   flags CDCC
+   8 AreaA            size     24   flags C5C4
+   9 AreaB            size      C   flags CDCC
+

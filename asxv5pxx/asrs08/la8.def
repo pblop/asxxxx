@@ -1,0 +1,391 @@
+;****************************************************************************
+; la8.def
+;
+; Include This File To Define RS08LA8 Registers
+;
+;	!!! NOTE !!!
+;		Only Registers And
+;		Register Bits Are Defined
+;
+;****************************************************************************
+;
+	; Set UPPER_CASE_DEF Non Zero To Define Upper Case DEFs
+	; Set LOWER_CASE_DEF Non Zero To Define Lower Case DEFs
+	; Else Both Upper And Lower Case DEFs Will Be Defined
+
+	.ifeq	UPPER_CASE_DEF + LOWER_CASE_DEF
+		UPPER_CASE_DEF = 1
+		LOWER_CASE_DEF = 1
+	.endif
+
+;
+;****************************************************************************
+;
+	; Macro To Define Register and Register Bit Names
+	.macro	.reg.bits.	addr,	reg, str7, str6, str5, str4, str3, str2, str1, str0
+	  ; Create Register Symbol
+	  .ifnb	reg
+	    .iifdef  reg	.error  'reg - addr	; Register Defined With Multiple Addresses
+	reg == addr
+	  .endif
+	  ; Creates Symbols str0 = 0, str1 = 1, ..., str7 = 7
+	  .cntr. =: 7
+	  .irp	str, str7, str6, str5, str4, str3, str2, str1, str0
+	    .ifnb str
+	      .iifdef  'str	.error  'str - .cntr.	; Bit Defined With Multiple Values
+	'str == .cntr.
+	    .endif
+	    .cntr. =: .cntr. - 1
+	  .endm
+	.endm
+
+;
+;****************************************************************************
+
+.ifne	UPPER_CASE_DEF
+	.list	(!,src)
+;	RS08LA8 Upper Case Registers              Defined
+	.nlist
+
+	.reg.bits.	0x10,	ADCSC1,		COCO,	AIEN,	ADCO,	ADCH4,	ADCH3,	ADCH2,	ADCH1,	ADCH0
+	.reg.bits.	0x11,	ADCSC2,		ADACT,	ADTRG,	ACFE,	ACFGT
+
+	.reg.bits.	0x12,	ADCRH,		,	,	,	,	,	,	ADR9,	ADR8
+	.reg.bits.	0x13,	ADCRL,		ADR7,	ADR6,	ADR5,	ADR4,	ADR3,	ADR2,	ADR1,	ADR0
+
+	.reg.bits.	0x14,	ADCCVH,		,	,	,	,	,	,	ADCV9,	ADCV8
+	.reg.bits.	0x15,	ADCCVL		ADCV7,	ADCV6,	ADCV5,	ADCV4,	ADCV3,	ADCV2,	ADCV1,	ADCV0
+	.reg.bits.	0x16,	ADCCFG,		ADLPC,	ADIV1,	ADIV0,	ADLSMP,	MODE1,	MODE0,	ADICLK1,ADICLK0
+
+	.reg.bits.	0x17,	APCTL1,		ADPC7,	ADPC6,	ADCP5,	ADCP4,	ADCP3,	ADCP2,	ADCP1,	ADCP0
+
+  	.reg.bits.	0x18,	SRS,		POR,	PIN,	COP,	ILOP,	ILAD,	,	SRLVD
+
+	.reg.bits.	0x19,	SOPT,		COPE,	COPT,	STOPE,	,	SCICS,	SCIMS,	BKGDPE,	RSTPE
+	.reg.bits.	0x1A,	SIP1,		SILVD,	SPI,	ACMP,	ADC,	MTIM,	KBI,	LCD,	RTI
+	.reg.bits.	0x1B,	SIP2,		,	SCIT,	SCIR,	SCIE,	,	TPMCH1,	TPMCH0,	TPM
+
+	.reg.bits.	0x1C,	KBISC,		,	,	,	,	KBF,	KBACK,	KBIE,	KBMOD
+	.reg.bits.	0x1D,	KBIPE,		KBIPE7,	KBIEP6,	KBIPE5,	KBIPE4,	KBIPE3,	KBIPE2,	KBIPE1,	KPIPE0
+	.reg.bits.	0x1E,	KBIES,		KBEDG7,	KBEDG6,	KBEDG5,	KBEDG4,	KBEDG3,	KBEDG2,	KBEDG1,	KBEDG0
+
+	.reg.bits.	0x1F,	PAGESEL,	PGSL13,	PGSL12,	PGSL11,	PGSL10,	PGSL9,	PGSL8,	PGSL7,	PGSL6
+	.reg.bits.	0x1F,	PAGESEL,	BIT7,	BIT6,	BIT5,	BIT4,	BIT3,	BIT2,	BIT1,	BIT0
+
+	.reg.bits.	0x20,	LCDWF0,		BPHLCD0,BPGLCD0,BPFLCD0,BPELCD0,BPDLCD0,BPCLCD0,BPBLCD0,BPALCD0
+	.reg.bits.	0021,	LCDWF1,		BPHLCD1,BPGLCD1,BPFLCD1,BPELCD1,BPDLCD1,BPCLCD1,BPBLCD1,BPALCD1
+	.reg.bits.	0x22,	LCDWF2,		BPHLCD2,BPGLCD2,BPFLCD2,BPELCD2,BPDLCD2,BPCLCD2,BPBLCD2,BPALCD2
+	.reg.bits.	0x23,	LCDWF3,		BPHLCD3,BPGLCD3,BPFLCD3,BPELCD3,BPDLCD3,BPCLCD3,BPBLCD3,BPALCD3
+	.reg.bits.	0x24,	LCDWF4,		BPHLCD4,BPGLCD4,BPFLCD4,BPELCD4,BPDLCD4,BPCLCD4,BPBLCD4,BPALCD4
+	.reg.bits.	0x25,	LCDWF5,		BPHLCD5,BPGLCD5,BPFLCD5,BPELCD5,BPDLCD5,BPCLCD5,BPBLCD5,BPALCD5
+	.reg.bits.	0x26,	LCDWF6,		BPHLCD6,BPGLCD6,BPFLCD6,BPELCD6,BPDLCD6,BPCLCD6,BPBLCD6,BPALCD6
+	.reg.bits.	0x27,	LCDWF7,		BPHLCD7,BPGLCD7,BPFLCD7,BPELCD7,BPDLCD7,BPCLCD7,BPBLCD7,BPALCD7
+	.reg.bits.	0x28,	LCDWF8,		BPHLCD8,BPGLCD8,BPFLCD8,BPELCD8,BPDLCD8,BPCLCD8,BPBLCD8,BPALCD8
+	.reg.bits.	0x29,	LCDWF9,		BPHLCD9,BPGLCD9,BPFLCD9,BPELCD9,BPDLCD9,BPCLCD9,BPBLCD9,BPALCD9
+	.reg.bits.	0x2A,	LCDWF10,	BPHLCD10,BPGLCD10,BPFLCD10,BPELCD10,BPDLCD10,BPCLCD10,BPBLCD10,BPALCD10
+	.reg.bits.	0x2B,	LCDWF11,	BPHLCD11,BPGLCD11,BPFLCD11,BPELCD11,BPDLCD11,BPCLCD11,BPBLCD11,BPALCD11
+	.reg.bits.	0x2C,	LCDWF12,	BPHLCD12,BPGLCD12,BPFLCD12,BPELCD12,BPDLCD12,BPCLCD12,BPBLCD12,BPALCD12
+	.reg.bits.	0x2D,	LCDWF13,	BPHLCD13,BPGLCD13,BPFLCD13,BPELCD13,BPDLCD13,BPCLCD13,BPBLCD13,BPALCD13
+	.reg.bits.	0x2E	LCDWF14,	BPHLCD14,BPGLCD14,BPFLCD14,BPELCD14,BPDLCD14,BPCLCD14,BPBLCD14,BPALCD14
+	.reg.bits.	0x2F,	LCDWF15,	BPHLCD15,BPGLCD15,BPFLCD15,BPELCD15,BPDLCD15,BPCLCD15,BPBLCD15,BPALCD15
+	.reg.bits.	0x30,	LCDWF16,	BPHLCD16,BPGLCD16,BPFLCD16,BPELCD16,BPDLCD16,BPCLCD16,BPBLCD16,BPALCD16
+	.reg.bits.	0x31,	LCDWF17,	BPHLCD17,BPGLCD17,BPFLCD17,BPELCD17,BPDLCD17,BPCLCD17,BPBLCD17,BPALCD17
+	.reg.bits.	0x32,	LCDWF18,	BPHLCD18,BPGLCD18,BPFLCD18,BPELCD18,BPDLCD18,BPCLCD18,BPBLCD18,BPALCD18
+	.reg.bits.	0x33,	LCDWF19,	BPHLCD19,BPGLCD19,BPFLCD19,BPELCD19,BPDLCD19,BPCLCD19,BPBLCD19,BPALCD19
+	.reg.bits.	0x34,	LCDWF20,	BPHLCD20,BPGLCD20,BPFLCD20,BPELCD20,BPDLCD20,BPCLCD20,BPBLCD20,BPALCD20
+	.reg.bits.	0x35,	LCDWF21,	BPHLCD21,BPGLCD21,BPFLCD21,BPELCD21,BPDLCD21,BPCLCD21,BPBLCD21,BPALCD21
+	.reg.bits.	0x36,	LCDWF22,	BPHLCD22,BPGLCD22,BPFLCD22,BPELCD22,BPDLCD22,BPCLCD22,BPBLCD22,BPALCD22
+	.reg.bits.	0x37,	LCDWF23,	BPHLCD23,BPGLCD23,BPFLCD23,BPELCD23,BPDLCD23,BPCLCD23,BPBLCD23,BPALCD23
+	.reg.bits.	0x38,	LCDWF24,	BPHLCD24,BPGLCD24,BPFLCD24,BPELCD24,BPDLCD24,BPCLCD24,BPBLCD24,BPALCD24
+	.reg.bits.	0x39,	LCDWF25,	BPHLCD25,BPGLCD25,BPFLCD25,BPELCD25,BPDLCD25,BPCLCD25,BPBLCD25,BPALCD25
+	.reg.bits.	0x3A,	LCDWF26,	BPHLCD26,BPGLCD26,BPFLCD26,BPELCD26,BPDLCD26,BPCLCD26,BPBLCD26,BPALCD26
+	.reg.bits.	0x3B,	LCDWF27,	BPHLCD27,BPGLCD27,BPFLCD27,BPELCD27,BPDLCD27,BPCLCD27,BPBLCD27,BPALCD27
+	.reg.bits.	0x3C,	LCDWF28,	BPHLCD28,BPGLCD28,BPFLCD28,BPELCD28,BPDLCD28,BPCLCD28,BPBLCD28,BPALCD28
+
+	.reg.bits.	0x40,	LCDC0,		LCDEN0,	SOURCE,	LCLK2,	LCLK1,	LCLK0,	DUTY2,	DUTY1,	DUTY0
+	.reg.bits.	0x41,	LCDC1,		LCDIEN,	,	,	,	,	LCDEN1,	LCDWAI,	LCDSTP
+	.reg.bits.	0x42,	LCDSUPPLY,	CPSEL,	,	LADJ1,	LADJ0,	,	,	VSUPPLY1,VSUPPLY0
+
+	.reg.bits.	0x44,	LCDBCTL,	BLINK,	ALT,	BLANK,	,	BMODE,	BRATE2,	BRATE1,	BRATE0
+	.reg.bits.	0x45,	LCDS,		LCDIF
+
+	.reg.bits.	0x46,	PTAD,		PTAD7,	PTAD6,	PTAD5,	PTAD4,	PTAD3,	PTAD2,	PTAD1,	PTAD0
+	.reg.bits.	0x47,	PTADD,		PTADD7,	PTADD6,	PTADD5,	PTADD4,	PTADD3,	PTADD2,	PTADD1,	PTADD0
+	.reg.bits.	0x48,	PTBD,		,	,	,	,	,	PTBD2,	PTBD1,	PTBD0
+	.reg.bits.	0x49	PTBDD,		,	,	,	,	,	,	PTBDD1,	PTBDD0
+	.reg.bits.	0x4A,	PTCD,		PTCD7,	PTCD6,	,	,	PTCD3,	PTCD2,	PTCD1,	PTCD0
+	.reg.bits.	0x4B,	PTCDD,		PTCDD7,	,	,	,	PTCDD3,	PTCDD2,	PTCDD1,	PTCDD0
+	.reg.bits.	0x4C,	PTDD,		PTDD7,	PTDD6,	PTDD5,	PTDD4,	PTDD3,	PTDD2,	PTDD1,	PTDD0
+	.reg.bits.	0x4D	PTDDD,		PTDDD7,	PTDDD6,	PTDDD5,	PTDDD4,	PTDDD3,	PTDDD2,	PTDDD1,	PTDDD0
+	.reg.bits.	0x4E,	PTED,		PTED7,	PTED6,	PTED5,	PTED4,	PTED3,	PTED2,	PTED1,	PTED0
+	.reg.bits.	0x4F,	PTEDD,		PTEDD7,	PTEDD6,	PTEDD5,	PTEDD4,	PTEDD3,	PTEDD2,	PTEDD1,	PTEDD0
+
+	.reg.bits.	0x200,	PTAPE,		PTAPE7,	PTAPE6,	PTAPE5,	PTAPE4,	PTAPE3,	PTAPE2,	PTAPE1,	PTAPE0
+	.reg.bits.	0x201,	PTAPUD,		PTAPUD7,PTAPUD6,PTAPUD5,PTAPUD4,PTAPUD3,PATPUD2,PTAPUD1,PTAPUD0
+	.reg.bits.	0x202,	PTADS,		PTADS7,	PTADS6,	PTADS5,	PTADS4,	PTADS3,	PTADS2,	PTADS1,	PTADS0
+	.reg.bits.	0x203,	PTASE,		PTASE7,	PTASE6,	PTASE5,	PTASE4,	PTASE3,	PTASE2,	PTASE1,	PTASE0
+
+	.reg.bits.	0x204	PTBPE,		,	,	,	,	,	PTBPE2,	PTBPE1,	PTBPE0
+	.reg.bits.	0x205	PTBPUD,		,	,	,	,	,	PATPUD2,PTBPUD1,PTBPUD0
+	.reg.bits.	0x206,	PTBDS,		,	,	,	,	,	,	PTBDS1, PTBDS0
+	.reg.bits.	0x207	PTBSE,		,	,	,	,	,	,	PTBSE1,	PTBSE0
+
+	.reg.bits.	0x208,	PTCPE,		PTCPE7,	,	,	,	PTCPE3,	PTCPE2,	PTCPE1,	PTCPE0
+	.reg.bits.	0x209,	PTCPUD,		PTCPUD7,,	,	,	PTCPUD3,PTCPUD2,PTCPUD1,PTCPUD0
+	.reg.bits.	0x20A,	PTCDS,		PTCDS7,	PTCDS6,	,	,	PTCDS3,	PTCDS2,	PTCDS1,	PTCDS0
+	.reg.bits.	0x20B,	PTCSE,		PTCSE7,	PTCSE6,	,	,	PTCSE3,	PTCSE2,	PTCSE1,	PTCSE0
+
+	.reg.bits.	0x20C,	PTDPE,		PTDPE7,	PTDPE6,	PTDPE5,	PTDPE4,	PTDPE3,	PTDPE2,	PTDPE1,	PTDPE0
+	.reg.bits.	0x20D,	PTDPUD,		PTDPUD7,PTDPUD6,PTDPUD5,PTDPUD4,PTDPUD3,PATPUD2,PTDPUD1,PTDPUD0
+	.reg.bits.	0x20E,	PTDDS,		PTDDS7,	PTDDS6,	PTDDS5,	PTDDS4,	PTDDS3,	PTDDS2,	PTDDS1,	PTDDS0
+	.reg.bits.	0x20F,	PTDSE,		PTDSE7,	PTDSE6,	PTDSE5,	PTDSE4,	PTDSE3,	PTDSE2,	PTDSE1,	PTDSE0
+
+	.reg.bits.	0x210,	PTEPE,		PTEPE7,	PTEPE6,	PTEPE5,	PTEPE4,	PTEPE3,	PTEPE2,	PTEPE1,	PTEPE0
+	.reg.bits.	0x211,	PTEPUD,		PTEPUD7,PTEPUD6,PTEPUD5,PTEPUD4,PTEPUD3,PATPUD2,PTEPUD1,PTEPUD0
+	.reg.bits.	0x212,	PTEDS,		PTEDS7,	PTEDS6,	PTEDS5,	PTEDS4,	PTEDS3,	PTEDS2,	PTEDS1,	PTEDS0
+	.reg.bits.	0x213,	PTESE,		PTESE7,	PTESE6,	PTESE5,	PTESE4,	PTESE3,	PTESE2,	PTESE1,	PTESE0
+
+	.reg.bits.	0x216,	SDIDH,		,	,	,	,	ID11,	ID10,	ID9,	ID8
+	.reg.bits.	0x217,	SDIDL,		ID7,	ID6,	ID5,	ID4,	ID3,	ID2,	ID1,	ID0
+
+	.reg.bits.	0x218,	SPIC1,		SPIE,	SPE,	SPTIE,	STR,	CPOL,	CPHA,	SSOE,	LSBFE
+	.reg.bits.	0x219,	SPIC2,		,	,	,	MODFEN,	BIDIROE,,	SPISWAI,SPC0
+	.reg.bits.	0x21A,	SPIBR,		,	SPPR2,	SPPR1,	SPPR0,	,	SPR2,	SPR1,	SPR0
+	.reg.bits.	0x21B,	SPIS,		SPRF,	,	SPTEF,	MODF
+
+	.reg.bits.	0x21D,	SPID,		BIT7,	BIT6,	BIT5,	BIT4,	BIT3,	BIT2,	BIT1,	BIT0
+
+	.reg.bits.	0x220,	TPMSC,		TOF,	TOIE,	CPWMS,	CLKSB,	CLKSA,	PS2,	PS1,	PS0
+	.reg.bits.	0x221,	TPMCNTH,	BIT15,	BIT14,	BIT13,	BIT12,	BIT11,	BIT10,	BIT9,	BIT8
+	.reg.bits.	0x222,	TPMCNTL,	BIT7,	BIT6,	BIT5,	BIT4,	BIT3,	BIT2,	BIT1,	BIT0
+	.reg.bits.	0x223,	TPMMODH,	BIT15,	BIT14,	BIT13,	BIT12,	BIT11,	BIT10,	BIT9,	BIT8
+	.reg.bits.	0x224,	TPMMODL,	BIT7,	BIT6,	BIT5,	BIT4,	BIT3,	BIT2,	BIT1,	BIT0
+
+	.reg.bits.	0x225,	TPMC0SC,	CH0F,	CH0IE,	MS0B,	MS0A,	ELS0B,	ELS0A
+	.reg.bits.	0x226,	TPMC0VH,	BIT15,	BIT14,	BIT13,	BIT12,	BIT11,	BIT10,	BIT9,	BIT8
+	.reg.bits.	0x227,	TPMC0VL,	BIT7,	BIT6,	BIT5,	BIT4,	BIT3,	BIT2,	BIT1,	BIT0
+
+	.reg.bits.	0x228,	TPMC1SC,	CH1F,	CH1IE,	MS1B,	MS1A,	ELS1B,	ELS1A
+	.reg.bits.	0x229,	TPMC1VH,	BIT15,	BIT14,	BIT13,	BIT12,	BIT11,	BIT10,	BIT9,	BIT8
+	.reg.bits.	0x22A,	TPMC1VL,	BIT7,	BIT6,	BIT5,	BIT4,	BIT3,	BIT2,	BIT1,	BIT0
+
+	.reg.bits.	0x22B,	ACMPSC,		ACME,	ACBGS,	ACF,	ACIE,	ACO,	ACOPE,	ACMOD1,	ACMOD0
+
+	.reg.bits.	0x22C,	ICSC1,		ICLKS1,	ICLKS0,	RDIV2,	RDIV1,	RDIV0,	IREFS,	IRCLKEN,IREFSTEN
+	.reg.bits.	0x22D,	ICSC2,		BDIV1,	BDIV0,	RANGE,	HGO,	LP,	EREFS,	ERCLKEN,EREFSTEN
+	.reg.bits.	0x22E,	ICSTRM,		TRIM7,	TRIM6,	TRIM5,	TRIM4,	TRIM3,	TRIM2,	TRIM1,	TRIM0
+	.reg.bits.	0x22F,	ICSSC,		,	,	,	,	CLKST1,	CLKST0,	OSCINT,	FTRIM
+
+	.reg.bits.	0x230,	SCIBDH,		LBKDIE,	RXEDGIE,,	SBR12,	SBR11,	SBR10,	SBR9,	SBR8
+	.reg.bits.	0x231,	SCIBDL,		SBR7,	SBR6,	SBR5,	SBR4,	SBR3,	SBR2,	SBR1,	SBR0
+
+	.reg.bits.	0x232,	SCIC1,		LOOPS,	SCISWAI,RSRC,	M,	WAKE,	ILT,	PE,	PT
+	.reg.bits.	0x233,	SCIC2,		TIE,	TCIE,	RIE,	ILIE,	TE,	RE,	RWU,	SBK
+
+	.reg.bits.	0x234,	SCIS1,		TDRE,	TC,	RDRF,	IDLE,	OR,	NF,	FE,	PF
+	.reg.bits.	0x235,	SCIS2,		LBKDIF,	RXEDGIF,,	RXINV,	RWUID,	BRK13,	LBKDE,	RAF
+	.reg.bits.	0x236,	SCIS3,		R8,	T8,	TXDIR,	TXINV,	ORIE,	NEIE,	FEIE,	PEIE
+	.reg.bits.	0x237,	SCID,		R7,	R6,	R5,	R4,	R3,	R2,	R1,	R0
+	.reg.bits.	0x237,	SCID,		T7,	T6,	T5,	T4,	T3,	T2,	T1,	T0
+	.reg.bits.	0x237,	SCID,		BIT7,	BIT6,	BIT5,	BIT4,	BIT3,	BIT2,	BIT1,	BIT0
+
+	.reg.bits.	0x238,	SRTISC,		RTIF,	RTIACK,	RTICLKS,RTIE,	,	RTIS2,	RTIS1,	RTIS0
+	.reg.bits.	0x239,	SPMSC1,		LVDF,	LVDACK,	LVDIE,	LVDRE,	LVDSE,	LVDE,	,	BGBE
+
+	.reg.bits.	0x23C,	MTIMSC,		TOF,	TOIE,	TRST,	TSTP
+	.reg.bits.	0x23D,	MTIMCLK,	,	,	MCLKS1,	MCLKS0,	PS3,	PS2,	PS1,	PS0
+	.reg.bits.	0x23E	MTIMCNT,	COUNT7,	COUNT6,	COUNT5,	COUNT4,	COUNT3,	COUNT2,	COUNT1,	COUNT0
+	.reg.bits.	0x23F,	MTIMMOD,	MOD7,	MOD6,	MOD5,	MOD4,	MOD3,	MOD2,	MOD1,	MOD0
+
+	.reg.bits.	0x240,	LCDPEN0,	PEN7,	PEN6,	PEN5,	PEN4,	PEN3,	PEN2,	PEN1,	PEN0
+	.reg.bits.	0x241,	LCDPEN1,	PEN15,	PEN14,	PEN13,	PEN12,	PEN11,	PEN10,	PEN9,	PEN8
+	.reg.bits.	0x242,	LCDPEN2,	PEN23,	PEN22,	PEN21,	PEN20,	PEN19,	PEN18,	PEN17,	PEN16
+	.reg.bits.	0x243,	LCDPEN3,	,	,	,	PEN28,	PEN27,	PEN26,	PEN25,	PEN24
+
+	.reg.bits.	0x248,	LCDBPEN0,	BPEN7,	BPEN6,	BPEN5,	BPEN4,	BPEN3,	BPEN2,	BPEN1,	BPEN0
+	.reg.bits.	0x249,	LCDBPEN1,	BPEN15,	BPEN14,	BPEN13,	BPEN12,	BPEN11,	BPEN10,	BPEN9,	BPEN8
+	.reg.bits.	0x24A,	LCDBPEN2,	BPEN23,	BPEN22,	BPEN21,	BPEN20,	BPEN19,	BPEN18,	BPEN17,	BPEN16
+	.reg.bits.	0x24B,	LCDBPEN3,	,	,	,	BPEN28,	BPEN27,	BPEN26,	BPEN25,	BPEN24
+
+	.reg.bits.	0x250,	FOPT,		,	,	,	,	,	,	,	SECD
+	.reg.bits.	0x251,	FLCR,		,	,	,	,	HVEN,	MASS,	,	PGM
+
+	.reg.bits.	0x3FFB,	,		,	,	,	,	,	,	,	FTRIM
+	.reg.bits.	0x3FFC,	NVOPT,		,	,	,	,	,	,	,	SECD
+
+.endif
+
+
+.ifne	LOWER_CASE_DEF
+	.list	(!,src)
+;	RS08LA8 Lower Case Registers              Defined
+	.nlist
+
+	.reg.bits.	0x10,	adcsc1,		coco,	aien,	adco,	adch4,	adch3,	adch2,	adch1,	adch0
+	.reg.bits.	0x11,	adcsc2,		adact,	adtrg,	acfe,	acfgt
+
+	.reg.bits.	0x12,	adcrh,		,	,	,	,	,	,	adr9,	adr8
+	.reg.bits.	0x13,	adcrl,		adr7,	adr6,	adr5,	adr4,	adr3,	adr2,	adr1,	adr0
+
+	.reg.bits.	0x14,	adccvh,		,	,	,	,	,	,	adcv9,	adcv8
+	.reg.bits.	0x15,	adccvl		adcv7,	adcv6,	adcv5,	adcv4,	adcv3,	adcv2,	adcv1,	adcv0
+	.reg.bits.	0x16,	adccfg,		adlpc,	adiv1,	adiv0,	adlsmp,	mode1,	mode0,	adiclk1,adiclk0
+
+	.reg.bits.	0x17,	apctl1,		adpc7,	adpc6,	adcp5,	adcp4,	adcp3,	adcp2,	adcp1,	adcp0
+
+  	.reg.bits.	0x18,	srs,		por,	pin,	cop,	ilop,	ilad,	,	srlvd
+
+	.reg.bits.	0x19,	sopt,		cope,	copt,	stope,	,	scics,	scims,	bkgdpe,	rstpe
+	.reg.bits.	0x1a,	sip1,		silvd,	spi,	acmp,	adc,	mtim,	kbi,	lcd,	rti
+	.reg.bits.	0x1b,	sip2,		,	scit,	scir,	scie,	,	tpmch1,	tpmch0,	tpm
+
+	.reg.bits.	0x1c,	kbisc,		,	,	,	,	kbf,	kback,	kbie,	kbmod
+	.reg.bits.	0x1d,	kbipe,		kbipe7,	kbiep6,	kbipe5,	kbipe4,	kbipe3,	kbipe2,	kbipe1,	kpipe0
+	.reg.bits.	0x1e,	kbies,		kbedg7,	kbedg6,	kbedg5,	kbedg4,	kbedg3,	kbedg2,	kbedg1,	kbedg0
+
+	.reg.bits.	0x1f,	pagesel,	pgsl13,	pgsl12,	pgsl11,	pgsl10,	pgsl9,	pgsl8,	pgsl7,	pgsl6
+	.reg.bits.	0x1f,	pagesel,	bit7,	bit6,	bit5,	bit4,	bit3,	bit2,	bit1,	bit0
+
+	.reg.bits.	0x20,	lcdwf0,		bphlcd0,bpglcd0,bpflcd0,bpelcd0,bpdlcd0,bpclcd0,bpblcd0,bpalcd0
+	.reg.bits.	0021,	lcdwf1,		bphlcd1,bpglcd1,bpflcd1,bpelcd1,bpdlcd1,bpclcd1,bpblcd1,bpalcd1
+	.reg.bits.	0x22,	lcdwf2,		bphlcd2,bpglcd2,bpflcd2,bpelcd2,bpdlcd2,bpclcd2,bpblcd2,bpalcd2
+	.reg.bits.	0x23,	lcdwf3,		bphlcd3,bpglcd3,bpflcd3,bpelcd3,bpdlcd3,bpclcd3,bpblcd3,bpalcd3
+	.reg.bits.	0x24,	lcdwf4,		bphlcd4,bpglcd4,bpflcd4,bpelcd4,bpdlcd4,bpclcd4,bpblcd4,bpalcd4
+	.reg.bits.	0x25,	lcdwf5,		bphlcd5,bpglcd5,bpflcd5,bpelcd5,bpdlcd5,bpclcd5,bpblcd5,bpalcd5
+	.reg.bits.	0x26,	lcdwf6,		bphlcd6,bpglcd6,bpflcd6,bpelcd6,bpdlcd6,bpclcd6,bpblcd6,bpalcd6
+	.reg.bits.	0x27,	lcdwf7,		bphlcd7,bpglcd7,bpflcd7,bpelcd7,bpdlcd7,bpclcd7,bpblcd7,bpalcd7
+	.reg.bits.	0x28,	lcdwf8,		bphlcd8,bpglcd8,bpflcd8,bpelcd8,bpdlcd8,bpclcd8,bpblcd8,bpalcd8
+	.reg.bits.	0x29,	lcdwf9,		bphlcd9,bpglcd9,bpflcd9,bpelcd9,bpdlcd9,bpclcd9,bpblcd9,bpalcd9
+	.reg.bits.	0x2a,	lcdwf10,	bphlcd10,bpglcd10,bpflcd10,bpelcd10,bpdlcd10,bpclcd10,bpblcd10,bpalcd10
+	.reg.bits.	0x2b,	lcdwf11,	bphlcd11,bpglcd11,bpflcd11,bpelcd11,bpdlcd11,bpclcd11,bpblcd11,bpalcd11
+	.reg.bits.	0x2c,	lcdwf12,	bphlcd12,bpglcd12,bpflcd12,bpelcd12,bpdlcd12,bpclcd12,bpblcd12,bpalcd12
+	.reg.bits.	0x2d,	lcdwf13,	bphlcd13,bpglcd13,bpflcd13,bpelcd13,bpdlcd13,bpclcd13,bpblcd13,bpalcd13
+	.reg.bits.	0x2e	lcdwf14,	bphlcd14,bpglcd14,bpflcd14,bpelcd14,bpdlcd14,bpclcd14,bpblcd14,bpalcd14
+	.reg.bits.	0x2f,	lcdwf15,	bphlcd15,bpglcd15,bpflcd15,bpelcd15,bpdlcd15,bpclcd15,bpblcd15,bpalcd15
+	.reg.bits.	0x30,	lcdwf16,	bphlcd16,bpglcd16,bpflcd16,bpelcd16,bpdlcd16,bpclcd16,bpblcd16,bpalcd16
+	.reg.bits.	0x31,	lcdwf17,	bphlcd17,bpglcd17,bpflcd17,bpelcd17,bpdlcd17,bpclcd17,bpblcd17,bpalcd17
+	.reg.bits.	0x32,	lcdwf18,	bphlcd18,bpglcd18,bpflcd18,bpelcd18,bpdlcd18,bpclcd18,bpblcd18,bpalcd18
+	.reg.bits.	0x33,	lcdwf19,	bphlcd19,bpglcd19,bpflcd19,bpelcd19,bpdlcd19,bpclcd19,bpblcd19,bpalcd19
+	.reg.bits.	0x34,	lcdwf20,	bphlcd20,bpglcd20,bpflcd20,bpelcd20,bpdlcd20,bpclcd20,bpblcd20,bpalcd20
+	.reg.bits.	0x35,	lcdwf21,	bphlcd21,bpglcd21,bpflcd21,bpelcd21,bpdlcd21,bpclcd21,bpblcd21,bpalcd21
+	.reg.bits.	0x36,	lcdwf22,	bphlcd22,bpglcd22,bpflcd22,bpelcd22,bpdlcd22,bpclcd22,bpblcd22,bpalcd22
+	.reg.bits.	0x37,	lcdwf23,	bphlcd23,bpglcd23,bpflcd23,bpelcd23,bpdlcd23,bpclcd23,bpblcd23,bpalcd23
+	.reg.bits.	0x38,	lcdwf24,	bphlcd24,bpglcd24,bpflcd24,bpelcd24,bpdlcd24,bpclcd24,bpblcd24,bpalcd24
+	.reg.bits.	0x39,	lcdwf25,	bphlcd25,bpglcd25,bpflcd25,bpelcd25,bpdlcd25,bpclcd25,bpblcd25,bpalcd25
+	.reg.bits.	0x3a,	lcdwf26,	bphlcd26,bpglcd26,bpflcd26,bpelcd26,bpdlcd26,bpclcd26,bpblcd26,bpalcd26
+	.reg.bits.	0x3b,	lcdwf27,	bphlcd27,bpglcd27,bpflcd27,bpelcd27,bpdlcd27,bpclcd27,bpblcd27,bpalcd27
+	.reg.bits.	0x3c,	lcdwf28,	bphlcd28,bpglcd28,bpflcd28,bpelcd28,bpdlcd28,bpclcd28,bpblcd28,bpalcd28
+
+	.reg.bits.	0x40,	lcdc0,		lcden0,	source,	lclk2,	lclk1,	lclk0,	duty2,	duty1,	duty0
+	.reg.bits.	0x41,	lcdc1,		lcdien,	,	,	,	,	lcden1,	lcdwai,	lcdstp
+	.reg.bits.	0x42,	lcdsupply,	cpsel,	,	ladj1,	ladj0,	,	,	vsupply1,vsupply0
+
+	.reg.bits.	0x44,	lcdbctl,	blink,	alt,	blank,	,	bmode,	brate2,	brate1,	brate0
+	.reg.bits.	0x45,	lcds,		lcdif
+
+	.reg.bits.	0x46,	ptad,		ptad7,	ptad6,	ptad5,	ptad4,	ptad3,	ptad2,	ptad1,	ptad0
+	.reg.bits.	0x47,	ptadd,		ptadd7,	ptadd6,	ptadd5,	ptadd4,	ptadd3,	ptadd2,	ptadd1,	ptadd0
+	.reg.bits.	0x48,	ptbd,		,	,	,	,	,	ptbd2,	ptbd1,	ptbd0
+	.reg.bits.	0x49	ptbdd,		,	,	,	,	,	,	ptbdd1,	ptbdd0
+	.reg.bits.	0x4a,	ptcd,		ptcd7,	ptcd6,	,	,	ptcd3,	ptcd2,	ptcd1,	ptcd0
+	.reg.bits.	0x4b,	ptcdd,		ptcdd7,	,	,	,	ptcdd3,	ptcdd2,	ptcdd1,	ptcdd0
+	.reg.bits.	0x4c,	ptdd,		ptdd7,	ptdd6,	ptdd5,	ptdd4,	ptdd3,	ptdd2,	ptdd1,	ptdd0
+	.reg.bits.	0x4d	ptddd,		ptddd7,	ptddd6,	ptddd5,	ptddd4,	ptddd3,	ptddd2,	ptddd1,	ptddd0
+	.reg.bits.	0x4e,	pted,		pted7,	pted6,	pted5,	pted4,	pted3,	pted2,	pted1,	pted0
+	.reg.bits.	0x4f,	ptedd,		ptedd7,	ptedd6,	ptedd5,	ptedd4,	ptedd3,	ptedd2,	ptedd1,	ptedd0
+
+	.reg.bits.	0x200,	ptape,		ptape7,	ptape6,	ptape5,	ptape4,	ptape3,	ptape2,	ptape1,	ptape0
+	.reg.bits.	0x201,	ptapud,		ptapud7,ptapud6,ptapud5,ptapud4,ptapud3,patpud2,ptapud1,ptapud0
+	.reg.bits.	0x202,	ptads,		ptads7,	ptads6,	ptads5,	ptads4,	ptads3,	ptads2,	ptads1,	ptads0
+	.reg.bits.	0x203,	ptase,		ptase7,	ptase6,	ptase5,	ptase4,	ptase3,	ptase2,	ptase1,	ptase0
+
+	.reg.bits.	0x204	ptbpe,		,	,	,	,	,	ptbpe2,	ptbpe1,	ptbpe0
+	.reg.bits.	0x205	ptbpud,		,	,	,	,	,	patpud2,ptbpud1,ptbpud0
+	.reg.bits.	0x206,	ptbds,		,	,	,	,	,	,	ptbds1, ptbds0
+	.reg.bits.	0x207	ptbse,		,	,	,	,	,	,	ptbse1,	ptbse0
+
+	.reg.bits.	0x208,	ptcpe,		ptcpe7,	,	,	,	ptcpe3,	ptcpe2,	ptcpe1,	ptcpe0
+	.reg.bits.	0x209,	ptcpud,		ptcpud7,,	,	,	ptcpud3,ptcpud2,ptcpud1,ptcpud0
+	.reg.bits.	0x20a,	ptcds,		ptcds7,	ptcds6,	,	,	ptcds3,	ptcds2,	ptcds1,	ptcds0
+	.reg.bits.	0x20b,	ptcse,		ptcse7,	ptcse6,	,	,	ptcse3,	ptcse2,	ptcse1,	ptcse0
+
+	.reg.bits.	0x20c,	ptdpe,		ptdpe7,	ptdpe6,	ptdpe5,	ptdpe4,	ptdpe3,	ptdpe2,	ptdpe1,	ptdpe0
+	.reg.bits.	0x20d,	ptdpud,		ptdpud7,ptdpud6,ptdpud5,ptdpud4,ptdpud3,patpud2,ptdpud1,ptdpud0
+	.reg.bits.	0x20e,	ptdds,		ptdds7,	ptdds6,	ptdds5,	ptdds4,	ptdds3,	ptdds2,	ptdds1,	ptdds0
+	.reg.bits.	0x20f,	ptdse,		ptdse7,	ptdse6,	ptdse5,	ptdse4,	ptdse3,	ptdse2,	ptdse1,	ptdse0
+
+	.reg.bits.	0x210,	ptepe,		ptepe7,	ptepe6,	ptepe5,	ptepe4,	ptepe3,	ptepe2,	ptepe1,	ptepe0
+	.reg.bits.	0x211,	ptepud,		ptepud7,ptepud6,ptepud5,ptepud4,ptepud3,patpud2,ptepud1,ptepud0
+	.reg.bits.	0x212,	pteds,		pteds7,	pteds6,	pteds5,	pteds4,	pteds3,	pteds2,	pteds1,	pteds0
+	.reg.bits.	0x213,	ptese,		ptese7,	ptese6,	ptese5,	ptese4,	ptese3,	ptese2,	ptese1,	ptese0
+
+	.reg.bits.	0x216,	sdidh,		,	,	,	,	id11,	id10,	id9,	id8
+	.reg.bits.	0x217,	sdidl,		id7,	id6,	id5,	id4,	id3,	id2,	id1,	id0
+
+	.reg.bits.	0x218,	spic1,		spie,	spe,	sptie,	str,	cpol,	cpha,	ssoe,	lsbfe
+	.reg.bits.	0x219,	spic2,		,	,	,	modfen,	bidiroe,,	spiswai,spc0
+	.reg.bits.	0x21a,	spibr,		,	sppr2,	sppr1,	sppr0,	,	spr2,	spr1,	spr0
+	.reg.bits.	0x21b,	spis,		sprf,	,	sptef,	modf
+
+	.reg.bits.	0x21d,	spid,		bit7,	bit6,	bit5,	bit4,	bit3,	bit2,	bit1,	bit0
+
+	.reg.bits.	0x220,	tpmsc,		tof,	toie,	cpwms,	clksb,	clksa,	ps2,	ps1,	ps0
+	.reg.bits.	0x221,	tpmcnth,	bit15,	bit14,	bit13,	bit12,	bit11,	bit10,	bit9,	bit8
+	.reg.bits.	0x222,	tpmcntl,	bit7,	bit6,	bit5,	bit4,	bit3,	bit2,	bit1,	bit0
+	.reg.bits.	0x223,	tpmmodh,	bit15,	bit14,	bit13,	bit12,	bit11,	bit10,	bit9,	bit8
+	.reg.bits.	0x224,	tpmmodl,	bit7,	bit6,	bit5,	bit4,	bit3,	bit2,	bit1,	bit0
+
+	.reg.bits.	0x225,	tpmc0sc,	ch0f,	ch0ie,	ms0b,	ms0a,	els0b,	els0a
+	.reg.bits.	0x226,	tpmc0vh,	bit15,	bit14,	bit13,	bit12,	bit11,	bit10,	bit9,	bit8
+	.reg.bits.	0x227,	tpmc0vl,	bit7,	bit6,	bit5,	bit4,	bit3,	bit2,	bit1,	bit0
+
+	.reg.bits.	0x228,	tpmc1sc,	ch1f,	ch1ie,	ms1b,	ms1a,	els1b,	els1a
+	.reg.bits.	0x229,	tpmc1vh,	bit15,	bit14,	bit13,	bit12,	bit11,	bit10,	bit9,	bit8
+	.reg.bits.	0x22a,	tpmc1vl,	bit7,	bit6,	bit5,	bit4,	bit3,	bit2,	bit1,	bit0
+
+	.reg.bits.	0x22b,	acmpsc,		acme,	acbgs,	acf,	acie,	aco,	acope,	acmod1,	acmod0
+
+	.reg.bits.	0x22c,	icsc1,		iclks1,	iclks0,	rdiv2,	rdiv1,	rdiv0,	irefs,	irclken,irefsten
+	.reg.bits.	0x22d,	icsc2,		bdiv1,	bdiv0,	range,	hgo,	lp,	erefs,	erclken,erefsten
+	.reg.bits.	0x22e,	icstrm,		trim7,	trim6,	trim5,	trim4,	trim3,	trim2,	trim1,	trim0
+	.reg.bits.	0x22f,	icssc,		,	,	,	,	clkst1,	clkst0,	oscint,	ftrim
+
+	.reg.bits.	0x230,	scibdh,		lbkdie,	rxedgie,,	sbr12,	sbr11,	sbr10,	sbr9,	sbr8
+	.reg.bits.	0x231,	scibdl,		sbr7,	sbr6,	sbr5,	sbr4,	sbr3,	sbr2,	sbr1,	sbr0
+
+	.reg.bits.	0x232,	scic1,		loops,	sciswai,rsrc,	m,	wake,	ilt,	pe,	pt
+	.reg.bits.	0x233,	scic2,		tie,	tcie,	rie,	ilie,	te,	re,	rwu,	sbk
+
+	.reg.bits.	0x234,	scis1,		tdre,	tc,	rdrf,	idle,	or,	nf,	fe,	pf
+	.reg.bits.	0x235,	scis2,		lbkdif,	rxedgif,,	rxinv,	rwuid,	brk13,	lbkde,	raf
+	.reg.bits.	0x236,	scis3,		r8,	t8,	txdir,	txinv,	orie,	neie,	feie,	peie
+	.reg.bits.	0x237,	scid,		r7,	r6,	r5,	r4,	r3,	r2,	r1,	r0
+	.reg.bits.	0x237,	scid,		t7,	t6,	t5,	t4,	t3,	t2,	t1,	t0
+	.reg.bits.	0x237,	scid,		bit7,	bit6,	bit5,	bit4,	bit3,	bit2,	bit1,	bit0
+
+	.reg.bits.	0x238,	srtisc,		rtif,	rtiack,	rticlks,rtie,	,	rtis2,	rtis1,	rtis0
+	.reg.bits.	0x239,	spmsc1,		lvdf,	lvdack,	lvdie,	lvdre,	lvdse,	lvde,	,	bgbe
+
+	.reg.bits.	0x23c,	mtimsc,		tof,	toie,	trst,	tstp
+	.reg.bits.	0x23d,	mtimclk,	,	,	mclks1,	mclks0,	ps3,	ps2,	ps1,	ps0
+	.reg.bits.	0x23e	mtimcnt,	count7,	count6,	count5,	count4,	count3,	count2,	count1,	count0
+	.reg.bits.	0x23f,	mtimmod,	mod7,	mod6,	mod5,	mod4,	mod3,	mod2,	mod1,	mod0
+
+	.reg.bits.	0x240,	lcdpen0,	pen7,	pen6,	pen5,	pen4,	pen3,	pen2,	pen1,	pen0
+	.reg.bits.	0x241,	lcdpen1,	pen15,	pen14,	pen13,	pen12,	pen11,	pen10,	pen9,	pen8
+	.reg.bits.	0x242,	lcdpen2,	pen23,	pen22,	pen21,	pen20,	pen19,	pen18,	pen17,	pen16
+	.reg.bits.	0x243,	lcdpen3,	,	,	,	pen28,	pen27,	pen26,	pen25,	pen24
+
+	.reg.bits.	0x248,	lcdbpen0,	bpen7,	bpen6,	bpen5,	bpen4,	bpen3,	bpen2,	bpen1,	bpen0
+	.reg.bits.	0x249,	lcdbpen1,	bpen15,	bpen14,	bpen13,	bpen12,	bpen11,	bpen10,	bpen9,	bpen8
+	.reg.bits.	0x24a,	lcdbpen2,	bpen23,	bpen22,	bpen21,	bpen20,	bpen19,	bpen18,	bpen17,	bpen16
+	.reg.bits.	0x24b,	lcdbpen3,	,	,	,	bpen28,	bpen27,	bpen26,	bpen25,	bpen24
+
+	.reg.bits.	0x250,	fopt,		,	,	,	,	,	,	,	secd
+	.reg.bits.	0x251,	flcr,		,	,	,	,	hven,	mass,	,	pgm
+
+	.reg.bits.	0x3ffb,	,		,	,	,	,	,	,	,	ftrim
+	.reg.bits.	0x3ffc,	nvopt,		,	,	,	,	,	,	,	secd
+
+.endif
+

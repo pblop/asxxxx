@@ -1,0 +1,3 @@
+.nlist
+	.include "reg8780c.def"
+

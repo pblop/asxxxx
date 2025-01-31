@@ -1,0 +1,20 @@
+.nlist
+	; jp Instruction Macro
+	
+	.macro jp A
+	  .nval	.pc.,.
+	  .pc. = .pc. >> 6
+	  .nval	.a.,'A
+	  .i. = 0
+	  .iifeq	2-.pc.		.i. = 1
+	  .iifeq	3-.pc.		.i. = 1
+	  .ifne	.i.
+	    .list (meb)
+	    .byte 0x80 | (.a. & 0x7F)
+	    .nlist
+	  .else
+	    .list (meb)
+	    .byte 0xC0 | (.a. &0x3F)
+	    .nlist
+	  .endif
+	.endm

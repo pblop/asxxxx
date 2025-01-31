@@ -1,0 +1,98 @@
+.nlist
+;****************************************************************************
+;
+; Include This File To Define The COP Registers
+;
+;	!!! NOTE !!!
+;		Only Registers And
+;		Register Bit Numbers Are Defined
+;
+;****************************************************************************
+;
+	; Set UPPER_CASE_REG Non Zero To Define Upper Case Registers
+	; Set LOWER_CASE_REG Non Zero To Define Lower Case Registerss
+	; Else Both Upper And Lower Case Registers Will Be Defined
+
+	.ifeq	UPPER_CASE_REG + LOWER_CASE_REG
+		UPPER_CASE_REG =: 1
+		LOWER_CASE_REG =: 1
+	.endif
+
+.ifne	UPPER_CASE_REG + LOWER_CASE_REG
+	.list	(!,src)
+;	Supports Chips:
+;		COP620C, COP622C, COP640C, COP642C
+;		COP820C, COP822C, COP840C, COP842C
+;		COP920C, COP922C, COP940C, COP942C
+	.nlist
+.endif
+;
+;****************************************************************************
+;
+	.include "regdef.mac"
+	.xtnd	0		; Basic Instruction Set
+	.__.CPU. =: 1		; Processor Code
+;
+;****************************************************************************
+;
+
+.ifne	UPPER_CASE_REG
+	.list	(!,src)
+;	Upper Case Register Definitions         Defined
+	.nlist
+
+	;	Name	Addr	Bit7	Bit6	Bit5	Bit4	Bit3	Bit2	Bit1	Bit0
+	;	----	----	----	----	----	----	----	----	----	----
+	.reg	MIWU,	0xD0,	,	,	,	,	,	,	,
+	.reg	PORTLD,	0xD0,	,	,	,	,	,	,	,
+	.reg	PORTLC,	0xD1,	,	,	,	,	,	,	,
+	.reg	PORTLP,	0xD2,	,	,	,	,	,	,	,
+	;		0xD3
+	.reg	PORTGD,	0xD4,	CKO,	SI,	SK,	SO,	TIO,	,	,	INTR
+	.reg	PORTGD,	0xD4,	,	,	,	,	,	,	,	HALT
+	.reg	PORTGC,	0xD5,	,	,	,	,	,	,	,
+	.reg	PORTGP,	0xD6,	,	,	,	,	,	,	,
+	.reg	PORTI,	0xD7,	,	,	,	,	,	,	,
+	;
+	.reg	PORTD,	0xDC,	,	,	,	,	,	,	,
+	;
+	.reg	SIOR,	0xE9,	,	,	,	,	,	,	,
+	.reg	TMR1LO,	0xEA,	,	,	,	,	,	,	,
+	.reg	TMR1HI,	0xEB,	,	,	,	,	,	,	,
+	.reg	T1RALO,	0xEC,	,	,	,	,	,	,	,
+	.reg	T1RAHI,	0xED,	,	,	,	,	,	,	,
+	.reg	CNTRL,	0xEE,	TC1,	TC2,	TC3,	TRUN,	MSEL,	IEDG,	SL1,	SL0
+	.reg	PSW,	0xEF,	HC,	C,	T1PND,	ENTI,	IPND,	BUSY,	ENI,	GIE
+.endif
+;
+;****************************************************************************
+;
+.ifne	LOWER_CASE_REG
+	.list	(!,src)
+;	Lower Case Register Definitions         Defined
+	.nlist
+
+	;	Name	Addr	Bit0	Bit1	Bit2	Bit3	Bit4	Bit5	Bit6	Bit7
+	;	----	----	----	----	----	----	----	----	----	----
+	.reg	miwu,	0xd0,	,	,	,	,	,	,	,
+	.reg	portld,	0xd0,	,	,	,	,	,	,	,
+	.reg	portlc,	0xd1,	,	,	,	,	,	,	,
+	.reg	portlp,	0xd2,	,	,	,	,	,	,	,
+	;		0xd3
+	.reg	portgd,	0xd4,	cko,	si,	sk,	so,	tio,	,	,	intr
+	.reg	portgd,	0xd4,	,	,	,	,	,	,	,	halt
+	.reg	portgc,	0xd5,	,	,	,	,	,	,	,
+	.reg	portgp,	0xd6,	,	,	,	,	,	,	,
+	.reg	porti,	0xd7,	,	,	,	,	,	,	,
+	;
+	.reg	portd,	0xdc,	,	,	,	,	,	,	,
+	;
+	.reg	sior,	0xe9,	,	,	,	,	,	,	,
+	.reg	tmr1lo,	0xea,	,	,	,	,	,	,	,
+	.reg	tmr1hi,	0xeb,	,	,	,	,	,	,	,
+	.reg	t1ralo,	0xec,	,	,	,	,	,	,	,
+	.reg	t1rahi,	0xed,	,	,	,	,	,	,	,
+	.reg	cntrl,	0xee,	tc1,	tc2,	tc3,	trun,	msel,	iedg,	sl1,	sl0
+	.reg	psw,	0xef,	hc,	c,	t1pnd,	enti,	ipnd,	busy,	eni,	gie
+.endif
+

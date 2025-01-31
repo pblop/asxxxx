@@ -1,0 +1,313 @@
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+</HEAD>
+<BODY BGCOLOR="#C0C0C0">
+
+<A href="../home.htm">
+<IMG width=343 height=58 border=0 SRC="welcom.gif" ALT="Welcome"></A>
+
+<H2>Notes and Tips</H2>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+<A NAME = "Index"> </A>
+<H3><B>
+<IMG SRC = "green.gif" ALT = "-">... Notes and Tips</A>
+</B></H3>
+<H4><B><PRE>
+
+   In  no  particular order are some notes and tips on using the
+ASxxxx assemblers that users have asked about.  
+</PRE></B></H4>
+
+<H4>
+<IMG SRC = "yellow.gif" ALT = "-"> ... <A HREF= #Note_01>Register Renaming</A><BR>
+<IMG SRC = "yellow.gif" ALT = "-"> ... <A HREF= #Note_02>Areas and Banks</A><BR>
+<IMG SRC = "yellow.gif" ALT = "-"> ... <A HREF= #Note_03>Inhibiting Include File Pagination</A><BR>
+<IMG SRC = "yellow.gif" ALT = "-"> ... <A HREF= #Note_04>To Include or To Include</A><BR>
+<BR>
+<IMG SRC = "yellow.gif" ALT = "-"> ... <A HREF="asxdoc.htm#Index">Return to the Assembler Documentation Index</A><BR>
+<BR>
+<IMG width=576 height=5 border=0 SRC="rnbow.gif"><BR>
+<A NAME = "Note_01"><BR>
+<FONT COLOR="#FF0000">REGISTER RENAMING</FONT>
+<H4><B><PRE>
+   Sometimes  it  is  convenient  to  give  alternate names to a
+processor's registers to improve readability or make  your  code
+more descriptive.  
+
+   For  almost  all the assemblers the registers are defined in-
+ternally and do not have a value.   This  means  that  using  an
+equate statement will fail:  
+
+        iptr .equ R3  /  iptr = R3
+
+and will give a &lt;u&gt;, undefined, error.  
+
+   Use the .define directive to specify the alternate name for a
+register:  
+
+        .define   keyword   ^/string/
+e.g.
+        .define   iptr   ^/R3/
+
+
+   The  assembler, when it finds the key word 'iptr', will first
+replace the string 'iptr' with 'R3' and then process  the  line.
+(Note that the the keyword must start with a letter.) 
+</PRE></B></H4>
+<H5><A HREF= #Index> =&gt; Section Index</A></H5>
+<IMG width=576 height=5 border=0 SRC="rnbow.gif"><BR>
+<A NAME = "Note_02"><BR>
+<FONT COLOR="#FF0000">AREAS AND BANKS</FONT>
+<H4><B><PRE>
+   The  .area  and .bank directives are just a means of organiz-
+ing, ordering, combining, and placing code where you want it.  
+
+   An  example  might  be the construction of an area which con-
+tains addresses of messages and an area containing the messages.
+In this case define an area which will only contain the base ad-
+dress of the address table, the second will contain the list  of
+addresses, and the third which will contain the messages.  
+
+
+        .area   msgbas          ; Message address base
+        .area   msgadr          ; Message addresses
+        .area   msgs            ; Messages
+
+
+   Then insert message addresses in area msgaddr and messages in
+area msgs:  
+
+
+        .area   msgbas          ; Base of msgadr table
+msgadr:
+
+        .area   msgadr
+        .word   msg01           ; Address of message 1
+        .word   msg02           ; Address of message 2
+        ...
+
+        .area   msgs
+msg01:  .asciz  "Message Number 1"
+msg02:  .asciz  "Message Number 2"
+        ...
+
+        .area   MyCode          ; Reselect Code Area
+
+
+   (Note:   be  sure  to  reselect the code area you want before
+continueing with your coding.) 
+
+   At any further point in your source code you can insert addi-
+tional messages in the table by simply repeating the process:  
+
+        .area   msgadr
+        .word   msg03           ; Address of message 3
+        ...
+
+        .area   msgs
+msg03:  .asciz  "Message Number 3"
+        ...
+
+        .area   MyCode          ; Reselect Code Area
+
+
+with the message addresses and messages appended to the previous
+entries.  (Note that the label msgadr, which is the beginning of
+the address table, is required to be presented to the linker be-
+fore area msgadr.) 
+
+   This  procedure can be replicated as needed and also in other
+assembly files.  The ordering will be defined by  the  order  in
+which  the  individually assembled modules are linked.  This may
+be especially useful when  linking  optional  modules  and  want
+their messages included in the same dispatch table.  
+
+   It  will be easier to manage your areas by creating an assem-
+bly file which contains the ordering of your code and  including
+it  in  all your assembly files or assemble this definition file
+and make it the first file when linking your project.  
+
+   In  this  example the definition file should contain the fol-
+lowing three areas:  
+
+
+        ...
+        .area   msgbas          ; Message Base
+        .area   msgadr          ; Message Addresses
+        .area   msgs            ; Messages
+        ...
+
+
+   The  bank  directive  allows  the programmer to position code
+anywhere in the address space of the processor.  Suppose  it  is
+desired  to  place  the message tables at location 0x6000 in the
+processor address space.  The bank directives might be:  
+
+
+        .bank   MsgTbl  (Base=0x6000)
+
+and  the  area  definitions  should be changed to place the code
+into the specific bank:  
+
+        ...
+        .area   msgbas  (Bank=MsgTbl)   ; Message Base
+        .area   msgadr  (Bank=MsgTbl)   ; Message Addresses
+        .area   msgs    (Bank=MsgTbl)   ; Messages
+        ...
+
+
+   One  should  note that by using a definition file, which con-
+tains all the area/bank options, all other assembly  files  need
+only .area directives with the area name.  
+</PRE></B></H4>
+<H5><A HREF= #Index> =&gt; Section Index</A></H5>
+<IMG width=576 height=5 border=0 SRC="rnbow.gif"><BR>
+<A NAME = "Note_03"><BR>
+<FONT COLOR="#FF0000">INHIBITING INCLUDE FILE PAGINATION</FONT>
+<H4><B><PRE>
+   The  default  actions  when the .include directive is invoked
+are:  
+
+        1)  Interrupt current assembly processing
+        2)  Start a New Page
+        3)  Assemble include file statements
+        4)  Start a New Page
+        5)  Continue assembling where interrupted
+
+
+   To  inhibit  the  'Start  a  New Page' steps when including a
+file, insert the appropriate listing directives as shown in this
+example.  
+
+        .nlist                          ; Inhibits Pagination
+        .include    "area.def"          ; Include the File
+        .list                           ; Restart Listing
+
+
+   Because the .nlist directive also applies to the include file
+you must place an appropriate .list  directive  in  the  include
+file.   At completion of the include file processing listing au-
+tomatically reverts to the .nlist mode and pagination  is  again
+suppressed.  The .list directive then restores normal listing as
+assembly processing continues.  
+
+                              NOTE
+
+     If  the assembled include file generates output object
+     code and a .rst file is going to  be  created  by  the
+     linker,  then  the assembler listing file must include
+     the .list options (loc,bin) for regular code or  (meb)
+     for  macro  generated  code.   Failure  to include all
+     generated code in the  listing  file  will  result  in
+     translation errors in the .rst file.  
+
+
+
+   When inserting an included file using the above technique and
+there is no listing directive within the file, then the  result-
+ing  assembler listing file will show no indication the file was
+actually included.  .list and .nlist are never shown in the out-
+put  listing file.  To indicate the file was included, using the
+example Area/Bank definition file, one might list a single  line
+description of the inclusion by inserting these lines in the in-
+cluded file.  
+
+        .list   (!,src)
+;       area.def        Areas/Banks             Defined
+        .nlist
+
+   Then the result of 
+
+        .nlist                          ; Inhibits Pagination
+        .include    "area.def"          ; Include the File
+        .list                           ; Restart Listing
+
+will be a single line in the assembly listing:  
+
+;       area.def        Areas/Banks             Defined
+</PRE></B></H4>
+<H5><A HREF= #Index> =&gt; Section Index</A></H5>
+<IMG width=576 height=5 border=0 SRC="rnbow.gif"><BR>
+<A NAME = "Note_04"><BR>
+<FONT COLOR="#FF0000">TO INCLUDE OR TO INCLUDE</FONT>
+<H4><B><PRE>
+   When  building  a project there is always the decision to as-
+semble multiple files together on the command line, use the .in-
+clude directive to insert assembly files into the project, or to
+assemble files  seperately  and  then  combine  them  using  the
+linker.  
+
+   When coding reusable modules it may be more convenient to as-
+semble these modules seperately.  However this also  requires  a
+method  to  define  the  global  entry  points  and data for the
+calling program.  The following  technique  allows  any  of  the
+three methods described to be used.  
+
+   The  module  is designed in such a way that it can be used as
+an independent module, included module, and a globals definition
+file.   The  first step is to open a file, perhaps 'fnctns.asm',
+inhibit listing, and create a macro which holds all  the  global
+definitions:  
+
+.nlist
+
+        .macro  fnctns.globals
+          .globl   func1        ; function 1
+          .globl   func2        ; function 2
+          .globl   inpval       ; input variable
+          .globl   outval       ; ouput variable
+        .endm
+
+
+   Next  add  code  that invokes just the globals or the globals
+and the module's code.  Do this  by  using  a  conditional  that
+checks  if a specific label has been defined.  As an example use
+the string "_fnctns" as the label that must be defined.  
+
+        .ifdef  "_fnctns"
+          fnctns.globals
+        .else
+          .list
+          fnctns.globals
+
+          ...                   ; module code
+          ...
+          ...
+
+          .nlist
+        .endif
+
+
+   This  file can be assembled as a seperate module or as an in-
+cluded file in the project.  If the project is built by  linking
+this  module with other modules then any module which references
+the functions or variables in the module "fnctns.asm" will  need
+these to be defined.  Add this code to any module using the mod-
+ule "fnctns".  
+
+        .define   "_fnctns"             ; key word
+        .nlist                          ; Inhibits Pagination
+        .include  "fnctns.asm"          ; Include the File
+        .list                           ; Restart Listing
+
+This  results  in  only the globals being defined for the module
+"fnctns.asm".  
+</PRE></B></H4>
+<H5><A HREF= #Index> =&gt; Section Index</A></H5>
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4>
+<P><A HREF="asxxxx.htm#JUMP">
+<IMG width=32 height=32 border=0 SRC="spcshp.gif" ALIGN=bottom></A>
+<B>...  Exit the ASxxxx Documentation</B></A></P>
+
+<P><A href="../home.htm">
+<IMG width=32 height=32 border=0 SRC="home.gif" ALIGN=bottom></A>
+<B>...  Home Page</B></P>
+</H4>
+
+<H6><P><B>Last Updated: September 2023</B></P></H6>
+</BODY> 
+</HTML>

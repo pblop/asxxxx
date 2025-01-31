@@ -1,0 +1,7 @@
+-a COP4A=0x0000
+-a COP4B=0x0040
+-g x$=0x0000
+-i
+-u
+tcop4
+-e

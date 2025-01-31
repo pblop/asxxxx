@@ -1,0 +1,568 @@
+.nlist
+	.sbttl	ASCOP4.MAC Disable Instruction Macros
+
+.list
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;  ascop4.mac - CPU Options
+;
+;      .cop402		COP402
+;      .cop404		COP404 / COP404M
+;      .cop410 [C]	COP410C / COP410L / COP310C / COP310L
+;      .cop411 [C]	COP411C / COP411L / COP311C / COP311L
+;      .cop413		COP413C / COP413CH / COP313C / COP313CH
+;      .cop420		COP420L / COP320L
+;      .cop421		COP421L / COP321L
+;      .cop422		COP422L / COP322L
+;      .cop424		COP424L / COP324L
+;      .cop425		COP425L / COP325L
+;      .cop426		COP426L / COP326L
+;      .cop440		COP440 / COP340
+;      .cop441		COP441 / COP341
+;      .cop442		COP442 / COP342
+;      .cop444		COP444L / COP344L
+;      .cop445		COP445L / COP345L
+;      .cop2440		COP2440 / COP2340
+;      .cop2441		COP2441 / COP2341
+;      .cop2442		COP2442 / COP2342
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+.nlist
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	This collection of macros prepares the ascop4 assembler
+;	for a selected processor by removing instructions
+;	that are not available on the specific processor.
+;
+;	The maximum ROM size for the processor is also specified.
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	; Delete All Instruction Macros
+	.macro  .__.del.
+	  ; Arithmetic
+	  .mdelete	adt,	casc,	or
+	  ; Transfer
+	  .mdelete	halt,	it
+	  ; Memory
+	  .mdelete	cema,	came,	ctma,	camt,	cqma,	ldd,	lid,	lqid
+	  ; Register
+	  .mdelete	xabr,	xan
+	  ; Test
+	  .mdelete	skt,	sksz
+	  ; Input/Output
+	  .mdelete	camr,	inh,	inin,	inil,	inr,	omh
+	  ; Reset Parameters
+	  .rom_2K
+	  .xad
+	.endm
+
+	; Create .error Line To Insert
+	.macro	.__.lst. A, B, C, D, E
+	.error 1  'E'''A'''B'C'D
+	.endm
+
+	; Create Instruction Macro
+	; Build The .error Comment
+	;  The assemblers treat the ';' character as an End Of Line.
+	;  The macro processor substitutes arguments in the order given.
+	;  When ^/; / is substituted first then any arguments following
+	;  will be treated as part of the comment.
+	;  Place the ^/; / at the end as the last substitution.
+	;  Up to eight arguments are discarded after the instruction mnemonic
+
+	.macro	.__.err.  A, B, C, D, E, F, G, H, I, J
+	  .macro 'B 'C 'D 'E 'F 'G 'H 'I 'J
+	    .__.lst. 'B, ^/ - Is An Invalid Instruction For The /, 'A, ^/ Processor/, ^/; / 
+	  .endm
+	.endm
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.macro	.copclr
+	  .__.del.
+	.endm
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.macro	.cop402
+	  .__.402. COP402
+	.endm
+
+	.macro	.__.402. CPU
+	  .list
+	  .list (me)
+	;
+	; COP402 Series Notes:
+	;
+	;   Unsupported instructions:
+	;	or
+	;	halt	it
+	;	cema	came	ctma	camt	lid
+	;	xan
+	;	sksz
+	;	camr	inh	inr	omh
+	;
+	  .nlist
+	  .__.del.	; Remove Old Instruction Macros
+	  .rom_1K	; 1024 Bytes Of ROM
+	  ; Arithmetic
+;	  .__.err.	'CPU,		adt
+;	  .__.err.	'CPU,		casc
+	  .__.err.	'CPU,		or
+	  ; Transfer
+	  .__.err.	'CPU,		halt
+	  .__.err.	'CPU,		it
+	  ; Memory
+	  .__.err.	'CPU,		cema
+	  .__.err.	'CPU,		came
+	  .__.err.	'CPU,		ctma
+	  .__.err.	'CPU,		camt
+;	  .__.err.	'CPU,		cqma
+;	  .__.err.	'CPU,		ldd	A,B,C,D,E,F,G,H
+	  .__.err.	'CPU,		lid
+;	  .__.err.	'CPU,		lqid
+	  ; Register
+;	  .__.err.	'CPU,		xabr
+	  .__.err.	'CPU,		xan
+	  ; Test
+;	  .__.err.	'CPU,		skt
+	  .__.err.	'CPU,		sksz
+	  ; Input/Output
+	  .__.err.	'CPU,		camr
+	  .__.err.	'CPU,		inh
+;	  .__.err.	'CPU,		inin
+;	  .__.err.	'CPU,		inil
+	  .__.err.	'CPU,		inr
+	  .__.err.	'CPU,		omh
+	.endm
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.macro	.cop404
+	  .__.404. COP404
+	.endm
+
+	.macro	.__.404. CPU
+	  .list
+	  .list (me)
+	;
+	; COP404 Series Notes:
+	;
+	;   Unsupported instructions:
+	;	or
+	;	cema	came	lid
+	;	xan
+	;	sksz
+	;	camr	inh	inr	omh
+	;
+	  .nlist
+	  .__.del.	; Remove Old Instruction Macros
+	  .rom_2K	; 2048 Bytes Of ROM
+	  ; Arithmetic
+;	  .__.err.	'CPU,		adt
+;	  .__.err.	'CPU,		casc
+	  .__.err.	'CPU,		or
+	  ; Transfer
+;	  .__.err.	'CPU,		halt
+;	  .__.err.	'CPU,		it
+	  ; Memory
+	  .__.err.	'CPU,		cema
+	  .__.err.	'CPU,		came
+;	  .__.err.	'CPU,		ctma
+;	  .__.err.	'CPU,		camt
+;	  .__.err.	'CPU,		cqma
+;	  .__.err.	'CPU,		ldd	A,B,C,D,E,F,G,H
+	  .__.err.	'CPU,		lid
+;	  .__.err.	'CPU,		lqid
+	  ; Register
+;	  .__.err.	'CPU,		xabr
+	  .__.err.	'CPU,		xan
+	  ; Test
+;	  .__.err.	'CPU,		skt
+	  .__.err.	'CPU,		sksz
+	  ; Input/Output
+	  .__.err.	'CPU,		camr
+	  .__.err.	'CPU,		inh
+;	  .__.err.	'CPU,		inin
+;	  .__.err.	'CPU,		inil
+	  .__.err.	'CPU,		inr
+	  .__.err.	'CPU,		omh
+	.endm
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.macro	.cop410	T
+	  .__.410. COP410, 'T
+	.endm
+
+	.macro	.cop411	T
+	  .__.410. COP411, 'T
+	.endm
+
+	.macro	.__.410. CPU, T
+	  .list
+	  .list (me)
+	;
+	; COP41x / COP31x Series Notes:
+	;
+	;   xad  3,15	is the only valid form of this instruction
+	;
+	; To Enable the 'halt' and 'cqma' Instructions:
+	;   .cop410 C    for COP410C / COP310C
+	;   .cop411 C    for COP411C / COP311C
+	;
+	;   Unsupported instructions:
+	;	adt	casc	or	halt	it
+	;	cema	came	ctma	camt	cqma	lid	ldd	lqid
+	;	xabr	xan
+	;	sksz	skt
+	;	inin	camr	inh	inil	inr	omh
+	;
+	;	C option enables halt and cqma
+	;
+	  .nlist
+	  .__.del.	; Remove Old Instruction Macros
+	  .rom_512	; 512 Bytes Of ROM
+	  .xad  1	; xad 3,15 Form
+	  ; Arithmetic
+	  .__.err.	'CPU,		adt
+	  .__.err.	'CPU,		casc
+	  .__.err.	'CPU,		or
+	  ; Transfer
+	  .ifdif	C,^/'T/		; Only 41xC has 'halt'
+	  .__.err.	'CPU,		halt
+	  .endif
+	  .__.err.	'CPU,		it
+	  ; Memory
+	  .__.err.	'CPU,		cema
+	  .__.err.	'CPU,		came
+	  .__.err.	'CPU,		ctma
+	  .__.err.	'CPU,		camt
+	  .ifdif	C,^/'T/		; Only 41xC has 'cqma'
+	  .__.err.	'CPU,		cqma
+	  .endif
+	  .__.err.	'CPU,		ldd	A,B,C,D,E,F,G,H
+	  .__.err.	'CPU,		lid
+	  .__.err.	'CPU,		lqid
+	  ; Register
+	  .__.err.	'CPU,		xabr
+	  .__.err.	'CPU,		xan
+	  ; Test
+	  .__.err.	'CPU,		skt
+	  .__.err.	'CPU,		sksz
+	  ; Input/Output
+	  .__.err.	'CPU,		camr
+	  .__.err.	'CPU,		inh
+	  .__.err.	'CPU,		inin
+	  .__.err.	'CPU,		inil
+	  .__.err.	'CPU,		inr
+	  .__.err.	'CPU,		omh
+	.endm
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.macro	.cop413
+	  .__.413. COP413
+	.endm
+
+	.macro	.__.413. CPU
+	  .list
+	  .list (me)
+	;
+	; COP413 / COP313 Series Notes:
+	;
+	;   xad  3,15	is the only valid form of this instruction
+	;
+	;   Unsupported instructions:
+	;	adt	or
+	;	it
+	;	cema	came	ctma	camt	lid	ldd
+	;	xan	xabr
+	;	sksz	skt
+	;	camr	inh	inin	inil	inr	omh
+	;
+	  .nlist
+	  .__.del.	; Remove Old Instruction Macros
+	  .rom_512	; 512 Bytes Of ROM
+	  .xad  1	; xad 3,15 Form
+	  ; Arithmetic
+	  .__.err.	'CPU,		adt
+	  .__.err.	'CPU,		casc
+	  .__.err.	'CPU,		or
+	  ; Transfer
+;	  .__.err.	'CPU,		halt
+	  .__.err.	'CPU,		it
+	  ; Memory
+	  .__.err.	'CPU,		cema
+	  .__.err.	'CPU,		came
+	  .__.err.	'CPU,		ctma
+	  .__.err.	'CPU,		camt
+	  .__.err.	'CPU,		cqma
+	  .__.err.	'CPU,		ldd	A,B,C,D,E,F,G,H
+	  .__.err.	'CPU,		lid
+	  .__.err.	'CPU,		lqid
+	  ; Register
+	  .__.err.	'CPU,		xabr
+	  .__.err.	'CPU,		xan
+	  ; Test
+	  .__.err.	'CPU,		skt
+	  .__.err.	'CPU,		sksz
+	  ; Input/Output
+	  .__.err.	'CPU,		camr
+	  .__.err.	'CPU,		inh
+	  .__.err.	'CPU,		inin
+	  .__.err.	'CPU,		inil
+	  .__.err.	'CPU,		inr
+	  .__.err.	'CPU,		omh
+	.endm
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.macro	.cop420
+	  .__.420. COP420
+	.endm
+
+	.macro	.cop421
+	  .__.420. COP421
+	.endm
+
+	.macro	.cop422
+	  .__.420. COP422
+	.endm
+
+	.macro	.__.420. CPU
+	  .list
+	  .list (me)
+	;
+	; COP420/421/422 / COP320/321/322 Notes:
+	;
+	;   Unsupported instructions:
+	;	or
+	;	halt	it
+	;	cema	came	ctma	camt	lid
+	;	xan
+	;	sksz
+	;	camr	inh	inr	omh
+	;
+	  .nlist
+	  .__.del.	; Remove Old Instruction Macros
+	  .rom_1K	; 1024 Bytes Of ROM
+	  ; Arithmetic
+;	  .__.err.	'CPU,		adt
+;	  .__.err.	'CPU,		casc
+	  .__.err.	'CPU,		or
+	  ; Transfer
+	  .__.err.	'CPU,		halt
+	  .__.err.	'CPU,		it
+	  ; Memory
+	  .__.err.	'CPU,		cema
+	  .__.err.	'CPU,		came
+	  .__.err.	'CPU,		ctma
+	  .__.err.	'CPU,		camt
+;	  .__.err.	'CPU,		cqma
+;	  .__.err.	'CPU,		ldd	A,B,C,D,E,F,G,H
+	  .__.err.	'CPU,		lid
+;	  .__.err.	'CPU,		lqid
+	  ; Register
+;	  .__.err.	'CPU,		xabr
+	  .__.err.	'CPU,		xan
+	  ; Test
+;	  .__.err.	'CPU,		skt
+	  .__.err.	'CPU,		sksz
+	  ; Input/Output
+	  .__.err.	'CPU,		camr
+	  .__.err.	'CPU,		inh
+;	  .__.err.	'CPU,		inin
+;	  .__.err.	'CPU,		inil
+	  .__.err.	'CPU,		inr
+	  .__.err.	'CPU,		omh
+	.endm
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.macro	.cop424
+	  .__.424. COP424
+	.endm
+
+	.macro	.cop425
+	  .__.424. COP425
+	.endm
+
+	.macro	.cop426
+	  .__.424. COP426
+	.endm
+
+	.macro	.__.424. CPU
+	  .list
+	  .list (me)
+	;
+	; COP424/425/426 / COP324/325/326 Notes:
+	;
+	;   Unsupported instructions:
+	;	or
+	;	cema	came	lid	lqid
+	;	sksz
+	;	xan
+	;	camr	inh	inr	omh
+	;
+	  .nlist
+	  .__.del.	; Remove Old Instruction Macros
+	  .rom_1K	; 1024 Bytes Of ROM
+	  ; Arithmetic
+;	  .__.err.	'CPU,		adt
+;	  .__.err.	'CPU,		casc
+	  .__.err.	'CPU,		or
+	  ; Transfer
+;	  .__.err.	'CPU,		halt
+;	  .__.err.	'CPU,		it
+	  ; Memory
+	  .__.err.	'CPU,		cema
+	  .__.err.	'CPU,		came
+;	  .__.err.	'CPU,		ctma
+;	  .__.err.	'CPU,		camt
+;	  .__.err.	'CPU,		cqma
+;	  .__.err.	'CPU,		ldd	A,B,C,D,E,F,G,H
+	  .__.err.	'CPU,		lid
+	  .__.err.	'CPU,		lqid
+	  ; Register
+;	  .__.err.	'CPU,		xabr
+	  .__.err.	'CPU,		xan
+	  ; Test
+;	  .__.err.	'CPU,		skt
+	  .__.err.	'CPU,		sksz
+	  ; Input/Output
+	  .__.err.	'CPU,		camr
+	  .__.err.	'CPU,		inh
+;	  .__.err.	'CPU,		inin
+;	  .__.err.	'CPU,		inil
+	  .__.err.	'CPU,		inr
+	  .__.err.	'CPU,		omh
+	.endm
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.macro	.cop440
+	  .__.440. COP440
+	.endm
+
+	.macro	.cop441
+	  .__.440. COP441
+	.endm
+
+	.macro	.cop442
+	  .__.440. COP442
+	.endm
+
+	.macro	.cop2440
+	  .__.440. COP2440
+	.endm
+
+	.macro	.cop2441
+	  .__.440. COP2441
+	.endm
+
+	.macro	.cop2442
+	  .__.440. COP2442
+	.endm
+
+	.macro	.__.440. CPU
+	  .list
+	  .list (me)
+	;
+	; COP440/441/442 / COP340/341/342 Notes:
+	;
+	;   Unsupported instructions:
+	;	halt	it
+	;
+	  .nlist
+	  .__.del.	; Remove Old Instruction Macros
+	  .rom_2K	; 2048 Bytes Of ROM
+	  ; Arithmetic
+;	  .__.err.	'CPU,		adt
+;	  .__.err.	'CPU,		casc
+;	  .__.err.	'CPU,		or
+	  ; Transfer
+	  .__.err.	'CPU,		halt
+	  .__.err.	'CPU,		it
+	  ; Memory
+;	  .__.err.	'CPU,		cema
+;	  .__.err.	'CPU,		came
+;	  .__.err.	'CPU,		ctma
+;	  .__.err.	'CPU,		camt
+;	  .__.err.	'CPU,		cqma
+;	  .__.err.	'CPU,		ldd	A,B,C,D,E,F,G,H
+;	  .__.err.	'CPU,		lid
+;	  .__.err.	'CPU,		lqid
+	  ; Register
+;	  .__.err.	'CPU,		xabr
+;	  .__.err.	'CPU,		xan
+	  ; Test
+;	  .__.err.	'CPU,		skt
+;	  .__.err.	'CPU,		sksz
+	  ; Input/Output
+;	  .__.err.	'CPU,		camr
+;	  .__.err.	'CPU,		inh
+;	  .__.err.	'CPU,		inin
+;	  .__.err.	'CPU,		inil
+;	  .__.err.	'CPU,		inr
+;	  .__.err.	'CPU,		omh
+	.endm
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.macro	.cop444
+	  .__.444. COP444
+	.endm
+
+	.macro	.cop445
+	  .__.444. COP445
+	.endm
+
+	.macro	.__.444. CPU
+	  .list
+	  .list (me)
+	;
+	; COP444L / COP445L / COP344L / COP345L Notes:
+	;
+	;   Unsupported instructions:
+	;	or
+	;	halt	it
+	;	cema	came	ctma	camt	lid
+	;	camr	inh	inr	omh
+	;
+	  .nlist
+	  .rom_2K	; 2048 Bytes Of ROM
+	  .__.del.	; Remove Old Instruction Macros
+	  ; Arithmetic
+;	  .__.err.	'CPU,		adt
+;	  .__.err.	'CPU,		casc
+	  .__.err.	'CPU,		or
+	  ; Transfer
+	  .__.err.	'CPU,		halt
+	  .__.err.	'CPU,		it
+	  ; Memory
+	  .__.err.	'CPU,		cema
+	  .__.err.	'CPU,		came
+	  .__.err.	'CPU,		ctma
+	  .__.err.	'CPU,		camt
+;	  .__.err.	'CPU,		cqma
+;	  .__.err.	'CPU,		ldd	A,B,C,D,E,F,G,H
+	  .__.err.	'CPU,		lid
+;	  .__.err.	'CPU,		lqid
+	  ; Register
+;	  .__.err.	'CPU,		xabr
+;	  .__.err.	'CPU,		xan
+	  ; Test
+;	  .__.err.	'CPU,		skt
+;	  .__.err.	'CPU,		sksz
+	  ; Input/Output
+	  .__.err.	'CPU,		camr
+	  .__.err.	'CPU,		inh
+;	  .__.err.	'CPU,		inin
+;	  .__.err.	'CPU,		inil
+	  .__.err.	'CPU,		inr
+	  .__.err.	'CPU,		omh
+	.endm
+

@@ -1,0 +1,350 @@
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+</HEAD>
+<BODY BGCOLOR="#C0C0C0">
+
+<A href="../home.htm">
+<IMG width=343 height=58 border=0 SRC="welcom.gif" ALT="Welcome"></A>
+
+<H2>ASCOP8  Assembler</H2>
+
+<A NAME = "TOP"> </A> 
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+   The  ASCOP8  assembler  supports  the  COP800 series of 8-bit
+microprocessors.  The COP800 family provides a  wide  choice  of
+RAM,  ROM,  and  IO  capability.   The ascop8 assembler specific
+directives configure the assembler to support a large number  of
+COP800 family processors.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+PROCESSOR SPECIFIC DIRECTIVES 
+
+.xtnd Directive 
+
+   Format:  
+
+        .xtnd   n 
+
+   A  non  zero  value  of n enables extended instructions and a
+zero or blank argument causes an 'a' error to be  reported  when
+the extended instructions are invoked.  
+
+
+.setdp Directive 
+
+Format:  
+
+        .setdp [base [,area]] 
+
+   The  .setdp  directive is used to inform the assembler of the
+area containing the RAM page and the offset address  within  the
+selected  area.   The  only value allowed for the offset is 0x00
+(the beginning of and only RAM page).  
+
+   The normal invocation methods are:  
+
+        .area   RAM
+        .setdp
+
+        or
+
+        .setdp  0x00,RAM
+
+
+   for  the  COP8 microprocessors.  If a .setdp directive is not
+issued the assembler defaults the region to the area "_DATA"  at
+offset 0x00.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+COP800 MEMORY MAP FILES 
+
+   The  COP800  family  of processors has a wide range of IO op-
+tions.  These options include timers, counters, analog to  digi-
+tal  converters,  UARTs,  and Microwire/Plus integrated into the
+processors.  Each series of processors has a unique selection of
+devices  and  associated address mapping.  The mapping of the IO
+devices are specified in definition  files  for  each  processor
+type.   Definition  files for many processors are located in the
+'regdef' directory.  Note that each specific processor type  de-
+finition  file  imports the register mapping definition file for
+this series of processors.  
+
+   The  variable  '.__.CPU.'  is by default defined as local and
+will not be output to the created .rel file.  The assembler com-
+mand  line  options -g or -a will not cause the local symbols to
+be output to the created .rel file.  
+
+   The  assembler  .globl  directive  may  be used to change the
+variable type to global causing its definition to be  output  to
+the  rel  file.  The inclusion of the definition of the variable
+'.__.CPU.' might be a useful means of validating that separately
+assembled  files have been compiled for the same processor type.
+The linker will report an error for variables with multiple  non
+equal definitions.  
+
+   To  configure  the  ascop8 assembler for a specific processor
+include the definition file at the beginning  of  your  assembly
+language file:  
+
+        .include "_____.def"
+
+
+   The  .__.CPU.   number,  family series and processor specific
+definition files are shown in the following table:  
+
+    .__.CPU.    1
+    Series:     reg820c
+    Include:    cop620c   cop622c   cop640c   cop642c
+                cop820c   cop822c   cop840c   cop842c
+                cop920c   cop922c   cop940c   cop942c
+
+    .__.CPU.    2
+    Series:     reg820cj
+    Include:    cop820cj  cop822cj  cop840cj  cop842cj
+
+    .__.CPU.    3
+    Series:     reg880c
+    Include:    cop680c   cop681c
+                cop880c   cop881c
+                cop980c   cop981c
+
+    .__.CPU.    4
+    Series:     reg884bc
+    Include:    cop684bc
+                cop884bc
+
+    .__.CPU.    5
+    Series:     reg884cf
+    Include:    cop888cf  cop884cf
+                cop988cf  cop984cf
+
+    .__.CPU.    6
+    Series:     reg888cg
+    Include:    cop888cg  cop884cg
+
+    .__.CPU.    7
+    Series:     reg888cl
+    Include:    cop688cl  cop684cl
+                cop888cl  cop884cl
+                cop988cl  cop984cl
+
+    .__.CPU.    8
+    Series:     reg888cs
+    Include:    cop688cs  cop684cs
+                cop888cs  cop884cs
+                cop988cs  cop984cs
+
+    .__.CPU.    9
+    Series:     reg888eg
+    Include:    cop688eg  cop684eg
+                cop888eg  cop884eg
+                cop988eg  cop984eg
+
+    .__.CPU.    10
+    Series:     reg888ek
+    Include:    cop888ek  cop884ek
+
+    .__.CPU.    11
+    Series:     reg888gw
+    Include:    cop888gw
+
+    .__.CPU.    12
+    Series:     reg912c
+    Include:    cop912c   cop912ch
+
+    .__.CPU.    13
+    Series:     reg8620c
+    Include:    cop8620c  cop8622c  cop8640c  cop8642c
+                cop86l20c cop86l22c cop86l40c cop86l42c
+
+    .__.CPU.    14
+    Series:     reg8780c
+    Include:    cop8780c  cop8781c  cop8782c
+
+    .__.CPU.    15
+    Series:     reg8788fc
+    Include:    cop8788cf cop8784cf
+
+    .__.CPU.    16
+    Series:     reg8788cl
+    Include:    cop8788cl cop8784cl
+
+    .__.CPU.    17
+    Series:     reg8788eg
+    Include:    cop8788eg cop8784eg
+
+
+   When  a particular definition file, e.g 'cop820c.def', is in-
+cluded by an assembly source file the  definition  file  imports
+the family series file, 'reg820c.def', and the 'regdef.mac' file
+containing the macro '.reg'.  
+
+.reg  name, addr, str7,str6,str5,str4,str3,str2,str1,str0
+
+   Where  'name'  is the name of the register or port, 'addr' is
+the address of the register or port, and 'str7 - 'str0' are  the
+names of the bits in the register or port from bit 7 through bit
+0.  Bits with no designation are left  blank.   As  an  example,
+taken from 'cop820c.def', here is the definition for the PSW:  
+
+.reg  PSW, 0xEF, HC, C, T1PND, ENTI, IPND, BUSY, ENI, GIE
+
+   Which creates the following constants:  
+
+        PSW       = 0xEF
+        PSW.HC    = 7   PSW.7 = 7
+        PSW.C     = 6   PSW.6 = 6
+        PSW.T1PND = 5   PSW.5 = 5
+        PSW.ENTI  = 4   PSW.4 = 4
+        PSW.IPND  = 3   PSW.3 = 3
+        PSW.BUSY  = 2   PSW.2 = 2
+        PSW.ENI   = 1   PSW.1 = 1
+        PSW.GIE   = 0   PSW.0 = 0
+
+   The  processor  definition  files create both upper and lower
+case constants.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+COP800 INSTRUCTION SET 
+
+    Instruction Argument Syntax:
+
+        A       8-Bit Accumulator Register
+        B       8-Bit Address Register
+        X       8-Bit Address Register
+        [B]     Memory Indirect Addressed By B
+        [X]     Memory Indirect Addressed By X
+        MD      Direct Addressed Memory
+        Mem     Direct Addressing or [B]
+        Memi    Direct Addressing or [B] or Immediate
+        Imm     8-Bit Immediate Data
+        Reg     Register Memory: R0-R15, B, X, SP, 0xF0-0xFF
+        Addr    Location Address
+        C       Carry Bit
+        HC      Half Carry Bit
+
+The terms MD, Mem, Memi, Imm, Reg, and Addr may be expressions. 
+
+   Note  that  not  all addressing modes may be valid with every
+instruction.  Refer to  the  COP800  technical  data  for  valid
+modes.  
+
+   The  following tables list the mnemonics and arguments recog-
+nized by the ASCOP8 assembler.  
+
+
+COP800 Instructions 
+
+    Arithmetic and Logic Instructions
+        add     A,Memi  (A &lt;- A + Memi)
+        adc     A,Memi  (A &lt;- A + Memi + C)
+                        (C &lt;- Carry, HC &lt;- Half Cary)
+        subc    A,Memi  (a &lt;- A - Memi + C)
+                        (C &lt;- Carry, HC &lt;- Half Cary)
+        and     A,Memi  (A &lt;- A and /Memi)
+        or      A,Memi  (A &lt;- A or Memi)
+        xor     A,Memi  (A &lt;- A xor Memi)
+        ifeq    A,Memi  (Do Next if A = Memi)
+        ifgt    A,Memi  (Do next if A &gt; Memi)
+        ifbne   #       (Do Next if &lt;3:0&gt; of B != Imm)
+        drsz    Reg     (Reg &lt;- Reg - 1, Skip If Reg = 0)
+
+        setb    #,Mem   (1 to Bit, Mem (Bit = 0 to 7)
+        rstb    #,Mem   (0 to Bit, Mem (Bit = 0 to 7)
+        ifbit   #,Mem   (If Bit = 1, Do Next Instruction)
+
+    Instructions Using A and C
+        clr     A       (A &lt;- A)
+        inc     A       (A &lt;- A + 1)
+        dec     A       (A &lt;- A - 1)
+        laid            (A &lt;- ROM(PU,A))
+        dccr    A       (A &lt;- BCD Correction of A)
+        rrc     A       (Rotate A Right Through C)
+        swap    A       (&lt;A7:A4&gt; &lt;--&gt; &lt;A3:A0&gt;)
+        sc              (C &lt;- 1, HC &lt;- 1)
+        rc              (C &lt;- 0, HC &lt;- 0)
+        ifc             (If C = 1, Do Next Instruction)
+        ifnc            (If C = 0, Do Next Instruction)
+
+    Transfer of Control Instructions
+        jmpl    Addr    (Jump Absolute Long &lt;14:00&gt;)
+        jmp     Addr    (Jump Absolute Short &lt;11:00&gt;)
+        jp      Addr    (Relative Jump -31 to +32)
+        jsrl    Addr    (Jump Subroutine Long &lt;14:00&gt;)
+        jsr     Addr    (Jump Subroutine Short &lt;11:00&gt;)
+        jid             (Jump Indirect in Current Page)
+        ret             (Return From Subroutine)
+        retsk           (Return From Subroutine, Skip)
+        reti            (Return From Interrupt)
+        intr            (Generate An Interrupt)
+        nop             (No Operation)
+
+    Memory Transfer Instructions
+        x       A,Mem   (A &lt;--&gt; Mem)
+        x       A,[X]   (A &lt;--&gt; [X])
+        x       A,[B+-] (A &lt;--&gt; [B], B &lt;- B +/- 1)
+        x       A,[X+-] (A &lt;--&gt; [X], X &lt;- X +/- 1)
+        ld      A,Memi  (A &lt;- Memi)
+        ld      A,[X]   (A &lt;- [X])
+        ld      A,[B+-] (A &lt;- [B], B &lt;- B +/- 1)
+        ld      A,[X+-] (A &lt;- [X], X &lt;- X +/- 1)
+        ld      B,Imm   (A &lt;- Imm)
+        ld      Mem,Imm (Mem &lt;- Imm)
+        ld      Reg,Imm (Reg &lt;- Imm)
+        ifeq    MD,Imm  (Do Next Instruction If MD = Imm)
+
+    Extended Instructions
+        andsz   A,Imm   (Skip Next If (A and Imm) = 0)
+        ifeq    MD,Imm  (Do Next If MD = Imm)
+        ifne    A,Imm   (Do Next If A = Imm)
+        ld      B,Imm   (A &lt;- Imm, Faster Form)
+        pop     A       (POP The Stack Into A)
+        push    A       (PUSH A Onto The Stack)
+        rlc     A       (Rotate A Left Through C)
+        rpnd            (Reset Software Interrupt Pending Flag)
+        vis             (Vector To Software Interrupt Routine)
+
+    Instruction Alternates
+        clra            (A &lt;- 0)
+        inca            (A &lt;- A + 1)
+        deca            (A &lt;- A - 1)
+        dccra           (A &lt;- BCD Correction of A)
+        popa            (POP The Stack Into A)
+        pusha           (PUSH A Onto The Stack)
+        rrca            (Rotate A Right Through C)
+        rlca            (Rotate A Left Through C)
+        swapa           (&lt;A7:A4&gt; &lt;--&gt; &lt;A3:A0&gt;)
+
+</PRE></B></H4>
+<H5><A HREF="asxdoc.htm#TOP"> Go to the Documentation Index</A></H5>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4>
+<P><A HREF="asxxxx.htm#JUMP">
+<IMG width=32 height=32 border=0 SRC="spcshp.gif" ALIGN=bottom></A>
+<B>...  Exit the ASxxxx Documentation</B></A></P>
+
+<P><A href="../home.htm">
+<IMG width=32 height=32 border=0 SRC="home.gif" ALIGN=bottom></A>
+<B>...  Home Page</B></P>
+</H4>
+
+<H6><P><B>Last Updated: September 2023</B></P></H6>
+</BODY> 
+</HTML>

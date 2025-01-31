@@ -1,0 +1,145 @@
+.nlist
+;****************************************************************************
+;
+; Include This File To Define The COP Registers
+;
+;	!!! NOTE !!!
+;		Only Registers And
+;		Register Bit Numbers Are Defined
+;
+;****************************************************************************
+;
+	; Set UPPER_CASE_REG Non Zero To Define Upper Case Registers
+	; Set LOWER_CASE_REG Non Zero To Define Lower Case Registerss
+	; Else Both Upper And Lower Case Registers Will Be Defined
+
+	.ifeq	UPPER_CASE_REG + LOWER_CASE_REG
+		UPPER_CASE_REG =: 1
+		LOWER_CASE_REG =: 1
+	.endif
+
+.ifne	UPPER_CASE_REG + LOWER_CASE_REG
+	.list	(!,src)
+;	Supports Chips:
+;		COP888CF, COP884CF
+;		COP988CF, COP984CF
+	.nlist
+.endif
+;
+;****************************************************************************
+;
+	.include "regdef.mac"
+	.xtnd	1		; Extended Instruction Set
+	.__.CPU. =: 5		; Processor Code
+;
+;****************************************************************************
+;
+
+.ifne	UPPER_CASE_REG
+	.list	(!,src)
+;	Upper Case Register Definitions         Defined
+	.nlist
+
+	;	Name	Addr	Bit7	Bit6	Bit5	Bit4	Bit3	Bit2	Bit1	Bit0
+	;	----	----	----	----	----	----	----	----	----	----
+	.reg	T2LO,	0xC0,	,	,	,	,	,	,	,
+	.reg	T2HI,	0xC1,	,	,	,	,	,	,	,
+	.reg	T2RALO,	0xC2,	,	,	,	,	,	,	,
+	.reg	T2RAHI,	0xC3,	,	,	,	,	,	,	,
+	.reg	T2RBLO,	0xC4,	,	,	,	,	,	,	,
+	.reg	T2RBHI,	0xC5,	,	,	,	,	,	,	,
+	.reg	T2CNTRL,0xC6,	T2C3,	T2C2,	T2C1,	T2C0,	T2PNDA,	T2ENA,	T2PNDB,	T2ENB
+	.reg	WDSVR,	0xC7,	,	,	,	,	,	,	,
+	.reg	WKEDG,	0xC8,	,	,	,	,	,	,	,
+	.reg	WKEN,	0xC9,	,	,	,	,	,	,	,
+	.reg	WKPND,	0xCA,	,	,	,	,	,	,	,
+	;
+	.reg	ENAD,	0xCB,	,	,	,	,	,	,	,
+	.reg	ADRSLT,	0xCC,	,	,	,	,	,	,	,
+	;
+	.reg	MIWU,	0xD0,	,	,	,	,	,	,	,
+	.reg	PORTLD,	0xD0,	,	,	,	T2A,	T2B,	,	,
+	.reg	PORTLC,	0xD1,	,	,	,	,	,	,	,
+	.reg	PORTLP,	0xD2,	,	,	,	,	,	,	,
+	;		0xD3
+	.reg	PORTGD,	0xD4,	CKO,	SI,	SK,	SO,	T1A,	T1B,	WDOUT,	INT
+	.reg	PORTGD,	0xD4,	HALT,	,	,	,	,	,	,
+	.reg	PORTGD,	0xD4, RESTART,	,	,	,	,	,	,
+	;
+	.reg	PORTGC,	0xD5,	,	,	,	,	,	,	,
+	.reg	PORTGP,	0xD6,	,	,	,	,	,	,	,
+	.reg	PORTI,	0xD7,	ACH7,	ACH6,	ACH5,	ACH4,	ACH3,	ACH2,	ACH1,	ACH0
+	.reg	PORTCD,	0xD8,	,	,	,	,	,	,	,
+	.reg	PORTCC,	0xD9,	,	,	,	,	,	,	,
+	.reg	PORTCP,	0xDA,	,	,	,	,	,	,	,
+	;		0xDB
+	.reg	PORTD,	0xDC,	,	,	,	,	,	,	,
+	;
+	.reg	T1RBLO,	0xE6,	,	,	,	,	,	,	,
+	.reg	T1RBHI,	0xE7,	,	,	,	,	,	,	,
+	.reg	ICNTRL,	0xE8,	,	LPEN,	T0PND,	T0EN,	uWPND,	uWEN,	T1PNDB,	T1ENB
+	.reg	SIOR,	0xE9,	,	,	,	,	,	,	,
+	.reg	TMR1LO,	0xEA,	,	,	,	,	,	,	,
+	.reg	TMR1HI,	0xEB,	,	,	,	,	,	,	,
+	.reg	T1RALO,	0xEC,	,	,	,	,	,	,	,
+	.reg	T1RAHI,	0xED,	,	,	,	,	,	,	,
+	;
+	.reg	CNTRL,	0xEE,	T1C3,	T1C2,	T1C1,	T1C0,	MSEL,	IEDG,	SL1,	SL0
+	.reg	PSW,	0xEF,	HC,	C,	T1PNDA,	T1ENA,	EXPND,	BUSY,	EXEN,	GIE
+.endif
+;
+;****************************************************************************
+;
+.ifne	LOWER_CASE_REG
+	.list	(!,src)
+;	Lower Case Register Definitions         Defined
+	.nlist
+
+	;	Name	Addr	Bit0	Bit1	Bit2	Bit3	Bit4	Bit5	Bit6	Bit7
+	;	----	----	----	----	----	----	----	----	----	----
+	.reg	t2lo,	0xc0,	,	,	,	,	,	,	,
+	.reg	t2hi,	0xc1,	,	,	,	,	,	,	,
+	.reg	t2ralo,	0xc2,	,	,	,	,	,	,	,
+	.reg	t2rahi,	0xc3,	,	,	,	,	,	,	,
+	.reg	t2rblo,	0xc4,	,	,	,	,	,	,	,
+	.reg	t2rbhi,	0xc5,	,	,	,	,	,	,	,
+	.reg	t2cntrl,0xc6,	t2c3,	t2c2,	t2c1,	t2c0,	t2pnda,	t2ena,	t2pndb,	t2enb
+	.reg	wdsvr,	0xc7,	,	,	,	,	,	,	,
+	.reg	wkedg,	0xc8,	,	,	,	,	,	,	,
+	.reg	wken,	0xc9,	,	,	,	,	,	,	,
+	.reg	wkpnd,	0xca,	,	,	,	,	,	,	,
+	;
+	.reg	enad,	0xcb,	,	,	,	,	,	,	,
+	.reg	adrslt,	0xcc,	,	,	,	,	,	,	,
+	;
+	.reg	miwu,	0xd0,	,	,	,	,	,	,	,
+	.reg	portld,	0xd0,	,	,	,	t2a,	t2b,	,	,
+	.reg	portlc,	0xd1,	,	,	,	,	,	,	,
+	.reg	portlp,	0xd2,	,	,	,	,	,	,	,
+	;		0xd3
+	.reg	portgd,	0xd4,	cko,	si,	sk,	so,	t1a,	t1b,	wdout,	int
+	.reg	portgd,	0xd4,	halt,	,	,	,	,	,	,
+	.reg	portgd,	0xd4, restart,	,	,	,	,	,	,
+	;
+	.reg	portgc,	0xd5,	,	,	,	,	,	,	,
+	.reg	portgp,	0xd6,	,	,	,	,	,	,	,
+	.reg	porti,	0xd7,	,	,	,	,	,	,	,
+	.reg	portcd,	0xd8,	,	,	,	,	,	,	,
+	.reg	portcc,	0xd9,	,	,	,	,	,	,	,
+	.reg	portcp,	0xda,	,	,	,	,	,	,	,
+	;		0xdb
+	.reg	portd,	0xdc,	,	,	,	,	,	,	,
+	;
+	.reg	t1rblo,	0xe6,	,	,	,	,	,	,	,
+	.reg	t1rbhi,	0xe7,	,	,	,	,	,	,	,
+	.reg	icntrl,	0xe8,	,	lpen,	t0pnd,	t0en,	uwpnd,	uwen,	t1pndb,	t1enb
+	.reg	sior,	0xe9,	,	,	,	,	,	,	,
+	.reg	tmr1lo,	0xea,	,	,	,	,	,	,	,
+	.reg	tmr1hi,	0xeb,	,	,	,	,	,	,	,
+	.reg	t1ralo,	0xec,	,	,	,	,	,	,	,
+	.reg	t1rahi,	0xed,	,	,	,	,	,	,	,
+	;
+	.reg	cntrl,	0xee,	t1c3,	t1c2,	t1c1,	t1c0,	msel,	iedg,	sl1,	sl0
+	.reg	psw,	0xef,	hc,	c,	t1pnda,	t1ena,	expnd,	busy,	exen,	gie
+.endif
+

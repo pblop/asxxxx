@@ -1,0 +1,3 @@
+.nlist
+	.include "reg8788eg.def"
+

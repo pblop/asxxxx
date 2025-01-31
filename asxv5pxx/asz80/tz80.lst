@@ -1,0 +1,1317 @@
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                  Page 1
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                              1 	.title	Test of Z80 / HD64180 assembler
+                              2 
+                     0055     3 	offset	=	0x55		;arbitrary constants
+                     0020     4 	n	=	0x20
+                     0584     5 	nn	=	0x0584
+                              6 
+                              7 	; notes:
+                              8 	;	Leading 'a' operand is optional.
+                              9 	;	If offset is ommitted 0 is assumed.
+                             10 
+                             11 	;***********************************************************
+                             12 	; add with carry to 'a'
+   0000 8E                   13 	adc	a,(hl)			;8E
+   0001 DD 8E 55             14 	adc	a,offset(ix)		;DD 8E 55
+   0004 FD 8E 55             15 	adc	a,offset(iy)		;FD 8E 55
+   0007 DD 8E 55             16 	adc	a,(ix+offset)		;DD 8E 55
+   000A FD 8E 55             17 	adc	a,(iy+offset)		;FD 8E 55
+   000D 8F                   18 	adc	a,a			;8F
+   000E 88                   19 	adc	a,b			;88
+   000F 89                   20 	adc	a,c			;89
+   0010 8A                   21 	adc	a,d			;8A
+   0011 8B                   22 	adc	a,e			;8B
+   0012 8C                   23 	adc	a,h			;8C
+   0013 8D                   24 	adc	a,l			;8D
+   0014 CE 20                25 	adc	a,#n			;CE 20
+   0016 CE 20                26 	adc	a, n			;CE 20
+                             27 	;***********************************************************
+   0018 8E                   28 	adc	(hl)			;8E
+   0019 DD 8E 55             29 	adc	offset(ix)		;DD 8E 55
+   001C FD 8E 55             30 	adc	offset(iy)		;FD 8E 55
+   001F DD 8E 55             31 	adc	(ix+offset)		;DD 8E 55
+   0022 FD 8E 55             32 	adc	(iy+offset)		;FD 8E 55
+   0025 8F                   33 	adc	a			;8F
+   0026 88                   34 	adc	b			;88
+   0027 89                   35 	adc	c			;89
+   0028 8A                   36 	adc	d			;8A
+   0029 8B                   37 	adc	e			;8B
+   002A 8C                   38 	adc	h			;8C
+   002B 8D                   39 	adc	l			;8D
+   002C CE 20                40 	adc	#n			;CE 20
+   002E CE 20                41 	adc	 n			;CE 20
+                             42 	;***********************************************************
+                             43 	; add with carry register pair to 'hl'
+   0030 ED 4A                44 	adc	hl,bc			;ED 4A
+   0032 ED 5A                45 	adc	hl,de			;ED 5A
+   0034 ED 6A                46 	adc	hl,hl			;ED 6A
+   0036 ED 7A                47 	adc	hl,sp			;ED 7A
+                             48 	;***********************************************************
+                             49 	; add operand to 'a'
+   0038 86                   50 	add	a,(hl)			;86
+   0039 DD 86 55             51 	add	a,offset(ix)		;DD 86 55
+   003C FD 86 55             52 	add	a,offset(iy)		;FD 86 55
+   003F DD 86 55             53 	add	a,(ix+offset)		;DD 86 55
+   0042 FD 86 55             54 	add	a,(iy+offset)		;FD 86 55
+   0045 87                   55 	add	a,a			;87
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                  Page 2
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   0046 80                   56 	add	a,b			;80
+   0047 81                   57 	add	a,c			;81
+   0048 82                   58 	add	a,d			;82
+   0049 83                   59 	add	a,e			;83
+   004A 84                   60 	add	a,h			;84
+   004B 85                   61 	add	a,l			;85
+   004C C6 20                62 	add	a,#n			;C6 20
+   004E C6 20                63 	add	a, n			;C6 20
+                             64 	;***********************************************************
+                             65 	; add register pair to 'hl'
+   0050 09                   66 	add	hl,bc			;09
+   0051 19                   67 	add	hl,de			;19
+   0052 29                   68 	add	hl,hl			;29
+   0053 39                   69 	add	hl,sp			;39
+                             70 	;***********************************************************
+                             71 	; add register pair to 'ix'
+   0054 DD 09                72 	add	ix,bc			;DD 09
+   0056 DD 19                73 	add	ix,de			;DD 19
+   0058 DD 29                74 	add	ix,ix			;DD 29
+   005A DD 39                75 	add	ix,sp			;DD 39
+                             76 	;***********************************************************
+                             77 	; add register pair to 'iy'
+   005C FD 09                78 	add	iy,bc			;FD 09
+   005E FD 19                79 	add	iy,de			;FD 19
+   0060 FD 29                80 	add	iy,iy			;FD 29
+   0062 FD 39                81 	add	iy,sp			;FD 39
+                             82 	;***********************************************************
+                             83 	; logical 'and' operand with 'a'
+   0064 A6                   84 	and	a,(hl)			;A6
+   0065 DD A6 55             85 	and	a,offset(ix)		;DD A6 55
+   0068 FD A6 55             86 	and	a,offset(iy)		;FD A6 55
+   006B DD A6 55             87 	and	a,(ix+offset)		;DD A6 55
+   006E FD A6 55             88 	and	a,(iy+offset)		;FD A6 55
+   0071 A7                   89 	and	a,a			;A7
+   0072 A0                   90 	and	a,b			;A0
+   0073 A1                   91 	and	a,c			;A1
+   0074 A2                   92 	and	a,d			;A2
+   0075 A3                   93 	and	a,e			;A3
+   0076 A4                   94 	and	a,h			;A4
+   0077 A5                   95 	and	a,l			;A5
+   0078 E6 20                96 	and	a,#n			;E6 20
+   007A E6 20                97 	and	a, n			;E6 20
+                             98 	;***********************************************************
+                             99 	; test bit of location or register
+   007C CB 46               100 	bit	0,(hl)			;CB 46
+   007E DD CB 55 46         101 	bit	0,offset(ix)		;DD CB 55 46
+   0082 FD CB 55 46         102 	bit	0,offset(iy)		;FD CB 55 46
+   0086 DD CB 55 46         103 	bit	0,(ix+offset)		;DD CB 55 46
+   008A FD CB 55 46         104 	bit	0,(iy+offset)		;FD CB 55 46
+   008E CB 47               105 	bit	0,a			;CB 47
+   0090 CB 40               106 	bit	0,b			;CB 40
+   0092 CB 41               107 	bit	0,c			;CB 41
+   0094 CB 42               108 	bit	0,d			;CB 42
+   0096 CB 43               109 	bit	0,e			;CB 43
+   0098 CB 44               110 	bit	0,h			;CB 44
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                  Page 3
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   009A CB 45               111 	bit	0,l			;CB 45
+   009C CB 4E               112 	bit	1,(hl)			;CB 4E
+   009E DD CB 55 4E         113 	bit	1,offset(ix)		;DD CB 55 4E
+   00A2 FD CB 55 4E         114 	bit	1,offset(iy)		;FD CB 55 4E
+   00A6 DD CB 55 4E         115 	bit	1,(ix+offset)		;DD CB 55 4E
+   00AA FD CB 55 4E         116 	bit	1,(iy+offset)		;FD CB 55 4E
+   00AE CB 4F               117 	bit	1,a			;CB 4F
+   00B0 CB 48               118 	bit	1,b			;CB 48
+   00B2 CB 49               119 	bit	1,c			;CB 49
+   00B4 CB 4A               120 	bit	1,d			;CB 4A
+   00B6 CB 4B               121 	bit	1,e			;CB 4B
+   00B8 CB 4C               122 	bit	1,h			;CB 4C
+   00BA CB 4D               123 	bit	1,l			;CB 4D
+   00BC CB 56               124 	bit	2,(hl)			;CB 56
+   00BE DD CB 55 56         125 	bit	2,offset(ix)		;DD CB 55 56
+   00C2 FD CB 55 56         126 	bit	2,offset(iy)		;FD CB 55 56
+   00C6 DD CB 55 56         127 	bit	2,(ix+offset)		;DD CB 55 56
+   00CA FD CB 55 56         128 	bit	2,(iy+offset)		;FD CB 55 56
+   00CE CB 57               129 	bit	2,a			;CB 57
+   00D0 CB 50               130 	bit	2,b			;CB 50
+   00D2 CB 51               131 	bit	2,c			;CB 51
+   00D4 CB 52               132 	bit	2,d			;CB 52
+   00D6 CB 53               133 	bit	2,e			;CB 53
+   00D8 CB 54               134 	bit	2,h			;CB 54
+   00DA CB 55               135 	bit	2,l			;CB 55
+   00DC CB 5E               136 	bit	3,(hl)			;CB 5E
+   00DE DD CB 55 5E         137 	bit	3,offset(ix)		;DD CB 55 5E
+   00E2 FD CB 55 5E         138 	bit	3,offset(iy)		;FD CB 55 5E
+   00E6 DD CB 55 5E         139 	bit	3,(ix+offset)		;DD CB 55 5E
+   00EA FD CB 55 5E         140 	bit	3,(iy+offset)		;FD CB 55 5E
+   00EE CB 5F               141 	bit	3,a			;CB 5F
+   00F0 CB 58               142 	bit	3,b			;CB 58
+   00F2 CB 59               143 	bit	3,c			;CB 59
+   00F4 CB 5A               144 	bit	3,d			;CB 5A
+   00F6 CB 5B               145 	bit	3,e			;CB 5B
+   00F8 CB 5C               146 	bit	3,h			;CB 5C
+   00FA CB 5D               147 	bit	3,l			;CB 5D
+   00FC CB 66               148 	bit	4,(hl)			;CB 66
+   00FE DD CB 55 66         149 	bit	4,offset(ix)		;DD CB 55 66
+   0102 FD CB 55 66         150 	bit	4,offset(iy)		;FD CB 55 66
+   0106 DD CB 55 66         151 	bit	4,(ix+offset)		;DD CB 55 66
+   010A FD CB 55 66         152 	bit	4,(iy+offset)		;FD CB 55 66
+   010E CB 67               153 	bit	4,a			;CB 67
+   0110 CB 60               154 	bit	4,b			;CB 60
+   0112 CB 61               155 	bit	4,c			;CB 61
+   0114 CB 62               156 	bit	4,d			;CB 62
+   0116 CB 63               157 	bit	4,e			;CB 63
+   0118 CB 64               158 	bit	4,h			;CB 64
+   011A CB 65               159 	bit	4,l			;CB 65
+   011C CB 6E               160 	bit	5,(hl)			;CB 6E
+   011E DD CB 55 6E         161 	bit	5,offset(ix)		;DD CB 55 6E
+   0122 FD CB 55 6E         162 	bit	5,offset(iy)		;FD CB 55 6E
+   0126 DD CB 55 6E         163 	bit	5,(ix+offset)		;DD CB 55 6E
+   012A FD CB 55 6E         164 	bit	5,(iy+offset)		;FD CB 55 6E
+   012E CB 6F               165 	bit	5,a			;CB 6F
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                  Page 4
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   0130 CB 68               166 	bit	5,b			;CB 68
+   0132 CB 69               167 	bit	5,c			;CB 69
+   0134 CB 6A               168 	bit	5,d			;CB 6A
+   0136 CB 6B               169 	bit	5,e			;CB 6B
+   0138 CB 6C               170 	bit	5,h			;CB 6C
+   013A CB 6D               171 	bit	5,l			;CB 6D
+   013C CB 76               172 	bit	6,(hl)			;CB 76
+   013E DD CB 55 76         173 	bit	6,offset(ix)		;DD CB 55 76
+   0142 FD CB 55 76         174 	bit	6,offset(iy)		;FD CB 55 76
+   0146 DD CB 55 76         175 	bit	6,(ix+offset)		;DD CB 55 76
+   014A FD CB 55 76         176 	bit	6,(iy+offset)		;FD CB 55 76
+   014E CB 77               177 	bit	6,a			;CB 77
+   0150 CB 70               178 	bit	6,b			;CB 70
+   0152 CB 71               179 	bit	6,c			;CB 71
+   0154 CB 72               180 	bit	6,d			;CB 72
+   0156 CB 73               181 	bit	6,e			;CB 73
+   0158 CB 74               182 	bit	6,h			;CB 74
+   015A CB 75               183 	bit	6,l			;CB 75
+   015C CB 7E               184 	bit	7,(hl)			;CB 7E
+   015E DD CB 55 7E         185 	bit	7,offset(ix)		;DD CB 55 7E
+   0162 FD CB 55 7E         186 	bit	7,offset(iy)		;FD CB 55 7E
+   0166 DD CB 55 7E         187 	bit	7,(ix+offset)		;DD CB 55 7E
+   016A FD CB 55 7E         188 	bit	7,(iy+offset)		;FD CB 55 7E
+   016E CB 7F               189 	bit	7,a			;CB 7F
+   0170 CB 78               190 	bit	7,b			;CB 78
+   0172 CB 79               191 	bit	7,c			;CB 79
+   0174 CB 7A               192 	bit	7,d			;CB 7A
+   0176 CB 7B               193 	bit	7,e			;CB 7B
+   0178 CB 7C               194 	bit	7,h			;CB 7C
+   017A CB 7D               195 	bit	7,l			;CB 7D
+                            196 	;***********************************************************
+                            197 	; call subroutine at nn if condition is true
+   017C DC 84 05            198 	call	C,nn			;DC 84 05
+   017F FC 84 05            199 	call	M,nn			;FC 84 05
+   0182 D4 84 05            200 	call	NC,nn			;D4 84 05
+   0185 C4 84 05            201 	call	NZ,nn			;C4 84 05
+   0188 F4 84 05            202 	call	P,nn			;F4 84 05
+   018B EC 84 05            203 	call	PE,nn			;EC 84 05
+   018E E4 84 05            204 	call	PO,nn			;E4 84 05
+   0191 CC 84 05            205 	call	Z,nn			;CC 84 05
+                            206 	;***********************************************************
+                            207 	; unconditional call to subroutine at nn
+   0194 CD 84 05            208 	call	nn			;CD 84 05
+                            209 	;***********************************************************
+                            210 	; complement carry flag
+   0197 3F                  211 	ccf				;3F
+                            212 	;***********************************************************
+                            213 	; compare operand with 'a'
+   0198 BE                  214 	cp	a,(hl)			;BE
+   0199 DD BE 55            215 	cp	a,offset(ix)		;DD BE 55
+   019C FD BE 55            216 	cp	a,offset(iy)		;FD BE 55
+   019F DD BE 55            217 	cp	a,(ix+offset)		;DD BE 55
+   01A2 FD BE 55            218 	cp	a,(iy+offset)		;FD BE 55
+   01A5 BF                  219 	cp	a,a			;BF
+   01A6 B8                  220 	cp	a,b			;B8
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                  Page 5
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   01A7 B9                  221 	cp	a,c			;B9
+   01A8 BA                  222 	cp	a,d			;BA
+   01A9 BB                  223 	cp	a,e			;BB
+   01AA BC                  224 	cp	a,h			;BC
+   01AB BD                  225 	cp	a,l			;BD
+   01AC FE 20               226 	cp	a,#n			;FE 20
+   01AE FE 20               227 	cp	a, n			;FE 20
+                            228 	;***********************************************************
+                            229 	; compare location (hl) and 'a'
+                            230 	; decrement 'hl' and 'bc'
+   01B0 ED A9               231 	cpd				;ED A9
+                            232 	;***********************************************************
+                            233 	; compare location (hl) and 'a'
+                            234 	; decrement 'hl' and 'bc'
+                            235 	; repeat until 'bc' = 0
+   01B2 ED B9               236 	cpdr				;ED B9
+                            237 	;***********************************************************
+                            238 	; compare location (hl) and 'a'
+                            239 	; increment 'hl' and decrement 'bc'
+   01B4 ED A1               240 	cpi				;ED A1
+                            241 	;***********************************************************
+                            242 	; compare location (hl) and 'a'
+                            243 	; increment 'hl' and decrement 'bc'
+                            244 	; repeat until 'bc' = 0
+   01B6 ED B1               245 	cpir				;ED B1
+                            246 	;***********************************************************
+                            247 	; 1's complement of 'a'
+   01B8 2F                  248 	cpl				;2F
+                            249 	;***********************************************************
+                            250 	; decimal adjust 'a'
+   01B9 27                  251 	daa				;27
+                            252 	;***********************************************************
+                            253 	; decrement operand
+   01BA 35                  254 	dec	(hl)			;35
+   01BB DD 35 55            255 	dec	offset(ix)		;DD 35 55
+   01BE FD 35 55            256 	dec	offset(iy)		;FD 35 55
+   01C1 DD 35 55            257 	dec	(ix+offset)		;DD 35 55
+   01C4 FD 35 55            258 	dec	(iy+offset)		;FD 35 55
+   01C7 3D                  259 	dec	a			;3D
+   01C8 05                  260 	dec	b			;05
+   01C9 0B                  261 	dec	bc			;0B
+   01CA 0D                  262 	dec	c			;0D
+   01CB 15                  263 	dec	d			;15
+   01CC 1B                  264 	dec	de			;1B
+   01CD 1D                  265 	dec	e			;1D
+   01CE 25                  266 	dec	h			;25
+   01CF 2B                  267 	dec	hl			;2B
+   01D0 DD 2B               268 	dec	ix			;DD 2B
+   01D2 FD 2B               269 	dec	iy			;FD 2B
+   01D4 2D                  270 	dec	l			;2D
+   01D5 3B                  271 	dec	sp			;3B
+                            272 	;***********************************************************
+                            273 	; disable interrupts
+   01D6 F3                  274 	di				;F3
+                            275 	;***********************************************************
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                  Page 6
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                            276 	; decrement b and jump relative if b # 0
+   01D7 10 10               277 	djnz	.+0x12			;10 10
+                            278 	;***********************************************************
+                            279 	; enable interrupts
+   01D9 FB                  280 	ei				;FB
+                            281 	;***********************************************************
+                            282 	; exchange location and (sp)
+   01DA E3                  283 	ex	(sp),hl			;E3
+   01DB DD E3               284 	ex	(sp),ix			;DD E3
+   01DD FD E3               285 	ex	(sp),iy			;FD E3
+                            286 	;***********************************************************
+                            287 	; exchange af and af'
+   01DF 08                  288 	ex	af,af'			;08
+                            289 	;***********************************************************
+                            290 	; exchange de and hl
+   01E0 EB                  291 	ex	de,hl			;EB
+                            292 	;***********************************************************
+                            293 	; exchange:
+                            294 	;	bc <-> bc'
+                            295 	;	de <-> de'
+                            296 	;	hl <-> hl'
+   01E1 D9                  297 	exx				;D9
+                            298 	;***********************************************************
+                            299 	; halt (wait for interrupt or reset)
+   01E2 76                  300 	halt				;76
+                            301 	;***********************************************************
+                            302 	; set interrupt mode
+   01E3 ED 46               303 	im	0			;ED 46
+   01E5 ED 56               304 	im	1			;ED 56
+   01E7 ED 5E               305 	im	2			;ED 5E
+                            306 	;***********************************************************
+                            307 	; load 'a' with input from device n
+   01E9 DB 20               308 	in	a,(n)			;DB 20
+                            309 	;***********************************************************
+                            310 	; load register with input from (c)
+   01EB ED 78               311 	in	a,(c)			;ED 78
+   01ED ED 40               312 	in	b,(c)			;ED 40
+   01EF ED 48               313 	in	c,(c)			;ED 48
+   01F1 ED 50               314 	in	d,(c)			;ED 50
+   01F3 ED 58               315 	in	e,(c)			;ED 58
+   01F5 ED 60               316 	in	h,(c)			;ED 60
+   01F7 ED 68               317 	in	l,(c)			;ED 68
+                            318 	;***********************************************************
+                            319 	; increment operand
+   01F9 34                  320 	inc	(hl)			;34
+   01FA DD 34 55            321 	inc	offset(ix)		;DD 34 55
+   01FD FD 34 55            322 	inc	offset(iy)		;FD 34 55
+   0200 DD 34 55            323 	inc	(ix+offset)		;DD 34 55
+   0203 FD 34 55            324 	inc	(iy+offset)		;FD 34 55
+   0206 3C                  325 	inc	a			;3C
+   0207 04                  326 	inc	b			;04
+   0208 03                  327 	inc	bc			;03
+   0209 0C                  328 	inc	c			;0C
+   020A 14                  329 	inc	d			;14
+   020B 13                  330 	inc	de			;13
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                  Page 7
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   020C 1C                  331 	inc	e			;1C
+   020D 24                  332 	inc	h			;24
+   020E 23                  333 	inc	hl			;23
+   020F DD 23               334 	inc	ix			;DD 23
+   0211 FD 23               335 	inc	iy			;FD 23
+   0213 2C                  336 	inc	l			;2C
+   0214 33                  337 	inc	sp			;33
+                            338 	;***********************************************************
+                            339 	; load location (hl) with input
+                            340 	; from port (c)
+                            341 	; decrement 'hl' and 'b'
+   0215 ED AA               342 	ind				;ED AA
+                            343 	;***********************************************************
+                            344 	; load location (hl) with input
+                            345 	; from port (c)
+                            346 	; decrement 'hl' and 'b'
+                            347 	; repeat until 'b' = 0
+   0217 ED BA               348 	indr				;ED BA
+                            349 	;***********************************************************
+                            350 	; load location (hl) with input
+                            351 	; from port (c)
+                            352 	; increment 'hl' and decrement 'b'
+   0219 ED A2               353 	ini				;ED A2
+                            354 	;***********************************************************
+                            355 	; load location (hl) with input
+                            356 	; from port (c)
+                            357 	; increment 'hl' and decrement 'b'
+                            358 	; repeat until 'b' = 0
+   021B ED B2               359 	inir				;ED B2
+                            360 	;***********************************************************
+                            361 	; unconditional jump to location nn
+   021D C3 84 05            362 	jp	nn			;C3 84 05
+   0220 E9                  363 	jp	(hl)			;E9
+   0221 DD E9               364 	jp	(ix)			;DD E9
+   0223 FD E9               365 	jp	(iy)			;FD E9
+                            366 	;***********************************************************
+                            367 	; jump to location if condition is true
+   0225 DA 84 05            368 	jp	C,nn			;DA 84 05
+   0228 FA 84 05            369 	jp	M,nn			;FA 84 05
+   022B D2 84 05            370 	jp	NC,nn			;D2 84 05
+   022E C2 84 05            371 	jp	NZ,nn			;C2 84 05
+   0231 F2 84 05            372 	jp	P,nn			;F2 84 05
+   0234 EA 84 05            373 	jp	PE,nn			;EA 84 05
+   0237 E2 84 05            374 	jp	PO,nn			;E2 84 05
+   023A CA 84 05            375 	jp	Z,nn			;CA 84 05
+                            376 	;***********************************************************
+                            377 	; unconditional jump relative to PC+e
+   023D 18 10               378 	jr	jr1+0x10		;18 10
+                            379 	;***********************************************************
+                            380 	; jump relative to PC+e if condition is true
+   023F 38 10               381 jr1:	jr	C,jr2+0x10		;38 10
+   0241 30 10               382 jr2:	jr	NC,jr3+0x10		;30 10
+   0243 20 10               383 jr3:	jr	NZ,jr4+0x10		;20 10
+   0245 28 10               384 jr4:	jr	Z,jr5+0x10		;28 10
+   0247                     385 jr5:
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                  Page 8
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                            386 	;***********************************************************
+                            387 	; load source to destination
+   0247 7E                  388 	ld	a,(hl)			;7E
+   0248 DD 7E 55            389 	ld	a,offset(ix)		;DD 7E 55
+   024B FD 7E 55            390 	ld	a,offset(iy)		;FD 7E 55
+   024E DD 7E 55            391 	ld	a,(ix+offset)		;DD 7E 55
+   0251 FD 7E 55            392 	ld	a,(iy+offset)		;FD 7E 55
+   0254 7F                  393 	ld	a,a			;7F
+   0255 78                  394 	ld	a,b			;78
+   0256 79                  395 	ld	a,c			;79
+   0257 7A                  396 	ld	a,d			;7A
+   0258 7B                  397 	ld	a,e			;7B
+   0259 7C                  398 	ld	a,h			;7C
+   025A 7D                  399 	ld	a,l			;7D
+   025B 3E 20               400 	ld	a,#n			;3E 20
+   025D 3E 20               401 	ld	a, n			;3E 20
+   025F 46                  402 	ld	b,(hl)			;46
+   0260 DD 46 55            403 	ld	b,offset(ix)		;DD 46 55
+   0263 FD 46 55            404 	ld	b,offset(iy)		;FD 46 55
+   0266 DD 46 55            405 	ld	b,(ix+offset)		;DD 46 55
+   0269 FD 46 55            406 	ld	b,(iy+offset)		;FD 46 55
+   026C 47                  407 	ld	b,a			;47
+   026D 40                  408 	ld	b,b			;40
+   026E 41                  409 	ld	b,c			;41
+   026F 42                  410 	ld	b,d			;42
+   0270 43                  411 	ld	b,e			;43
+   0271 44                  412 	ld	b,h			;44
+   0272 45                  413 	ld	b,l			;45
+   0273 06 20               414 	ld	b,#n			;06 20
+   0275 06 20               415 	ld	b, n			;06 20
+   0277 4E                  416 	ld	c,(hl)			;4E
+   0278 DD 4E 55            417 	ld	c,offset(ix)		;DD 4E 55
+   027B FD 4E 55            418 	ld	c,offset(iy)		;FD 4E 55
+   027E DD 4E 55            419 	ld	c,(ix+offset)		;DD 4E 55
+   0281 FD 4E 55            420 	ld	c,(iy+offset)		;FD 4E 55
+   0284 4F                  421 	ld	c,a			;4F
+   0285 48                  422 	ld	c,b			;48
+   0286 49                  423 	ld	c,c			;49
+   0287 4A                  424 	ld	c,d			;4A
+   0288 4B                  425 	ld	c,e			;4B
+   0289 4C                  426 	ld	c,h			;4C
+   028A 4D                  427 	ld	c,l			;4D
+   028B 0E 20               428 	ld	c,#n			;0E 20
+   028D 0E 20               429 	ld	c, n			;0E 20
+   028F 56                  430 	ld	d,(hl)			;56
+   0290 DD 56 55            431 	ld	d,offset(ix)		;DD 56 55
+   0293 FD 56 55            432 	ld	d,offset(iy)		;FD 56 55
+   0296 DD 56 55            433 	ld	d,(ix+offset)		;DD 56 55
+   0299 FD 56 55            434 	ld	d,(iy+offset)		;FD 56 55
+   029C 57                  435 	ld	d,a			;57
+   029D 50                  436 	ld	d,b			;50
+   029E 51                  437 	ld	d,c			;51
+   029F 52                  438 	ld	d,d			;52
+   02A0 53                  439 	ld	d,e			;53
+   02A1 54                  440 	ld	d,h			;54
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                  Page 9
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   02A2 55                  441 	ld	d,l			;55
+   02A3 16 20               442 	ld	d,#n			;16 20
+   02A5 16 20               443 	ld	d, n			;16 20
+   02A7 5E                  444 	ld	e,(hl)			;5E
+   02A8 DD 5E 55            445 	ld	e,offset(ix)		;DD 5E 55
+   02AB FD 5E 55            446 	ld	e,offset(iy)		;FD 5E 55
+   02AE DD 5E 55            447 	ld	e,(ix+offset)		;DD 5E 55
+   02B1 FD 5E 55            448 	ld	e,(iy+offset)		;FD 5E 55
+   02B4 5F                  449 	ld	e,a			;5F
+   02B5 58                  450 	ld	e,b			;58
+   02B6 59                  451 	ld	e,c			;59
+   02B7 5A                  452 	ld	e,d			;5A
+   02B8 5B                  453 	ld	e,e			;5B
+   02B9 5C                  454 	ld	e,h			;5C
+   02BA 5D                  455 	ld	e,l			;5D
+   02BB 1E 20               456 	ld	e,#n			;1E 20
+   02BD 1E 20               457 	ld	e, n			;1E 20
+   02BF 66                  458 	ld	h,(hl)			;66
+   02C0 DD 66 55            459 	ld	h,offset(ix)		;DD 66 55
+   02C3 FD 66 55            460 	ld	h,offset(iy)		;FD 66 55
+   02C6 DD 66 55            461 	ld	h,(ix+offset)		;DD 66 55
+   02C9 FD 66 55            462 	ld	h,(iy+offset)		;FD 66 55
+   02CC 67                  463 	ld	h,a			;67
+   02CD 60                  464 	ld	h,b			;60
+   02CE 61                  465 	ld	h,c			;61
+   02CF 62                  466 	ld	h,d			;62
+   02D0 63                  467 	ld	h,e			;63
+   02D1 64                  468 	ld	h,h			;64
+   02D2 65                  469 	ld	h,l			;65
+   02D3 26 20               470 	ld	h,#n			;26 20
+   02D5 26 20               471 	ld	h, n			;26 20
+   02D7 6E                  472 	ld	l,(hl)			;6E
+   02D8 DD 6E 55            473 	ld	l,offset(ix)		;DD 6E 55
+   02DB FD 6E 55            474 	ld	l,offset(iy)		;FD 6E 55
+   02DE DD 6E 55            475 	ld	l,(ix+offset)		;DD 6E 55
+   02E1 FD 6E 55            476 	ld	l,(iy+offset)		;FD 6E 55
+   02E4 6F                  477 	ld	l,a			;6F
+   02E5 68                  478 	ld	l,b			;68
+   02E6 69                  479 	ld	l,c			;69
+   02E7 6A                  480 	ld	l,d			;6A
+   02E8 6B                  481 	ld	l,e			;6B
+   02E9 6C                  482 	ld	l,h			;6C
+   02EA 6D                  483 	ld	l,l			;6D
+   02EB 2E 20               484 	ld	l,#n			;2E 20
+   02ED 2E 20               485 	ld	l, n			;2E 20
+                            486 	;***********************************************************
+   02EF ED 47               487 	ld	i,a			;ED 47
+   02F1 ED 4F               488 	ld	r,a			;ED 4F
+   02F3 ED 57               489 	ld	a,i			;ED 57
+   02F5 ED 5F               490 	ld	a,r			;ED 5F
+                            491 	;***********************************************************
+   02F7 02                  492 	ld	(bc),a			;02
+   02F8 12                  493 	ld	(de),a			;12
+   02F9 0A                  494 	ld	a,(bc)			;0A
+   02FA 1A                  495 	ld	a,(de)			;1A
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 10
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                            496 	;***********************************************************
+   02FB 77                  497 	ld	(hl),a			;77
+   02FC 70                  498 	ld	(hl),b			;70
+   02FD 71                  499 	ld	(hl),c			;71
+   02FE 72                  500 	ld	(hl),d			;72
+   02FF 73                  501 	ld	(hl),e			;73
+   0300 74                  502 	ld	(hl),h			;74
+   0301 75                  503 	ld	(hl),l			;75
+   0302 36 20               504 	ld	(hl),#n			;36 20
+   0304 36 20               505 	ld	(hl), n			;36 20
+                            506 	;***********************************************************
+   0306 DD 77 55            507 	ld	offset(ix),a		;DD 77 55
+   0309 DD 70 55            508 	ld	offset(ix),b		;DD 70 55
+   030C DD 71 55            509 	ld	offset(ix),c		;DD 71 55
+   030F DD 72 55            510 	ld	offset(ix),d		;DD 72 55
+   0312 DD 73 55            511 	ld	offset(ix),e		;DD 73 55
+   0315 DD 74 55            512 	ld	offset(ix),h		;DD 74 55
+   0318 DD 75 55            513 	ld	offset(ix),l		;DD 75 55
+   031B DD 36 55 20         514 	ld	offset(ix),#n		;DD 36 55 20
+   031F DD 36 55 20         515 	ld	offset(ix), n		;DD 36 55 20
+                            516 	;***********************************************************
+   0323 DD 77 55            517 	ld	(ix+offset),a		;DD 77 55
+   0326 DD 70 55            518 	ld	(ix+offset),b		;DD 70 55
+   0329 DD 71 55            519 	ld	(ix+offset),c		;DD 71 55
+   032C DD 72 55            520 	ld	(ix+offset),d		;DD 72 55
+   032F DD 73 55            521 	ld	(ix+offset),e		;DD 73 55
+   0332 DD 74 55            522 	ld	(ix+offset),h		;DD 74 55
+   0335 DD 75 55            523 	ld	(ix+offset),l		;DD 75 55
+   0338 DD 36 55 20         524 	ld	(ix+offset),#n		;DD 36 55 20
+   033C DD 36 55 20         525 	ld	(ix+offset), n		;DD 36 55 20
+                            526 	;***********************************************************
+   0340 FD 77 55            527 	ld	offset(iy),a		;FD 77 55
+   0343 FD 70 55            528 	ld	offset(iy),b		;FD 70 55
+   0346 FD 71 55            529 	ld	offset(iy),c		;FD 71 55
+   0349 FD 72 55            530 	ld	offset(iy),d		;FD 72 55
+   034C FD 73 55            531 	ld	offset(iy),e		;FD 73 55
+   034F FD 74 55            532 	ld	offset(iy),h		;FD 74 55
+   0352 FD 75 55            533 	ld	offset(iy),l		;FD 75 55
+   0355 FD 36 55 20         534 	ld	offset(iy),#n		;FD 36 55 20
+   0359 FD 36 55 20         535 	ld	offset(iy), n		;FD 36 55 20
+                            536 	;***********************************************************
+   035D FD 77 55            537 	ld	(iy+offset),a		;FD 77 55
+   0360 FD 70 55            538 	ld	(iy+offset),b		;FD 70 55
+   0363 FD 71 55            539 	ld	(iy+offset),c		;FD 71 55
+   0366 FD 72 55            540 	ld	(iy+offset),d		;FD 72 55
+   0369 FD 73 55            541 	ld	(iy+offset),e		;FD 73 55
+   036C FD 74 55            542 	ld	(iy+offset),h		;FD 74 55
+   036F FD 75 55            543 	ld	(iy+offset),l		;FD 75 55
+   0372 FD 36 55 20         544 	ld	(iy+offset),#n		;FD 36 55 20
+   0376 FD 36 55 20         545 	ld	(iy+offset), n		;FD 36 55 20
+                            546 	;***********************************************************
+   037A 32 84 05            547 	ld	(nn),a			;32 84 05
+   037D ED 43 84 05         548 	ld	(nn),bc			;ED 43 84 05
+   0381 ED 53 84 05         549 	ld	(nn),de			;ED 53 84 05
+   0385 22 84 05            550 	ld	(nn),hl			;22 84 05
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 11
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   0388 ED 73 84 05         551 	ld	(nn),sp			;ED 73 84 05
+   038C DD 22 84 05         552 	ld	(nn),ix			;DD 22 84 05
+   0390 FD 22 84 05         553 	ld	(nn),iy			;FD 22 84 05
+                            554 	;***********************************************************
+   0394 3A 84 05            555 	ld	a,(nn)			;3A 84 05
+   0397 ED 4B 84 05         556 	ld	bc,(nn)			;ED 4B 84 05
+   039B ED 5B 84 05         557 	ld	de,(nn)			;ED 5B 84 05
+   039F 2A 84 05            558 	ld	hl,(nn)			;2A 84 05
+   03A2 ED 7B 84 05         559 	ld	sp,(nn)			;ED 7B 84 05
+   03A6 DD 2A 84 05         560 	ld	ix,(nn)			;DD 2A 84 05
+   03AA FD 2A 84 05         561 	ld	iy,(nn)			;FD 2A 84 05
+                            562 	;***********************************************************
+   03AE 01 84 05            563 	ld	bc,#nn			;01 84 05
+   03B1 01 84 05            564 	ld	bc, nn			;01 84 05
+   03B4 11 84 05            565 	ld	de,#nn			;11 84 05
+   03B7 11 84 05            566 	ld	de, nn			;11 84 05
+   03BA 21 84 05            567 	ld	hl,#nn			;21 84 05
+   03BD 21 84 05            568 	ld	hl, nn			;21 84 05
+   03C0 31 84 05            569 	ld	sp,#nn			;31 84 05
+   03C3 31 84 05            570 	ld	sp, nn			;31 84 05
+   03C6 DD 21 84 05         571 	ld	ix,#nn			;DD 21 84 05
+   03CA DD 21 84 05         572 	ld	ix, nn			;DD 21 84 05
+   03CE FD 21 84 05         573 	ld	iy,#nn			;FD 21 84 05
+   03D2 FD 21 84 05         574 	ld	iy, nn			;FD 21 84 05
+                            575 	;***********************************************************
+   03D6 F9                  576 	ld	sp,hl			;F9
+   03D7 DD F9               577 	ld	sp,ix			;DD F9
+   03D9 FD F9               578 	ld	sp,iy			;FD F9
+                            579 	;***********************************************************
+                            580 	; load location (hl)
+                            581 	; with location (de)
+                            582 	; decrement de, hl
+                            583 	; decrement bc
+   03DB ED A8               584 	ldd				;ED A8
+                            585 	;***********************************************************
+                            586 	; load location (hl)
+                            587 	; with location (de)
+                            588 	; decrement de, hl
+                            589 	; decrement bc
+                            590 	; repeat until bc = 0
+   03DD ED B8               591 	lddr				;ED B8
+                            592 	;***********************************************************
+                            593 	; load location (hl)
+                            594 	; with location (de)
+                            595 	; increment de, hl
+                            596 	; decrement bc
+   03DF ED A0               597 	ldi				;ED A0
+                            598 	;***********************************************************
+                            599 	; load location (hl)
+                            600 	; with location (de)
+                            601 	; increment de, hl
+                            602 	; decrement bc
+                            603 	; repeat until bc = 0
+   03E1 ED B0               604 	ldir				;ED B0
+                            605 	;***********************************************************
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 12
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                            606 	; 2's complement of 'a'
+   03E3 ED 44               607 	neg				;ED 44
+                            608 	;***********************************************************
+                            609 	; no operation
+   03E5 00                  610 	nop				;00
+                            611 	;***********************************************************
+                            612 	; logical 'or' operand with 'a'
+   03E6 B6                  613 	or	a,(hl)			;B6
+   03E7 DD B6 55            614 	or	a,offset(ix)		;DD B6 55
+   03EA FD B6 55            615 	or	a,offset(iy)		;FD B6 55
+   03ED DD B6 55            616 	or	a,(ix+offset)		;DD B6 55
+   03F0 FD B6 55            617 	or	a,(iy+offset)		;FD B6 55
+   03F3 B7                  618 	or	a,a			;B7
+   03F4 B0                  619 	or	a,b			;B0
+   03F5 B1                  620 	or	a,c			;B1
+   03F6 B2                  621 	or	a,d			;B2
+   03F7 B3                  622 	or	a,e			;B3
+   03F8 B4                  623 	or	a,h			;B4
+   03F9 B5                  624 	or	a,l			;B5
+   03FA F6 20               625 	or	a,#n			;F6 20
+   03FC F6 20               626 	or	a, n			;F6 20
+                            627 	;***********************************************************
+                            628 	; load output port (c)
+                            629 	; with location (hl)
+                            630 	; decrement hl and decrement b
+                            631 	; repeat until b = 0
+   03FE ED BB               632 	otdr				;ED BB
+                            633 	;***********************************************************
+                            634 	; load output port (c)
+                            635 	; with location (hl)
+                            636 	; increment hl and decrement b
+                            637 	; repeat until b = 0
+   0400 ED B3               638 	otir				;ED B3
+                            639 	;***********************************************************
+                            640 	; load output port (c) with reg
+   0402 ED 79               641 	out	(c),a			;ED 79
+   0404 ED 41               642 	out	(c),b			;ED 41
+   0406 ED 49               643 	out	(c),c			;ED 49
+   0408 ED 51               644 	out	(c),d			;ED 51
+   040A ED 59               645 	out	(c),e			;ED 59
+   040C ED 61               646 	out	(c),h			;ED 61
+   040E ED 69               647 	out	(c),l			;ED 69
+                            648 	;***********************************************************
+                            649 	; load output port (n) with 'a'
+   0410 D3 20               650 	out	(n),a			;D3 20
+                            651 	;***********************************************************
+                            652 	; load output port (c)
+                            653 	; with location (hl)
+                            654 	; decrement hl and decrement b
+   0412 ED AB               655 	outd				;ED AB
+                            656 	;***********************************************************
+                            657 	; load output port (c)
+                            658 	; with location (hl)
+                            659 	; increment hl and decrement b
+   0414 ED A3               660 	outi				;ED A3
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 13
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                            661 	;***********************************************************
+                            662 	; load destination with top of stack
+   0416 F1                  663 	pop	af			;F1
+   0417 C1                  664 	pop	bc			;C1
+   0418 D1                  665 	pop	de			;D1
+   0419 E1                  666 	pop	hl			;E1
+   041A DD E1               667 	pop	ix			;DD E1
+   041C FD E1               668 	pop	iy			;FD E1
+                            669 	;***********************************************************
+                            670 	; put source on stack
+   041E F5                  671 	push	af			;F5
+   041F C5                  672 	push	bc			;C5
+   0420 D5                  673 	push	de			;D5
+   0421 E5                  674 	push	hl			;E5
+   0422 DD E5               675 	push	ix			;DD E5
+   0424 FD E5               676 	push	iy			;FD E5
+                            677 	;***********************************************************
+                            678 	; reset bit of location or register
+   0426 CB 86               679 	res	0,(hl)			;CB 86
+   0428 DD CB 55 86         680 	res	0,offset(ix)		;DD CB 55 86
+   042C FD CB 55 86         681 	res	0,offset(iy)		;FD CB 55 86
+   0430 DD CB 55 86         682 	res	0,(ix+offset)		;DD CB 55 86
+   0434 FD CB 55 86         683 	res	0,(iy+offset)		;FD CB 55 86
+   0438 CB 87               684 	res	0,a			;CB 87
+   043A CB 80               685 	res	0,b			;CB 80
+   043C CB 81               686 	res	0,c			;CB 81
+   043E CB 82               687 	res	0,d			;CB 82
+   0440 CB 83               688 	res	0,e			;CB 83
+   0442 CB 84               689 	res	0,h			;CB 84
+   0444 CB 85               690 	res	0,l			;CB 85
+   0446 CB 8E               691 	res	1,(hl)			;CB 8E
+   0448 DD CB 55 8E         692 	res	1,offset(ix)		;DD CB 55 8E
+   044C FD CB 55 8E         693 	res	1,offset(iy)		;FD CB 55 8E
+   0450 DD CB 55 8E         694 	res	1,(ix+offset)		;DD CB 55 8E
+   0454 FD CB 55 8E         695 	res	1,(iy+offset)		;FD CB 55 8E
+   0458 CB 8F               696 	res	1,a			;CB 8F
+   045A CB 88               697 	res	1,b			;CB 88
+   045C CB 89               698 	res	1,c			;CB 89
+   045E CB 8A               699 	res	1,d			;CB 8A
+   0460 CB 8B               700 	res	1,e			;CB 8B
+   0462 CB 8C               701 	res	1,h			;CB 8C
+   0464 CB 8D               702 	res	1,l			;CB 8D
+   0466 CB 96               703 	res	2,(hl)			;CB 96
+   0468 DD CB 55 96         704 	res	2,offset(ix)		;DD CB 55 96
+   046C FD CB 55 96         705 	res	2,offset(iy)		;FD CB 55 96
+   0470 DD CB 55 96         706 	res	2,(ix+offset)		;DD CB 55 96
+   0474 FD CB 55 96         707 	res	2,(iy+offset)		;FD CB 55 96
+   0478 CB 97               708 	res	2,a			;CB 97
+   047A CB 90               709 	res	2,b			;CB 90
+   047C CB 91               710 	res	2,c			;CB 91
+   047E CB 92               711 	res	2,d			;CB 92
+   0480 CB 93               712 	res	2,e			;CB 93
+   0482 CB 94               713 	res	2,h			;CB 94
+   0484 CB 95               714 	res	2,l			;CB 95
+   0486 CB 9E               715 	res	3,(hl)			;CB 9E
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 14
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   0488 DD CB 55 9E         716 	res	3,offset(ix)		;DD CB 55 9E
+   048C FD CB 55 9E         717 	res	3,offset(iy)		;FD CB 55 9E
+   0490 DD CB 55 9E         718 	res	3,(ix+offset)		;DD CB 55 9E
+   0494 FD CB 55 9E         719 	res	3,(iy+offset)		;FD CB 55 9E
+   0498 CB 9F               720 	res	3,a			;CB 9F
+   049A CB 98               721 	res	3,b			;CB 98
+   049C CB 99               722 	res	3,c			;CB 99
+   049E CB 9A               723 	res	3,d			;CB 9A
+   04A0 CB 9B               724 	res	3,e			;CB 9B
+   04A2 CB 9C               725 	res	3,h			;CB 9C
+   04A4 CB 9D               726 	res	3,l			;CB 9D
+   04A6 CB A6               727 	res	4,(hl)			;CB A6
+   04A8 DD CB 55 A6         728 	res	4,offset(ix)		;DD CB 55 A6
+   04AC FD CB 55 A6         729 	res	4,offset(iy)		;FD CB 55 A6
+   04B0 DD CB 55 A6         730 	res	4,(ix+offset)		;DD CB 55 A6
+   04B4 FD CB 55 A6         731 	res	4,(iy+offset)		;FD CB 55 A6
+   04B8 CB A7               732 	res	4,a			;CB A7
+   04BA CB A0               733 	res	4,b			;CB A0
+   04BC CB A1               734 	res	4,c			;CB A1
+   04BE CB A2               735 	res	4,d			;CB A2
+   04C0 CB A3               736 	res	4,e			;CB A3
+   04C2 CB A4               737 	res	4,h			;CB A4
+   04C4 CB A5               738 	res	4,l			;CB A5
+   04C6 CB AE               739 	res	5,(hl)			;CB AE
+   04C8 DD CB 55 AE         740 	res	5,offset(ix)		;DD CB 55 AE
+   04CC FD CB 55 AE         741 	res	5,offset(iy)		;FD CB 55 AE
+   04D0 DD CB 55 AE         742 	res	5,(ix+offset)		;DD CB 55 AE
+   04D4 FD CB 55 AE         743 	res	5,(iy+offset)		;FD CB 55 AE
+   04D8 CB AF               744 	res	5,a			;CB AF
+   04DA CB A8               745 	res	5,b			;CB A8
+   04DC CB A9               746 	res	5,c			;CB A9
+   04DE CB AA               747 	res	5,d			;CB AA
+   04E0 CB AB               748 	res	5,e			;CB AB
+   04E2 CB AC               749 	res	5,h			;CB AC
+   04E4 CB AD               750 	res	5,l			;CB AD
+   04E6 CB B6               751 	res	6,(hl)			;CB B6
+   04E8 DD CB 55 B6         752 	res	6,offset(ix)		;DD CB 55 B6
+   04EC FD CB 55 B6         753 	res	6,offset(iy)		;FD CB 55 B6
+   04F0 DD CB 55 B6         754 	res	6,(ix+offset)		;DD CB 55 B6
+   04F4 FD CB 55 B6         755 	res	6,(iy+offset)		;FD CB 55 B6
+   04F8 CB B7               756 	res	6,a			;CB B7
+   04FA CB B0               757 	res	6,b			;CB B0
+   04FC CB B1               758 	res	6,c			;CB B1
+   04FE CB B2               759 	res	6,d			;CB B2
+   0500 CB B3               760 	res	6,e			;CB B3
+   0502 CB B4               761 	res	6,h			;CB B4
+   0504 CB B5               762 	res	6,l			;CB B5
+   0506 CB BE               763 	res	7,(hl)			;CB BE
+   0508 DD CB 55 BE         764 	res	7,offset(ix)		;DD CB 55 BE
+   050C FD CB 55 BE         765 	res	7,offset(iy)		;FD CB 55 BE
+   0510 DD CB 55 BE         766 	res	7,(ix+offset)		;DD CB 55 BE
+   0514 FD CB 55 BE         767 	res	7,(iy+offset)		;FD CB 55 BE
+   0518 CB BF               768 	res	7,a			;CB BF
+   051A CB B8               769 	res	7,b			;CB B8
+   051C CB B9               770 	res	7,c			;CB B9
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 15
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   051E CB BA               771 	res	7,d			;CB BA
+   0520 CB BB               772 	res	7,e			;CB BB
+   0522 CB BC               773 	res	7,h			;CB BC
+   0524 CB BD               774 	res	7,l			;CB BD
+                            775 	;***********************************************************
+                            776 	; return from subroutine
+   0526 C9                  777 	ret				;C9
+                            778 	;***********************************************************
+                            779 	; return from subroutine if condition is true
+   0527 D8                  780 	ret	C			;D8
+   0528 F8                  781 	ret	M			;F8
+   0529 D0                  782 	ret	NC			;D0
+   052A C0                  783 	ret	NZ			;C0
+   052B F0                  784 	ret	P			;F0
+   052C E8                  785 	ret	PE			;E8
+   052D E0                  786 	ret	PO			;E0
+   052E C8                  787 	ret	Z			;C8
+                            788 	;***********************************************************
+                            789 	; return from interrupt
+   052F ED 4D               790 	reti				;ED 4D
+                            791 	;***********************************************************
+                            792 	; return from non-maskable interrupt
+   0531 ED 45               793 	retn				;ED 45
+                            794 	;***********************************************************
+                            795 	; rotate left through carry
+   0533 CB 16               796 	rl	a,(hl)			;CB 16
+   0535 DD CB 55 16         797 	rl	a,offset(ix)		;DD CB 55 16
+   0539 FD CB 55 16         798 	rl	a,offset(iy)		;FD CB 55 16
+   053D DD CB 55 16         799 	rl	a,(ix+offset)		;DD CB 55 16
+   0541 FD CB 55 16         800 	rl	a,(iy+offset)		;FD CB 55 16
+   0545 CB 17               801 	rl	a,a			;CB 17
+   0547 CB 10               802 	rl	a,b			;CB 10
+   0549 CB 11               803 	rl	a,c			;CB 11
+   054B CB 12               804 	rl	a,d			;CB 12
+   054D CB 13               805 	rl	a,e			;CB 13
+   054F CB 14               806 	rl	a,h			;CB 14
+   0551 CB 15               807 	rl	a,l			;CB 15
+                            808 	;***********************************************************
+                            809 	; rotate left 'a' with carry
+   0553 17                  810 	rla				;17
+                            811 	;***********************************************************
+                            812 	; rotate left circular
+   0554 CB 06               813 	rlc	a,(hl)			;CB 06
+   0556 DD CB 55 06         814 	rlc	a,offset(ix)		;DD CB 55 06
+   055A FD CB 55 06         815 	rlc	a,offset(iy)		;FD CB 55 06
+   055E DD CB 55 06         816 	rlc	a,(ix+offset)		;DD CB 55 06
+   0562 FD CB 55 06         817 	rlc	a,(iy+offset)		;FD CB 55 06
+   0566 CB 07               818 	rlc	a,a			;CB 07
+   0568 CB 00               819 	rlc	a,b			;CB 00
+   056A CB 01               820 	rlc	a,c			;CB 01
+   056C CB 02               821 	rlc	a,d			;CB 02
+   056E CB 03               822 	rlc	a,e			;CB 03
+   0570 CB 04               823 	rlc	a,h			;CB 04
+   0572 CB 05               824 	rlc	a,l			;CB 05
+                            825 	;***********************************************************
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 16
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                            826 	; rotate left 'a' circular
+   0574 07                  827 	rlca				;07
+                            828 	;***********************************************************
+                            829 	; rotate digit left and right
+                            830 	; between 'a' and location (hl)
+   0575 ED 6F               831 	rld				;ED 6F
+                            832 	;***********************************************************
+                            833 	; rotate right through carry
+   0577 CB 1E               834 	rr	a,(hl)			;CB 1E
+   0579 DD CB 55 1E         835 	rr	a,offset(ix)		;DD CB 55 1E
+   057D FD CB 55 1E         836 	rr	a,offset(iy)		;FD CB 55 1E
+   0581 DD CB 55 1E         837 	rr	a,(ix+offset)		;DD CB 55 1E
+   0585 FD CB 55 1E         838 	rr	a,(iy+offset)		;FD CB 55 1E
+   0589 CB 1F               839 	rr	a,a			;CB 1F
+   058B CB 18               840 	rr	a,b			;CB 18
+   058D CB 19               841 	rr	a,c			;CB 19
+   058F CB 1A               842 	rr	a,d			;CB 1A
+   0591 CB 1B               843 	rr	a,e			;CB 1B
+   0593 CB 1C               844 	rr	a,h			;CB 1C
+   0595 CB 1D               845 	rr	a,l			;CB 1D
+                            846 	;***********************************************************
+                            847 	; rotate 'a' right with carry
+   0597 1F                  848 	rra				;1F
+                            849 	;***********************************************************
+                            850 	; rotate right circular
+   0598 CB 0E               851 	rrc	a,(hl)			;CB 0E
+   059A DD CB 55 0E         852 	rrc	a,offset(ix)		;DD CB 55 0E
+   059E FD CB 55 0E         853 	rrc	a,offset(iy)		;FD CB 55 0E
+   05A2 DD CB 55 0E         854 	rrc	a,(ix+offset)		;DD CB 55 0E
+   05A6 FD CB 55 0E         855 	rrc	a,(iy+offset)		;FD CB 55 0E
+   05AA CB 0F               856 	rrc	a,a			;CB 0F
+   05AC CB 08               857 	rrc	a,b			;CB 08
+   05AE CB 09               858 	rrc	a,c			;CB 09
+   05B0 CB 0A               859 	rrc	a,d			;CB 0A
+   05B2 CB 0B               860 	rrc	a,e			;CB 0B
+   05B4 CB 0C               861 	rrc	a,h			;CB 0C
+   05B6 CB 0D               862 	rrc	a,l			;CB 0D
+                            863 	;***********************************************************
+                            864 	; rotate 'a' right circular
+   05B8 0F                  865 	rrca				;0F
+                            866 	;***********************************************************
+                            867 	; rotate digit right and left
+                            868 	; between 'a' and location (hl)
+   05B9 ED 67               869 	rrd				;ED 67
+                            870 	;***********************************************************
+                            871 	; restart location
+   05BB C7                  872 	rst	0x00			;C7
+   05BC CF                  873 	rst	0x08			;CF
+   05BD D7                  874 	rst	0x10			;D7
+   05BE DF                  875 	rst	0x18			;DF
+   05BF E7                  876 	rst	0x20			;E7
+   05C0 EF                  877 	rst	0x28			;EF
+   05C1 F7                  878 	rst	0x30			;F7
+   05C2 FF                  879 	rst	0x38			;FF
+                            880 	;***********************************************************
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 17
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                            881 	; subtract with carry to 'a'
+   05C3 9E                  882 	sbc	a,(hl)			;9E
+   05C4 DD 9E 55            883 	sbc	a,offset(ix)		;DD 9E 55
+   05C7 FD 9E 55            884 	sbc	a,offset(iy)		;FD 9E 55
+   05CA DD 9E 55            885 	sbc	a,(ix+offset)		;DD 9E 55
+   05CD FD 9E 55            886 	sbc	a,(iy+offset)		;FD 9E 55
+   05D0 9F                  887 	sbc	a,a			;9F
+   05D1 98                  888 	sbc	a,b			;98
+   05D2 99                  889 	sbc	a,c			;99
+   05D3 9A                  890 	sbc	a,d			;9A
+   05D4 9B                  891 	sbc	a,e			;9B
+   05D5 9C                  892 	sbc	a,h			;9C
+   05D6 9D                  893 	sbc	a,l			;9D
+   05D7 DE 20               894 	sbc	a,#n			;DE 20
+   05D9 DE 20               895 	sbc	a, n			;DE 20
+                            896 	;***********************************************************
+                            897 	; add with carry register pair to 'hl'
+   05DB ED 42               898 	sbc	hl,bc			;ED 42
+   05DD ED 52               899 	sbc	hl,de			;ED 52
+   05DF ED 62               900 	sbc	hl,hl			;ED 62
+   05E1 ED 72               901 	sbc	hl,sp			;ED 72
+                            902 	;***********************************************************
+                            903 	; set carry flag (C=1)
+   05E3 37                  904 	scf				;37
+                            905 	;***********************************************************
+                            906 	; set bit of location or register
+   05E4 CB C6               907 	set	0,(hl)			;CB C6
+   05E6 DD CB 55 C6         908 	set	0,offset(ix)		;DD CB 55 C6
+   05EA FD CB 55 C6         909 	set	0,offset(iy)		;FD CB 55 C6
+   05EE DD CB 55 C6         910 	set	0,(ix+offset)		;DD CB 55 C6
+   05F2 FD CB 55 C6         911 	set	0,(iy+offset)		;FD CB 55 C6
+   05F6 CB C7               912 	set	0,a			;CB C7
+   05F8 CB C0               913 	set	0,b			;CB C0
+   05FA CB C1               914 	set	0,c			;CB C1
+   05FC CB C2               915 	set	0,d			;CB C2
+   05FE CB C3               916 	set	0,e			;CB C3
+   0600 CB C4               917 	set	0,h			;CB C4
+   0602 CB C5               918 	set	0,l			;CB C5
+   0604 CB CE               919 	set	1,(hl)			;CB CE
+   0606 DD CB 55 CE         920 	set	1,offset(ix)		;DD CB 55 CE
+   060A FD CB 55 CE         921 	set	1,offset(iy)		;FD CB 55 CE
+   060E DD CB 55 CE         922 	set	1,(ix+offset)		;DD CB 55 CE
+   0612 FD CB 55 CE         923 	set	1,(iy+offset)		;FD CB 55 CE
+   0616 CB CF               924 	set	1,a			;CB CF
+   0618 CB C8               925 	set	1,b			;CB C8
+   061A CB C9               926 	set	1,c			;CB C9
+   061C CB CA               927 	set	1,d			;CB CA
+   061E CB CB               928 	set	1,e			;CB CB
+   0620 CB CC               929 	set	1,h			;CB CC
+   0622 CB CD               930 	set	1,l			;CB CD
+   0624 CB D6               931 	set	2,(hl)			;CB D6
+   0626 DD CB 55 D6         932 	set	2,offset(ix)		;DD CB 55 D6
+   062A FD CB 55 D6         933 	set	2,offset(iy)		;FD CB 55 D6
+   062E DD CB 55 D6         934 	set	2,(ix+offset)		;DD CB 55 D6
+   0632 FD CB 55 D6         935 	set	2,(iy+offset)		;FD CB 55 D6
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 18
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   0636 CB D7               936 	set	2,a			;CB D7
+   0638 CB D0               937 	set	2,b			;CB D0
+   063A CB D1               938 	set	2,c			;CB D1
+   063C CB D2               939 	set	2,d			;CB D2
+   063E CB D3               940 	set	2,e			;CB D3
+   0640 CB D4               941 	set	2,h			;CB D4
+   0642 CB D5               942 	set	2,l			;CB D5
+   0644 CB DE               943 	set	3,(hl)			;CB DE
+   0646 DD CB 55 DE         944 	set	3,offset(ix)		;DD CB 55 DE
+   064A FD CB 55 DE         945 	set	3,offset(iy)		;FD CB 55 DE
+   064E DD CB 55 DE         946 	set	3,(ix+offset)		;DD CB 55 DE
+   0652 FD CB 55 DE         947 	set	3,(iy+offset)		;FD CB 55 DE
+   0656 CB DF               948 	set	3,a			;CB DF
+   0658 CB D8               949 	set	3,b			;CB D8
+   065A CB D9               950 	set	3,c			;CB D9
+   065C CB DA               951 	set	3,d			;CB DA
+   065E CB DB               952 	set	3,e			;CB DB
+   0660 CB DC               953 	set	3,h			;CB DC
+   0662 CB DD               954 	set	3,l			;CB DD
+   0664 CB E6               955 	set	4,(hl)			;CB E6
+   0666 DD CB 55 E6         956 	set	4,offset(ix)		;DD CB 55 E6
+   066A FD CB 55 E6         957 	set	4,offset(iy)		;FD CB 55 E6
+   066E DD CB 55 E6         958 	set	4,(ix+offset)		;DD CB 55 E6
+   0672 FD CB 55 E6         959 	set	4,(iy+offset)		;FD CB 55 E6
+   0676 CB E7               960 	set	4,a			;CB E7
+   0678 CB E0               961 	set	4,b			;CB E0
+   067A CB E1               962 	set	4,c			;CB E1
+   067C CB E2               963 	set	4,d			;CB E2
+   067E CB E3               964 	set	4,e			;CB E3
+   0680 CB E4               965 	set	4,h			;CB E4
+   0682 CB E5               966 	set	4,l			;CB E5
+   0684 CB EE               967 	set	5,(hl)			;CB EE
+   0686 DD CB 55 EE         968 	set	5,offset(ix)		;DD CB 55 EE
+   068A FD CB 55 EE         969 	set	5,offset(iy)		;FD CB 55 EE
+   068E DD CB 55 EE         970 	set	5,(ix+offset)		;DD CB 55 EE
+   0692 FD CB 55 EE         971 	set	5,(iy+offset)		;FD CB 55 EE
+   0696 CB EF               972 	set	5,a			;CB EF
+   0698 CB E8               973 	set	5,b			;CB E8
+   069A CB E9               974 	set	5,c			;CB E9
+   069C CB EA               975 	set	5,d			;CB EA
+   069E CB EB               976 	set	5,e			;CB EB
+   06A0 CB EC               977 	set	5,h			;CB EC
+   06A2 CB ED               978 	set	5,l			;CB ED
+   06A4 CB F6               979 	set	6,(hl)			;CB F6
+   06A6 DD CB 55 F6         980 	set	6,offset(ix)		;DD CB 55 F6
+   06AA FD CB 55 F6         981 	set	6,offset(iy)		;FD CB 55 F6
+   06AE DD CB 55 F6         982 	set	6,(ix+offset)		;DD CB 55 F6
+   06B2 FD CB 55 F6         983 	set	6,(iy+offset)		;FD CB 55 F6
+   06B6 CB F7               984 	set	6,a			;CB F7
+   06B8 CB F0               985 	set	6,b			;CB F0
+   06BA CB F1               986 	set	6,c			;CB F1
+   06BC CB F2               987 	set	6,d			;CB F2
+   06BE CB F3               988 	set	6,e			;CB F3
+   06C0 CB F4               989 	set	6,h			;CB F4
+   06C2 CB F5               990 	set	6,l			;CB F5
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 19
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   06C4 CB FE               991 	set	7,(hl)			;CB FE
+   06C6 DD CB 55 FE         992 	set	7,offset(ix)		;DD CB 55 FE
+   06CA FD CB 55 FE         993 	set	7,offset(iy)		;FD CB 55 FE
+   06CE DD CB 55 FE         994 	set	7,(ix+offset)		;DD CB 55 FE
+   06D2 FD CB 55 FE         995 	set	7,(iy+offset)		;FD CB 55 FE
+   06D6 CB FF               996 	set	7,a			;CB FF
+   06D8 CB F8               997 	set	7,b			;CB F8
+   06DA CB F9               998 	set	7,c			;CB F9
+   06DC CB FA               999 	set	7,d			;CB FA
+   06DE CB FB              1000 	set	7,e			;CB FB
+   06E0 CB FC              1001 	set	7,h			;CB FC
+   06E2 CB FD              1002 	set	7,l			;CB FD
+                           1003 	;***********************************************************
+                           1004 	; shift operand left arithmetic
+   06E4 CB 26              1005 	sla	a,(hl)			;CB 26
+   06E6 DD CB 55 26        1006 	sla	a,offset(ix)		;DD CB 55 26
+   06EA FD CB 55 26        1007 	sla	a,offset(iy)		;FD CB 55 26
+   06EE DD CB 55 26        1008 	sla	a,(ix+offset)		;DD CB 55 26
+   06F2 FD CB 55 26        1009 	sla	a,(iy+offset)		;FD CB 55 26
+   06F6 CB 27              1010 	sla	a,a			;CB 27
+   06F8 CB 20              1011 	sla	a,b			;CB 20
+   06FA CB 21              1012 	sla	a,c			;CB 21
+   06FC CB 22              1013 	sla	a,d			;CB 22
+   06FE CB 23              1014 	sla	a,e			;CB 23
+   0700 CB 24              1015 	sla	a,h			;CB 24
+   0702 CB 25              1016 	sla	a,l			;CB 25
+                           1017 	;***********************************************************
+                           1018 	; shift operand right arithmetic
+   0704 CB 2E              1019 	sra	a,(hl)			;CB 2E
+   0706 DD CB 55 2E        1020 	sra	a,offset(ix)		;DD CB 55 2E
+   070A FD CB 55 2E        1021 	sra	a,offset(iy)		;FD CB 55 2E
+   070E DD CB 55 2E        1022 	sra	a,(ix+offset)		;DD CB 55 2E
+   0712 FD CB 55 2E        1023 	sra	a,(iy+offset)		;FD CB 55 2E
+   0716 CB 2F              1024 	sra	a,a			;CB 2F
+   0718 CB 28              1025 	sra	a,b			;CB 28
+   071A CB 29              1026 	sra	a,c			;CB 29
+   071C CB 2A              1027 	sra	a,d			;CB 2A
+   071E CB 2B              1028 	sra	a,e			;CB 2B
+   0720 CB 2C              1029 	sra	a,h			;CB 2C
+   0722 CB 2D              1030 	sra	a,l			;CB 2D
+                           1031 	;***********************************************************
+                           1032 	; shift operand right logical
+   0724 CB 3E              1033 	srl	a,(hl)			;CB 3E
+   0726 DD CB 55 3E        1034 	srl	a,offset(ix)		;DD CB 55 3E
+   072A FD CB 55 3E        1035 	srl	a,offset(iy)		;FD CB 55 3E
+   072E DD CB 55 3E        1036 	srl	a,(ix+offset)		;DD CB 55 3E
+   0732 FD CB 55 3E        1037 	srl	a,(iy+offset)		;FD CB 55 3E
+   0736 CB 3F              1038 	srl	a,a			;CB 3F
+   0738 CB 38              1039 	srl	a,b			;CB 38
+   073A CB 39              1040 	srl	a,c			;CB 39
+   073C CB 3A              1041 	srl	a,d			;CB 3A
+   073E CB 3B              1042 	srl	a,e			;CB 3B
+   0740 CB 3C              1043 	srl	a,h			;CB 3C
+   0742 CB 3D              1044 	srl	a,l			;CB 3D
+                           1045 	;***********************************************************
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 20
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                           1046 	; subtract operand from 'a'
+   0744 96                 1047 	sub	a,(hl)			;96
+   0745 DD 96 55           1048 	sub	a,offset(ix)		;DD 96 55
+   0748 FD 96 55           1049 	sub	a,offset(iy)		;FD 96 55
+   074B DD 96 55           1050 	sub	a,(ix+offset)		;DD 96 55
+   074E FD 96 55           1051 	sub	a,(iy+offset)		;FD 96 55
+   0751 97                 1052 	sub	a,a			;97
+   0752 90                 1053 	sub	a,b			;90
+   0753 91                 1054 	sub	a,c			;91
+   0754 92                 1055 	sub	a,d			;92
+   0755 93                 1056 	sub	a,e			;93
+   0756 94                 1057 	sub	a,h			;94
+   0757 95                 1058 	sub	a,l			;95
+   0758 D6 20              1059 	sub	a,#n			;D6 20
+   075A D6 20              1060 	sub	a, n			;D6 20
+                           1061 	;***********************************************************
+                           1062 	; logical 'xor' operand with 'a'
+   075C AE                 1063 	xor	a,(hl)			;AE
+   075D DD AE 55           1064 	xor	a,offset(ix)		;DD AE 55
+   0760 FD AE 55           1065 	xor	a,offset(iy)		;FD AE 55
+   0763 DD AE 55           1066 	xor	a,(ix+offset)		;DD AE 55
+   0766 FD AE 55           1067 	xor	a,(iy+offset)		;FD AE 55
+   0769 AF                 1068 	xor	a,a			;AF
+   076A A8                 1069 	xor	a,b			;A8
+   076B A9                 1070 	xor	a,c			;A9
+   076C AA                 1071 	xor	a,d			;AA
+   076D AB                 1072 	xor	a,e			;AB
+   076E AC                 1073 	xor	a,h			;AC
+   076F AD                 1074 	xor	a,l			;AD
+   0770 EE 20              1075 	xor	a,#n			;EE 20
+   0772 EE 20              1076 	xor	a, n			;EE 20
+                           1077 
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 21
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                           1079 	;***********************************************************
+                           1080 	; Hitachi HD64180 Codes
+                           1081 	;***********************************************************
+                           1082 
+                           1083 	.hd64
+                           1084 
+                           1085 	;***********************************************************
+                           1086 	; load register with input from port (n)
+   0774 ED 38 20           1087 	in0	a,(n)			;ED 38 20
+   0777 ED 00 20           1088 	in0	b,(n)			;ED 00 20
+   077A ED 08 20           1089 	in0	c,(n)			;ED 08 20
+   077D ED 10 20           1090 	in0	d,(n)			;ED 10 20
+   0780 ED 18 20           1091 	in0	e,(n)			;ED 18 20
+   0783 ED 20 20           1092 	in0	h,(n)			;ED 20 20
+   0786 ED 28 20           1093 	in0	l,(n)			;ED 28 20
+                           1094 	;***********************************************************
+                           1095 	; multiplication of each half
+                           1096 	; of the specified register pair
+                           1097 	; with the 16-bit result going to
+                           1098 	; the specified register pair
+   0789 ED 4C              1099 	mlt	bc			;ED 4C
+   078B ED 5C              1100 	mlt	de			;ED 5C
+   078D ED 6C              1101 	mlt	hl			;ED 6C
+   078F ED 7C              1102 	mlt	sp			;ED 7C
+                           1103 	;***********************************************************
+                           1104 	; load output port (c) with
+                           1105 	; location (hl),
+                           1106 	; decrement hl and b
+                           1107 	; decrement c
+   0791 ED 8B              1108 	otdm				;ED 8B
+                           1109 	;***********************************************************
+                           1110 	; load output port (c) with
+                           1111 	; location (hl),
+                           1112 	; decrement hl and c
+                           1113 	; decrement b
+                           1114 	; repeat until b = 0
+   0793 ED 9B              1115 	otdmr				;ED 9B
+                           1116 	;***********************************************************
+                           1117 	; load output port (c) with
+                           1118 	; location (hl),
+                           1119 	; increment hl and b
+                           1120 	; decrement c
+   0795 ED 83              1121 	otim				;ED 83
+                           1122 	;***********************************************************
+                           1123 	; load output port (c) with
+                           1124 	; location (hl),
+                           1125 	; increment hl and c
+                           1126 	; decrement b
+                           1127 	; repeat until b = 0
+   0797 ED 93              1128 	otimr				;ED 93
+                           1129 	;***********************************************************
+                           1130 	; load output port (n) from register
+   0799 ED 39 20           1131 	out0	(n),a			;ED 39 20
+   079C ED 01 20           1132 	out0	(n),b			;ED 01 20
+   079F ED 09 20           1133 	out0	(n),c			;ED 09 20
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 22
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+   07A2 ED 11 20           1134 	out0	(n),d			;ED 11 20
+   07A5 ED 19 20           1135 	out0	(n),e			;ED 19 20
+   07A8 ED 21 20           1136 	out0	(n),h			;ED 21 20
+   07AB ED 29 20           1137 	out0	(n),l			;ED 29 20
+                           1138 	;***********************************************************
+                           1139 	; enter sleep mode
+   07AE ED 76              1140 	slp				;ED 76
+                           1141 	;***********************************************************
+                           1142 	; non-destructive'and' with accumulator and specified operand
+   07B0 ED 3C              1143 	tst	a			;ED 3C
+   07B2 ED 04              1144 	tst	b			;ED 04
+   07B4 ED 0C              1145 	tst	c			;ED 0C
+   07B6 ED 14              1146 	tst	d			;ED 14
+   07B8 ED 1C              1147 	tst	e			;ED 1C
+   07BA ED 24              1148 	tst	h			;ED 24
+   07BC ED 2C              1149 	tst	l			;ED 2C
+   07BE ED 64 20           1150 	tst	#n			;ED 64 20
+   07C1 ED 64 20           1151 	tst	 n			;ED 64 20
+   07C4 ED 34              1152 	tst	(hl)			;ED 34
+                           1153 	;***********************************************************
+                           1154 	; non-destructive 'and' of n and the contents of port (c)
+   07C6 ED 74 20           1155 	tstio	#n			;ED 74 20
+   07C9 ED 74 20           1156 	tstio	 n			;ED 74 20
+                           1157 	;***********************************************************
+                           1158 
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 23
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+
+
+                           1160 	;***********************************************************
+                           1161 	; 8085 Undocumented Codes
+                           1162 	;***********************************************************
+                           1163 
+                           1164 	.8085x
+                           1165 
+   07CC 08                 1166 	dsub				;08
+   07CD 10                 1167 	arhl				;10
+   07CE 18                 1168 	rdel				;18
+   07CF CB                 1169 	rstv				;CB
+   07D0 D9                 1170 	shlx				;D9
+   07D1 ED                 1171 	lhlx				;ED
+                           1172 
+   07D2 28 20              1173 	ldhi	#n			;28 20
+   07D4 38 20              1174 	ldsi	#n			;38 20
+                           1175 
+   07D6 DD 84 05           1176 	jnk	nn			;DD 84 05
+   07D9 DD 84 05           1177 	jnx5	nn			;DD 84 05
+   07DC FD 84 05           1178 	jk	nn			;FD 84 05
+   07DF FD 84 05           1179 	jx5	nn			;FD 84 05
+                           1180 
+                           1181 	.end
+                           1182 
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 24
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+Symbol Table
+
+    .__.$$$.       =   2710 L   |     .__.ABS.       =   0000 G
+    .__.CPU.       =   0004 L   |     .__.H$L.       =   0000 L
+  0 jr1                023F GR  |   0 jr2                0241 GR
+  0 jr3                0243 GR  |   0 jr4                0245 GR
+  0 jr5                0247 GR  |     n              =   0020 G
+    nn             =   0584 G   |     offset         =   0055 G
+
+ASxxxx Assembler V05.50  (Zilog Z80 / Hitachi HD64180)                 Page 25
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z80 / HD64180 assembler
+Area Table
+
+[_CSEG]
+   0 _CODE            size  7E2   flags C180
+[_DSEG]
+   1 _DATA            size    0   flags C0C0
+

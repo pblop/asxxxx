@@ -1,0 +1,5 @@
+-xu
+t78k0p
+-a SFR  = 0xFF00
+-a PROG = 0x0000
+-e

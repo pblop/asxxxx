@@ -1,0 +1,30 @@
+82569
+R:\asxv5pxx\asxmak\symantec\build\aspdp11.prj
+aspdp11.OPN
+novcs
+aspdp11.DEF
+6
+1659039726
+0 0 0 0 0 "..\..\..\ASXXSRC\asdata.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asdbg.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asexpr.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\aslex.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\aslist.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asmain.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asmcro.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\asout.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\assubr.c"
+0 0 0 0 0 "..\..\..\ASXXSRC\assym.c"
+0 0 0 0 0 "..\..\..\ASPDP11\pdp11adr.c"
+0 0 0 0 0 "..\..\..\ASPDP11\pdp11cyc.c"
+0 0 0 0 0 "..\..\..\ASPDP11\pdp11fpp.c"
+0 0 0 0 0 "..\..\..\ASPDP11\pdp11mch.c"
+0 0 0 0 0 "..\..\..\ASPDP11\pdp11pst.c"
+0 0 0 0 0 "aspdp11.DEF"
+0 -1 0 0 0 "..\..\..\asxxsrc\asxxxx.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\stdlib.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\stdio.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\setjmp.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\string.h"
+0 -1 0 0 0 "C:\SC\INCLUDE\time.h"
+0 -1 0 0 0 "..\..\..\ASPDP11\pdp11.h"

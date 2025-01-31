@@ -1,0 +1,1279 @@
+ASxxxx Assembler V05.50  (Zilog Z8)                                     Page 1
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+
+
+                              1 	.title	Test of Z8 assembler
+                              2 
+                              3 	.sbttl	Z8 Sequential Opcodes
+                              4 
+   0000 00 E1                 5 	dec	r1			; 00 E1
+   0002 01 EF                 6 	dec	@r15			; 01 EF
+   0004 02 1E                 7 	add	r1,r14			; 02 1E
+   0006 03 1E                 8 	add	r1,@r14			; 03 1E
+   0008 04 30 20              9 	add	0x20,0x30		; 04 30 20
+   000B 05 30 20             10 	add	0x20,@0x30		; 05 30 20
+   000E 06 E1 12             11 	add	r1,#0x12		; 06 E1 12
+   0011 07 EE 12             12 	add	@r14,#0x12		; 07 EE 12
+   0014 08 20                13 	ld	r0,0x20			; 08 20
+   0016 09 20                14 	ld	0x20,r0			; 09 20
+   0018 0A 00                15 	djnz	r0,.+2			; 0A 00
+   001A 0B 00                16 	jr	F,.+2			; 0B 00
+   001C 0C 12                17 	ld	r0,#0x12		; 0C 12
+   001E 0D 00 21             18 	jp	F,.+3			; 0Ds00r21
+   0021 0E                   19 	inc	r0			; 0E
+                             20 	; 0F
+                             21 
+   0022 10 E1                22 	rlc	r1			; 10 E1
+   0024 11 EF                23 	rlc	@r15			; 11 EF
+   0026 12 1E                24 	adc	r1,r14			; 12 1E
+   0028 13 1E                25 	adc	r1,@r14			; 13 1E
+   002A 14 30 20             26 	adc	0x20,0x30		; 14 30 20
+   002D 15 30 20             27 	adc	0x20,@0x30		; 15 30 20
+   0030 16 E1 12             28 	adc	r1,#0x12		; 16 E1 12
+   0033 17 EE 12             29 	adc	@r14,#0x12		; 17 EE 12
+   0036 18 20                30 	ld	r1,0x20			; 18 20
+   0038 19 20                31 	ld	0x20,r1			; 19 20
+   003A 1A 00                32 	djnz	r1,.+2			; 1A 00
+   003C 1B 00                33 	jr	LT,.+2			; 1B 00
+   003E 1C 12                34 	ld	r1,#0x12		; 1C 12
+   0040 1D 00 43             35 	jp	LT,.+3			; 1Ds00r43
+   0043 1E                   36 	inc	r1			; 1E
+                             37 	; 1F
+                             38 
+   0044 20 E1                39 	inc	0xE1			; 20 E1
+   0046 21 EF                40 	inc	@r15			; 21 EF
+   0048 22 1E                41 	sub	r1,r14			; 22 1E
+   004A 23 1E                42 	sub	r1,@r14			; 23 1E
+   004C 24 30 20             43 	sub	0x20,0x30		; 24 30 20
+   004F 25 30 20             44 	sub	0x20,@0x30		; 25 30 20
+   0052 26 E1 12             45 	sub	r1,#0x12		; 26 E1 12
+   0055 27 EE 12             46 	sub	@r14,#0x12		; 27 EE 12
+   0058 28 20                47 	ld	r2,0x20			; 28 20
+   005A 29 20                48 	ld	0x20,r2			; 29 20
+   005C 2A 00                49 	djnz	r2,.+2			; 2A 00
+   005E 2B 00                50 	jr	LE,.+2			; 2B 00
+   0060 2C 12                51 	ld	r2,#0x12		; 2C 12
+   0062 2D 00 65             52 	jp	LE,.+3			; 2Ds00r65
+   0065 2E                   53 	inc	r2			; 2E
+                             54 	; 2F
+                             55 
+ASxxxx Assembler V05.50  (Zilog Z8)                                     Page 2
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Z8 Sequential Opcodes
+
+   0066 30 E2                56 	jp	@rr2			; 30 E2
+   0068 31 12                57 	srp	#0x12			; 31 12
+   006A 32 1E                58 	sbc	r1,r14			; 32 1E
+   006C 33 1E                59 	sbc	r1,@r14			; 33 1E
+   006E 34 30 20             60 	sbc	0x20,0x30		; 34 30 20
+   0071 35 30 20             61 	sbc	0x20,@0x30		; 35 30 20
+   0074 36 E1 12             62 	sbc	r1,#0x12		; 36 E1 12
+   0077 37 EE 12             63 	sbc	@r14,#0x12		; 37 EE 12
+   007A 38 20                64 	ld	r3,0x20			; 38 20
+   007C 39 20                65 	ld	0x20,r3			; 39 20
+   007E 3A 00                66 	djnz	r3,.+2			; 3A 00
+   0080 3B 00                67 	jr	ULE,.+2			; 3B 00
+   0082 3C 12                68 	ld	r3,#0x12		; 3C 12
+   0084 3D 00 87             69 	jp	ULE,.+3			; 3Ds00r87
+   0087 3E                   70 	inc	r3			; 3E
+                             71 	; 3F
+                             72 
+   0088 40 E1                73 	da	r1			; 40 E1
+   008A 41 EF                74 	da	@r15			; 41 EF
+   008C 42 1E                75 	or	r1,r14			; 42 1E
+   008E 43 1E                76 	or	r1,@r14			; 43 1E
+   0090 44 30 20             77 	or	0x20,0x30		; 44 30 20
+   0093 45 30 20             78 	or	0x20,@0x30		; 45 30 20
+   0096 46 E1 12             79 	or	r1,#0x12		; 46 E1 12
+   0099 47 EE 12             80 	or	@r14,#0x12		; 47 EE 12
+   009C 48 20                81 	ld	r4,0x20			; 48 20
+   009E 49 20                82 	ld	0x20,r4			; 49 20
+   00A0 4A 00                83 	djnz	r4,.+2			; 4A 00
+   00A2 4B 00                84 	jr	OV,.+2			; 4B 00
+   00A4 4C 12                85 	ld	r4,#0x12		; 4C 12
+   00A6 4D 00 A9             86 	jp	OV,.+3			; 4Ds00rA9
+   00A9 4E                   87 	inc	r4			; 4E
+   00AA 4F                   88 	wdh				; 4F
+                             89 
+   00AB 50 E1                90 	pop	r1			; 50 E1
+   00AD 51 EF                91 	pop	@r15			; 51 EF
+   00AF 52 1E                92 	and	r1,r14			; 52 1E
+   00B1 53 1E                93 	and	r1,@r14			; 53 1E
+   00B3 54 30 20             94 	and	0x20,0x30		; 54 30 20
+   00B6 55 30 20             95 	and	0x20,@0x30		; 55 30 20
+   00B9 56 E1 12             96 	and	r1,#0x12		; 56 E1 12
+   00BC 57 EE 12             97 	and	@r14,#0x12		; 57 EE 12
+   00BF 58 20                98 	ld	r5,0x20			; 58 20
+   00C1 59 20                99 	ld	0x20,r5			; 59 20
+   00C3 5A 00               100 	djnz	r5,.+2			; 5A 00
+   00C5 5B 00               101 	jr	MI,.+2			; 5B 00
+   00C7 5C 12               102 	ld	r5,#0x12		; 5C 12
+   00C9 5D 00 CC            103 	jp	MI,.+3			; 5Ds00rCC
+   00CC 5E                  104 	inc	r5			; 5E
+   00CD 5F                  105 	wdt				; 5F
+                            106 
+   00CE 60 E1               107 	com	r1			; 60 E1
+   00D0 61 EF               108 	com	@r15			; 61 EF
+   00D2 62 1E               109 	tcm	r1,r14			; 62 1E
+   00D4 63 1E               110 	tcm	r1,@r14			; 63 1E
+ASxxxx Assembler V05.50  (Zilog Z8)                                     Page 3
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Z8 Sequential Opcodes
+
+   00D6 64 30 20            111 	tcm	0x20,0x30		; 64 30 20
+   00D9 65 30 20            112 	tcm	0x20,@0x30		; 65 30 20
+   00DC 66 E1 12            113 	tcm	r1,#0x12		; 66 E1 12
+   00DF 67 EE 12            114 	tcm	@r14,#0x12		; 67 EE 12
+   00E2 68 20               115 	ld	r6,0x20			; 68 20
+   00E4 69 20               116 	ld	0x20,r6			; 69 20
+   00E6 6A 00               117 	djnz	r6,.+2			; 6A 00
+   00E8 6B 00               118 	jr	Z,.+2			; 6B 00
+   00EA 6C 12               119 	ld	r6,#0x12		; 6C 12
+   00EC 6D 00 EF            120 	jp	Z,.+3			; 6Ds00rEF
+   00EF 6E                  121 	inc	r6			; 6E
+   00F0 6F                  122 	stop				; 6F
+                            123 
+   00F1 70 E1               124 	push	r1			; 70 E1
+   00F3 71 EF               125 	push	@r15			; 71 EF
+   00F5 72 1E               126 	tm	r1,r14			; 72 1E
+   00F7 73 1E               127 	tm	r1,@r14			; 73 1E
+   00F9 74 30 20            128 	tm	0x20,0x30		; 74 30 20
+   00FC 75 30 20            129 	tm	0x20,@0x30		; 75 30 20
+   00FF 76 E1 12            130 	tm	r1,#0x12		; 76 E1 12
+   0102 77 EE 12            131 	tm	@r14,#0x12		; 77 EE 12
+   0105 78 20               132 	ld	r7,0x20			; 78 20
+   0107 79 20               133 	ld	0x20,r7			; 79 20
+   0109 7A 00               134 	djnz	r7,.+2			; 7A 00
+   010B 7B 00               135 	jr	C,.+2			; 7B 00
+   010D 7C 12               136 	ld	r7,#0x12		; 7C 12
+   010F 7D 01 12            137 	jp	C,.+3			; 7Ds01r12
+   0112 7E                  138 	inc	r7			; 7E
+   0113 7F                  139 	halt				; 7F
+                            140 
+   0114 80 E2               141 	decw	rr2			; 80 E2
+   0116 81 EE               142 	decw	@r14			; 81 EE
+   0118 82 1E               143 	lde	r1,@rr14		; 82 1E
+   011A 83 1E               144 	ldei	@r1,@rr14		; 83 1E
+                            145 	; 84
+                            146 	; 85
+                            147 	; 86
+                            148 	; 87
+   011C 88 20               149 	ld	r8,0x20			; 88 20
+   011E 89 20               150 	ld	0x20,r8			; 89 20
+   0120 8A 00               151 	djnz	r8,.+2			; 8A 00
+   0122 8B 00               152 	jr	T,.+2			; 8B 00
+   0124 8C 12               153 	ld	r8,#0x12		; 8C 12
+   0126 8D 01 29            154 	jp	T,.+3			; 8Ds01r29
+   0129 8E                  155 	inc	r8			; 8E
+   012A 8F                  156 	di				; 8F
+                            157 
+   012B 90 E1               158 	rl	r1			; 90 E1
+   012D 91 EF               159 	rl	@r15			; 91 EF
+   012F 92 1E               160 	lde	@rr14,r1		; 92 1E
+   0131 93 1E               161 	ldei	@rr14,@r1		; 93 1E
+                            162 	; 94
+                            163 	; 95
+                            164 	; 96
+                            165 	; 97
+ASxxxx Assembler V05.50  (Zilog Z8)                                     Page 4
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Z8 Sequential Opcodes
+
+   0133 98 20               166 	ld	r9,0x20			; 98 20
+   0135 99 20               167 	ld	0x20,r9			; 99 20
+   0137 9A 00               168 	djnz	r9,.+2			; 9A 00
+   0139 9B 00               169 	jr	GE,.+2			; 9B 00
+   013B 9C 12               170 	ld	r9,#0x12		; 9C 12
+   013D 9D 01 40            171 	jp	GE,.+3			; 9Ds01r40
+   0140 9E                  172 	inc	r9			; 9E
+   0141 9F                  173 	ei				; 9F
+                            174 
+   0142 A0 E2               175 	incw	rr2			; A0 E2
+   0144 A1 EE               176 	incw	@r14			; A1 EE
+   0146 A2 1E               177 	cp	r1,r14			; A2 1E
+   0148 A3 1E               178 	cp	r1,@r14			; A3 1E
+   014A A4 30 20            179 	cp	0x20,0x30		; A4 30 20
+   014D A5 30 20            180 	cp	0x20,@0x30		; A5 30 20
+   0150 A6 E1 12            181 	cp	r1,#0x12		; A6 E1 12
+   0153 A7 EE 12            182 	cp	@r14,#0x12		; A7 EE 12
+   0156 A8 20               183 	ld	r10,0x20		; A8 20
+   0158 A9 20               184 	ld	0x20,r10		; A9 20
+   015A AA 00               185 	djnz	r10,.+2			; AA 00
+   015C AB 00               186 	jr	GT,.+2			; AB 00
+   015E AC 12               187 	ld	r10,#0x12		; AC 12
+   0160 AD 01 63            188 	jp	GT,.+3			; ADs01r63
+   0163 AE                  189 	inc	r10			; AE
+   0164 AF                  190 	ret				; AF
+                            191 
+   0165 B0 E1               192 	clr	r1			; B0 E1
+   0167 B1 EF               193 	clr	@r15			; B1 EF
+   0169 B2 1E               194 	xor	r1,r14			; B2 1E
+   016B B3 1E               195 	xor	r1,@r14			; B3 1E
+   016D B4 30 20            196 	xor	0x20,0x30		; B4 30 20
+   0170 B5 30 20            197 	xor	0x20,@0x30		; B5 30 20
+   0173 B6 E1 12            198 	xor	r1,#0x12		; B6 E1 12
+   0176 B7 EE 12            199 	xor	@r14,#0x12		; B7 EE 12
+   0179 B8 20               200 	ld	r11,0x20		; B8 20
+   017B B9 20               201 	ld	0x20,r11		; B9 20
+   017D BA 00               202 	djnz	r11,.+2			; BA 00
+   017F BB 00               203 	jr	UGT,.+2			; BB 00
+   0181 BC 12               204 	ld	r11,#0x12		; BC 12
+   0183 BD 01 86            205 	jp	UGT,.+3			; BDs01r86
+   0186 BE                  206 	inc	r11			; BE
+   0187 BF                  207 	iret				; BF
+                            208 
+   0188 C0 E1               209 	rrc	r1			; C0 E1
+   018A C1 EF               210 	rrc	@r15			; C1 EF
+   018C C2 1E               211 	ldc	r1,@rr14		; C2 1E
+   018E C3 1E               212 	ldci	@r1,@rr14		; C3 1E
+                            213 	; C4
+                            214 	; C5
+                            215 	; C6
+   0190 C7 1E 12            216 	ld	r1,0x12(r14)		; C7 1E 12
+   0193 C8 20               217 	ld	r12,0x20		; C8 20
+   0195 C9 20               218 	ld	0x20,r12		; C9 20
+   0197 CA 00               219 	djnz	r12,.+2			; CA 00
+   0199 CB 00               220 	jr	NOV,.+2			; CB 00
+ASxxxx Assembler V05.50  (Zilog Z8)                                     Page 5
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Z8 Sequential Opcodes
+
+   019B CC 12               221 	ld	r12,#0x12		; CC 12
+   019D CD 01 A0            222 	jp	NOV,.+3			; CDs01rA0
+   01A0 CE                  223 	inc	r12			; CE
+   01A1 CF                  224 	rcf				; CF
+                            225 
+   01A2 D0 E1               226 	sra	r1			; D0 E1
+   01A4 D1 EF               227 	sra	@r15			; D1 EF
+   01A6 D2 1E               228 	ldc	@rr14,r1		; D2 1E
+   01A8 D3 1E               229 	ldci	@rr14,@r1		; D3 1E
+   01AA D4 E4               230 	call	@rr4			; D4 E4
+                            231 	; D5
+   01AC D6 12 34            232 	call	0x1234			; D6 12 34
+   01AF D7 1E 12            233 	ld	0x12(r14),r1		; D7 1E 12
+   01B2 D8 20               234 	ld	r13,0x20		; D8 20
+   01B4 D9 20               235 	ld	0x20,r13		; D9 20
+   01B6 DA 00               236 	djnz	r13,.+2			; DA 00
+   01B8 DB 00               237 	jr	PL,.+2			; DB 00
+   01BA DC 12               238 	ld	r13,#0x12		; DC 12
+   01BC DD 01 BF            239 	jp	PL,.+3			; DDs01rBF
+   01BF DE                  240 	inc	r13			; DE
+   01C0 DF                  241 	scf				; DF
+                            242 
+   01C1 E0 E1               243 	rr	r1			; E0 E1
+   01C3 E1 EF               244 	rr	@r15			; E1 EF
+                            245 	; E2
+   01C5 E3 1E               246 	ld	r1,@r14			; E3 1E
+   01C7 E4 30 20            247 	ld	0x20,0x30		; E4 30 20
+   01CA E5 30 20            248 	ld	0x20,@0x30		; E5 30 20
+   01CD E6 20 12            249 	ld	0x20,#0x12		; E6 20 12
+   01D0 E7 20 12            250 	ld	@0x20,#0x12		; E7 20 12
+   01D3 E8 20               251 	ld	r14,0x20		; E8 20
+   01D5 E9 20               252 	ld	0x20,r14		; E9 20
+   01D7 EA 00               253 	djnz	r14,.+2			; EA 00
+   01D9 EB 00               254 	jr	NZ,.+2			; EB 00
+   01DB EC 12               255 	ld	r14,#0x12		; EC 12
+   01DD ED 01 E0            256 	jp	NZ,.+3			; EDs01rE0
+   01E0 EE                  257 	inc	r14			; EE
+   01E1 EF                  258 	ccf				; EF
+                            259 
+   01E2 F0 E1               260 	swap	r1			; F0 E1
+   01E4 F1 EF               261 	swap	@r15			; F1 EF
+                            262 	; F2
+   01E6 F3 1E               263 	ld	@r1,r14			; F3 1E
+                            264 	; F4
+   01E8 F5 30 20            265 	ld	@0x20,0x30		; F5 30 20
+                            266 	; F6
+                            267 	; F7
+   01EB F8 20               268 	ld	r15,0x20		; F8 20
+   01ED F9 20               269 	ld	0x20,r15		; F9 20
+   01EF FA 00               270 	djnz	r15,.+2			; FA 00
+   01F1 FB 00               271 	jr	NC,.+2			; FB 00
+   01F3 FC 12               272 	ld	r15,#0x12		; FC 12
+   01F5 FD 01 F8            273 	jp	NC,.+3			; FDs01rF8
+   01F8 FE                  274 	inc	r15			; FE
+   01F9 FF                  275 	nop				; FF
+ASxxxx Assembler V05.50  (Zilog Z8)                                     Page 6
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Z8 Sequential Opcodes
+
+                            276 
+                            277 	.sbttl	Assembler Addressing Mode Tests
+                            278 
+                            279 	.radix	d		        ; decimal radix
+                            280 
+                     0000   281 	n0	=	0		; constants
+                     000F   282 	n15	=	15
+                     0010   283 	n16	=	16
+                     00FF   284 	n255	=	255
+                            285 
+                            286 	; S_SOP:
+                            287 	;	DEC	RLC	INC	DA	POP	COM	PUSH
+                            288 	;	RL	CLR	RRC	SRA	RR	SWAP
+                            289 
+   01FA 00 E0               290 	dec	r0			; 00 E0
+   01FC 00 EF               291 	dec	r15			; 00 EF
+                            292 
+   01FE 00 00               293 	dec	0			; 00 00
+   0200 00 0F               294 	dec	15			; 00 0F
+   0202 00 10               295 	dec	16			; 00 10
+   0204 00 FF               296 	dec	255			; 00 FF
+                            297 
+   0206 01 E0               298 	dec	@r0			; 01 E0
+   0208 01 EF               299 	dec	@r15			; 01 EF
+                            300 
+   020A 01 00               301 	dec	@0			; 01 00
+   020C 01 0F               302 	dec	@15			; 01 0F
+   020E 01 10               303 	dec	@16			; 01 10
+   0210 01 FF               304 	dec	@255			; 01 FF
+                            305 
+   0212 01 E0               306 	dec	(r0)			; 01 E0
+   0214 01 EF               307 	dec	(r15)			; 01 EF
+                            308 
+   0216 01 00               309 	dec	(0)			; 01 00
+   0218 01 0F               310 	dec	(15)			; 01 0F
+   021A 01 10               311 	dec	(16)			; 01 10
+   021C 01 FF               312 	dec	(255)			; 01 FF
+                            313 
+                            314 
+   021E 00 00               315 	dec	n0			; 00 00
+   0220 00 0F               316 	dec	n15			; 00 0F
+   0222 00 10               317 	dec	n16			; 00 10
+   0224 00 FF               318 	dec	n255			; 00 FF
+                            319 
+   0226 01 00               320 	dec	@n0			; 01 00
+   0228 01 0F               321 	dec	@n15			; 01 0F
+   022A 01 10               322 	dec	@n16			; 01 10
+   022C 01 FF               323 	dec	@n255			; 01 FF
+                            324 
+   022E 01 00               325 	dec	(n0)			; 01 00
+   0230 01 0F               326 	dec	(n15)			; 01 0F
+   0232 01 10               327 	dec	(n16)			; 01 10
+   0234 01 FF               328 	dec	(n255)			; 01 FF
+                            329 
+                            330 	; S_INCW
+ASxxxx Assembler V05.50  (Zilog Z8)                                     Page 7
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+                            331 	; S_DECW
+                            332 	;	incw	decw
+                            333 
+                            334 	;	INCW	RR
+   0236 A0 E0               335 	incw	rr0			; A0 E0
+   0238 A0 EE               336 	incw	rr14			; A0 EE
+   023A A0 00               337 	incw	0			; A0 00
+   023C A0 10               338 	incw	16			; A0 10
+                            339 	; symbols
+   023E A0 00               340 	incw	n0			; A0 00
+   0240 A0 10               341 	incw	n16			; A0 10
+                            342 
+                            343 	;	INCW	@R
+   0242 A1 E0               344 	incw	@r0			; A1 E0
+   0244 A1 EE               345 	incw	@r14			; A1 EE
+   0246 A1 00               346 	incw	@0			; A1 00
+   0248 A1 10               347 	incw	@16			; A1 10
+                            348 	; symbols
+   024A A1 00               349 	incw	@n0			; A1 00
+   024C A1 10               350 	incw	@n16			; A1 10
+                            351 
+                            352 	;	INCW	@R	<<== (R)
+   024E A1 E0               353 	incw	(r0)			; A1 E0
+   0250 A1 EE               354 	incw	(r14)			; A1 EE
+   0252 A1 00               355 	incw	(0)			; A1 00
+   0254 A1 10               356 	incw	(16)			; A1 10
+                            357 	; symbols
+   0256 A1 00               358 	incw	(n0)			; A1 00
+   0258 A1 10               359 	incw	(n16)			; A1 10
+                            360 
+                            361 	; S_DOP:
+                            362 	;	ADD	ADC	SUB	SBC	OR
+                            363 	;	AND	TCM	TM	CP	XOR
+                            364 
+                            365 	;	ADD	r,r
+   025A 02 00               366 	add	r0,r0			; 02 00
+   025C 02 0F               367 	add	r0,r15			; 02 0F
+   025E 02 F0               368 	add	r15,r0			; 02 F0
+   0260 02 FF               369 	add	r15,r15			; 02 FF
+                            370 
+                            371 	;	ADD	r,@r
+   0262 03 00               372 	add	r0,@r0			; 03 00
+   0264 03 0F               373 	add	r0,@r15			; 03 0F
+   0266 03 F0               374 	add	r15,@r0			; 03 F0
+   0268 03 FF               375 	add	r15,@r15		; 03 FF
+                            376 
+                            377 	;	ADD	r,@r	<<== r,(r)
+   026A 03 00               378 	add	r0,(r0)			; 03 00
+   026C 03 0F               379 	add	r0,(r15)		; 03 0F
+   026E 03 F0               380 	add	r15,(r0)		; 03 F0
+   0270 03 FF               381 	add	r15,(r15)		; 03 FF
+                            382 
+                            383 	;	ADD	R,R
+   0272 04 00 00            384 	add	0,0			; 04 00 00
+   0275 04 0F 00            385 	add	0,15			; 04 0F 00
+ASxxxx Assembler V05.50  (Zilog Z8)                                     Page 8
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+   0278 04 10 00            386 	add	0,16			; 04 10 00
+   027B 04 FF 00            387 	add	0,255			; 04 FF 00
+   027E 04 00 0F            388 	add	15,0			; 04 00 0F
+   0281 04 0F 0F            389 	add	15,15			; 04 0F 0F
+   0284 04 10 0F            390 	add	15,16			; 04 10 0F
+   0287 04 FF 0F            391 	add	15,255			; 04 FF 0F
+   028A 04 00 10            392 	add	16,0			; 04 00 10
+   028D 04 0F 10            393 	add	16,15			; 04 0F 10
+   0290 04 10 10            394 	add	16,16			; 04 10 10
+   0293 04 FF 10            395 	add	16,255			; 04 FF 10
+   0296 04 00 FF            396 	add	255,0			; 04 00 FF
+   0299 04 0F FF            397 	add	255,15			; 04 0F FF
+   029C 04 10 FF            398 	add	255,16			; 04 10 FF
+   029F 04 FF FF            399 	add	255,255			; 04 FF FF
+                            400 
+                            401 	;	ADD	R,R	<<== r,R / R,r
+   02A2 04 00 E0            402 	add	r0,0			; 04 00 E0
+   02A5 04 0F E0            403 	add	r0,15			; 04 0F E0
+   02A8 04 10 E0            404 	add	r0,16			; 04 10 E0
+   02AB 04 FF E0            405 	add	r0,255			; 04 FF E0
+   02AE 04 00 EF            406 	add	r15,0			; 04 00 EF
+   02B1 04 0F EF            407 	add	r15,15			; 04 0F EF
+   02B4 04 10 EF            408 	add	r15,16			; 04 10 EF
+   02B7 04 FF EF            409 	add	r15,255			; 04 FF EF
+   02BA 04 E0 00            410 	add	0,r0			; 04 E0 00
+   02BD 04 E0 0F            411 	add	15,r0			; 04 E0 0F
+   02C0 04 E0 10            412 	add	16,r0			; 04 E0 10
+   02C3 04 E0 FF            413 	add	255,r0			; 04 E0 FF
+   02C6 04 EF 00            414 	add	0,r15			; 04 EF 00
+   02C9 04 EF 0F            415 	add	15,r15			; 04 EF 0F
+   02CC 04 EF 10            416 	add	16,r15			; 04 EF 10
+   02CF 04 EF FF            417 	add	255,r15			; 04 EF FF
+                            418 
+                            419 	;	ADD	R,@R
+   02D2 05 00 00            420 	add	0,@0			; 05 00 00
+   02D5 05 0F 00            421 	add	0,@15			; 05 0F 00
+   02D8 05 10 00            422 	add	0,@16			; 05 10 00
+   02DB 05 FF 00            423 	add	0,@255			; 05 FF 00
+   02DE 05 00 0F            424 	add	15,@0			; 05 00 0F
+   02E1 05 0F 0F            425 	add	15,@15			; 05 0F 0F
+   02E4 05 10 0F            426 	add	15,@16			; 05 10 0F
+   02E7 05 FF 0F            427 	add	15,@255			; 05 FF 0F
+   02EA 05 00 10            428 	add	16,@0			; 05 00 10
+   02ED 05 0F 10            429 	add	16,@15			; 05 0F 10
+   02F0 05 10 10            430 	add	16,@16			; 05 10 10
+   02F3 05 FF 10            431 	add	16,@255			; 05 FF 10
+   02F6 05 00 FF            432 	add	255,@0			; 05 00 FF
+   02F9 05 0F FF            433 	add	255,@15			; 05 0F FF
+   02FC 05 10 FF            434 	add	255,@16			; 05 10 FF
+   02FF 05 FF FF            435 	add	255,@255		; 05 FF FF
+                            436 
+                            437 	;	ADD	R,@R	<<== r,@R / R,@r
+   0302 05 00 E0            438 	add	r0,@0			; 05 00 E0
+   0305 05 0F E0            439 	add	r0,@15			; 05 0F E0
+   0308 05 10 E0            440 	add	r0,@16			; 05 10 E0
+ASxxxx Assembler V05.50  (Zilog Z8)                                     Page 9
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+   030B 05 FF E0            441 	add	r0,@255			; 05 FF E0
+   030E 05 00 EF            442 	add	r15,@0			; 05 00 EF
+   0311 05 0F EF            443 	add	r15,@15			; 05 0F EF
+   0314 05 10 EF            444 	add	r15,@16			; 05 10 EF
+   0317 05 FF EF            445 	add	r15,@255		; 05 FF EF
+   031A 05 E0 00            446 	add	0,@r0			; 05 E0 00
+   031D 05 E0 0F            447 	add	15,@r0			; 05 E0 0F
+   0320 05 E0 10            448 	add	16,@r0			; 05 E0 10
+   0323 05 E0 FF            449 	add	255,@r0			; 05 E0 FF
+   0326 05 EF 00            450 	add	0,@r15			; 05 EF 00
+   0329 05 EF 0F            451 	add	15,@r15			; 05 EF 0F
+   032C 05 EF 10            452 	add	16,@r15			; 05 EF 10
+   032F 05 EF FF            453 	add	255,@r15		; 05 EF FF
+                            454 
+                            455 	;	ADD	R,@R	<<== R,(R)
+   0332 05 00 00            456 	add	0,(0)			; 05 00 00
+   0335 05 0F 00            457 	add	0,(15)			; 05 0F 00
+   0338 05 10 00            458 	add	0,(16)			; 05 10 00
+   033B 05 FF 00            459 	add	0,(255)			; 05 FF 00
+   033E 05 00 0F            460 	add	15,(0)			; 05 00 0F
+   0341 05 0F 0F            461 	add	15,(15)			; 05 0F 0F
+   0344 05 10 0F            462 	add	15,(16)			; 05 10 0F
+   0347 05 FF 0F            463 	add	15,(255)		; 05 FF 0F
+   034A 05 00 10            464 	add	16,(0)			; 05 00 10
+   034D 05 0F 10            465 	add	16,(15)			; 05 0F 10
+   0350 05 10 10            466 	add	16,(16)			; 05 10 10
+   0353 05 FF 10            467 	add	16,(255)		; 05 FF 10
+   0356 05 00 FF            468 	add	255,(0)			; 05 00 FF
+   0359 05 0F FF            469 	add	255,(15)		; 05 0F FF
+   035C 05 10 FF            470 	add	255,(16)		; 05 10 FF
+   035F 05 FF FF            471 	add	255,(255)		; 05 FF FF
+                            472 
+                            473 	;	ADD	R,@R	<<== r,(R) / R,(r)
+   0362 05 00 E0            474 	add	r0,(0)			; 05 00 E0
+   0365 05 0F E0            475 	add	r0,(15)			; 05 0F E0
+   0368 05 10 E0            476 	add	r0,(16)			; 05 10 E0
+   036B 05 FF E0            477 	add	r0,(255)		; 05 FF E0
+   036E 05 00 EF            478 	add	r15,(0)			; 05 00 EF
+   0371 05 0F EF            479 	add	r15,(15)		; 05 0F EF
+   0374 05 10 EF            480 	add	r15,(16)		; 05 10 EF
+   0377 05 FF EF            481 	add	r15,(255)		; 05 FF EF
+   037A 05 E0 00            482 	add	0,(r0)			; 05 E0 00
+   037D 05 E0 0F            483 	add	15,(r0)			; 05 E0 0F
+   0380 05 E0 10            484 	add	16,(r0)			; 05 E0 10
+   0383 05 E0 FF            485 	add	255,(r0)		; 05 E0 FF
+   0386 05 EF 00            486 	add	0,(r15)			; 05 EF 00
+   0389 05 EF 0F            487 	add	15,(r15)		; 05 EF 0F
+   038C 05 EF 10            488 	add	16,(r15)		; 05 EF 10
+   038F 05 EF FF            489 	add	255,(r15)		; 05 EF FF
+                            490 
+                            491 	;	ADD	R,R
+                            492 	; (symbols)
+   0392 04 10 0F            493 	add	15,16			; 04 10 0F
+   0395 04 10 0F            494 	add	15,n16			; 04 10 0F
+   0398 04 10 0F            495 	add	n15,16			; 04 10 0F
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 10
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+   039B 04 10 0F            496 	add	n15,n16			; 04 10 0F
+                            497 
+                            498 	;	ADD	R,R	<<== r,R / R,r
+                            499 	; (symbols)
+   039E 04 10 EF            500 	add	r15,16			; 04 10 EF
+   03A1 04 10 EF            501 	add	r15,n16			; 04 10 EF
+   03A4 04 EF 10            502 	add	16,r15			; 04 EF 10
+   03A7 04 EF 10            503 	add	n16,r15			; 04 EF 10
+                            504 
+                            505 	;	ADD	R,@R
+                            506 	; (symbols)
+   03AA 05 10 0F            507 	add	15,@16			; 05 10 0F
+   03AD 05 10 0F            508 	add	15,@n16			; 05 10 0F
+   03B0 05 10 0F            509 	add	n15,@16			; 05 10 0F
+   03B3 05 10 0F            510 	add	n15,@n16		; 05 10 0F
+                            511 
+                            512 	;	ADD	R,@R	<<== r,@R / R,@r
+                            513 	; (symbols)
+   03B6 05 0F EF            514 	add	r15,@15			; 05 0F EF
+   03B9 05 0F EF            515 	add	r15,@n15		; 05 0F EF
+   03BC 05 EF 0F            516 	add	15,@r15			; 05 EF 0F
+   03BF 05 EF 0F            517 	add	n15,@r15		; 05 EF 0F
+                            518 
+                            519 	;	ADD	R,@R	<<== R,(R)
+                            520 	; (symbols)
+   03C2 05 10 0F            521 	add	15,(16)			; 05 10 0F
+   03C5 05 10 0F            522 	add	15,(n16)		; 05 10 0F
+   03C8 05 10 0F            523 	add	n15,(16)		; 05 10 0F
+   03CB 05 10 0F            524 	add	n15,(n16)		; 05 10 0F
+                            525 
+                            526 	;	ADD	R,@R	<<== r,(R) / R,(r)
+                            527 	; (symbols)
+   03CE 05 0F EF            528 	add	r15,(15)		; 05 0F EF
+   03D1 05 0F EF            529 	add	r15,(n15)		; 05 0F EF
+   03D4 05 EF 0F            530 	add	15,(r15)		; 05 EF 0F
+   03D7 05 EF 0F            531 	add	n15,(r15)		; 05 EF 0F
+                            532 
+                            533 	;	ADD	R,#
+   03DA 06 00 00            534 	add	0,#0			; 06 00 00
+   03DD 06 00 0F            535 	add	0,#15			; 06 00 0F
+   03E0 06 00 10            536 	add	0,#16			; 06 00 10
+   03E3 06 00 FF            537 	add	0,#255			; 06 00 FF
+   03E6 06 0F 00            538 	add	15,#0			; 06 0F 00
+   03E9 06 0F 0F            539 	add	15,#15			; 06 0F 0F
+   03EC 06 0F 10            540 	add	15,#16			; 06 0F 10
+   03EF 06 0F FF            541 	add	15,#255			; 06 0F FF
+   03F2 06 10 00            542 	add	16,#0			; 06 10 00
+   03F5 06 10 0F            543 	add	16,#15			; 06 10 0F
+   03F8 06 10 10            544 	add	16,#16			; 06 10 10
+   03FB 06 10 FF            545 	add	16,#255			; 06 10 FF
+   03FE 06 FF 00            546 	add	255,#0			; 06 FF 00
+   0401 06 FF 0F            547 	add	255,#15			; 06 FF 0F
+   0404 06 FF 10            548 	add	255,#16			; 06 FF 10
+   0407 06 FF FF            549 	add	255,#255		; 06 FF FF
+                            550 
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 11
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+                            551 	;	ADD	R,#	<<== r,#
+   040A 06 E0 00            552 	add	r0,#0			; 06 E0 00
+   040D 06 E0 0F            553 	add	r0,#15			; 06 E0 0F
+   0410 06 E0 10            554 	add	r0,#16			; 06 E0 10
+   0413 06 E0 FF            555 	add	r0,#255			; 06 E0 FF
+   0416 06 EF 00            556 	add	r15,#0			; 06 EF 00
+   0419 06 EF 0F            557 	add	r15,#15			; 06 EF 0F
+   041C 06 EF 10            558 	add	r15,#16			; 06 EF 10
+   041F 06 EF FF            559 	add	r15,#255		; 06 EF FF
+                            560 
+                            561 	;	ADD	R,#
+                            562 	; (symbols)
+   0422 06 00 00            563 	add	0,#n0			; 06 00 00
+   0425 06 00 0F            564 	add	0,#n15			; 06 00 0F
+   0428 06 00 10            565 	add	0,#n16			; 06 00 10
+   042B 06 00 FF            566 	add	0,#n255			; 06 00 FF
+   042E 06 0F 00            567 	add	15,#n0			; 06 0F 00
+   0431 06 0F 0F            568 	add	15,#n15			; 06 0F 0F
+   0434 06 0F 10            569 	add	15,#n16			; 06 0F 10
+   0437 06 0F FF            570 	add	15,#n255		; 06 0F FF
+   043A 06 10 00            571 	add	16,#n0			; 06 10 00
+   043D 06 10 0F            572 	add	16,#n15			; 06 10 0F
+   0440 06 10 10            573 	add	16,#n16			; 06 10 10
+   0443 06 10 FF            574 	add	16,#n255		; 06 10 FF
+   0446 06 FF 00            575 	add	255,#n0			; 06 FF 00
+   0449 06 FF 0F            576 	add	255,#n15		; 06 FF 0F
+   044C 06 FF 10            577 	add	255,#n16		; 06 FF 10
+   044F 06 FF FF            578 	add	255,#n255		; 06 FF FF
+                            579 
+                            580 	;	ADD	R,#	<<== r,#
+                            581 	; (symbols)
+   0452 06 E0 00            582 	add	r0,#n0			; 06 E0 00
+   0455 06 E0 0F            583 	add	r0,#n15			; 06 E0 0F
+   0458 06 E0 10            584 	add	r0,#n16			; 06 E0 10
+   045B 06 E0 FF            585 	add	r0,#n255		; 06 E0 FF
+   045E 06 EF 00            586 	add	r15,#n0			; 06 EF 00
+   0461 06 EF 0F            587 	add	r15,#n15		; 06 EF 0F
+   0464 06 EF 10            588 	add	r15,#n16		; 06 EF 10
+   0467 06 EF FF            589 	add	r15,#n255		; 06 EF FF
+                            590 
+                            591 	;	ADD	@R,#
+   046A 07 00 00            592 	add	@0,#0			; 07 00 00
+   046D 07 00 0F            593 	add	@0,#15			; 07 00 0F
+   0470 07 00 10            594 	add	@0,#16			; 07 00 10
+   0473 07 00 FF            595 	add	@0,#255			; 07 00 FF
+   0476 07 0F 00            596 	add	@15,#0			; 07 0F 00
+   0479 07 0F 0F            597 	add	@15,#15			; 07 0F 0F
+   047C 07 0F 10            598 	add	@15,#16			; 07 0F 10
+   047F 07 0F FF            599 	add	@15,#255		; 07 0F FF
+   0482 07 10 00            600 	add	@16,#0			; 07 10 00
+   0485 07 10 0F            601 	add	@16,#15			; 07 10 0F
+   0488 07 10 10            602 	add	@16,#16			; 07 10 10
+   048B 07 10 FF            603 	add	@16,#255		; 07 10 FF
+   048E 07 FF 00            604 	add	@255,#0			; 07 FF 00
+   0491 07 FF 0F            605 	add	@255,#15		; 07 FF 0F
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 12
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+   0494 07 FF 10            606 	add	@255,#16		; 07 FF 10
+   0497 07 FF FF            607 	add	@255,#255		; 07 FF FF
+                            608 
+                            609 	;	ADD	R,#	<<== r,#
+   049A 07 E0 00            610 	add	@r0,#0			; 07 E0 00
+   049D 07 E0 0F            611 	add	@r0,#15			; 07 E0 0F
+   04A0 07 E0 10            612 	add	@r0,#16			; 07 E0 10
+   04A3 07 E0 FF            613 	add	@r0,#255		; 07 E0 FF
+   04A6 07 EF 00            614 	add	@r15,#0			; 07 EF 00
+   04A9 07 EF 0F            615 	add	@r15,#15		; 07 EF 0F
+   04AC 07 EF 10            616 	add	@r15,#16		; 07 EF 10
+   04AF 07 EF FF            617 	add	@r15,#255		; 07 EF FF
+                            618 
+                            619 	;	ADD	@R,#
+                            620 	; (symbols)
+   04B2 07 00 00            621 	add	@0,#n0			; 07 00 00
+   04B5 07 00 0F            622 	add	@0,#n15			; 07 00 0F
+   04B8 07 00 10            623 	add	@0,#n16			; 07 00 10
+   04BB 07 00 FF            624 	add	@0,#n255		; 07 00 FF
+   04BE 07 0F 00            625 	add	@15,#n0			; 07 0F 00
+   04C1 07 0F 0F            626 	add	@15,#n15		; 07 0F 0F
+   04C4 07 0F 10            627 	add	@15,#n16		; 07 0F 10
+   04C7 07 0F FF            628 	add	@15,#n255		; 07 0F FF
+   04CA 07 10 00            629 	add	@16,#n0			; 07 10 00
+   04CD 07 10 0F            630 	add	@16,#n15		; 07 10 0F
+   04D0 07 10 10            631 	add	@16,#n16		; 07 10 10
+   04D3 07 10 FF            632 	add	@16,#n255		; 07 10 FF
+   04D6 07 FF 00            633 	add	@255,#n0		; 07 FF 00
+   04D9 07 FF 0F            634 	add	@255,#n15		; 07 FF 0F
+   04DC 07 FF 10            635 	add	@255,#n16		; 07 FF 10
+   04DF 07 FF FF            636 	add	@255,#n255		; 07 FF FF
+                            637 
+                            638 	;	ADD	R,#	<<== r,#
+                            639 	; (symbols)
+   04E2 07 E0 00            640 	add	@r0,#n0			; 07 E0 00
+   04E5 07 E0 0F            641 	add	@r0,#n15		; 07 E0 0F
+   04E8 07 E0 10            642 	add	@r0,#n16		; 07 E0 10
+   04EB 07 E0 FF            643 	add	@r0,#n255		; 07 E0 FF
+   04EE 07 EF 00            644 	add	@r15,#n0		; 07 EF 00
+   04F1 07 EF 0F            645 	add	@r15,#n15		; 07 EF 0F
+   04F4 07 EF 10            646 	add	@r15,#n16		; 07 EF 10
+   04F7 07 EF FF            647 	add	@r15,#n255		; 07 EF FF
+                            648 
+                            649 	;	DJNZ	r,'Relative Jump Address'
+   04FA 0A 80               650 	djnz	r0,.-126		; 0A 80
+   04FC 0A 81               651 	djnz	r0,.-125		; 0A 81
+   04FE 0A FB               652 	djnz	r0,.-3			; 0A FB
+   0500 0A FC               653 	djnz	r0,.-2			; 0A FC
+   0502 0A FD               654 	djnz	r0,.-1			; 0A FD
+   0504 0A FE               655 	djnz	r0,.+0			; 0A FE
+   0506 0A FF               656 	djnz	r0,.+1			; 0A FF
+   0508 0A 00               657 	djnz	r0,.+2			; 0A 00
+   050A 0A 01               658 	djnz	r0,.+3			; 0A 01
+   050C 0A 7E               659 	djnz	r0,.+128		; 0A 7E
+   050E 0A 7F               660 	djnz	r0,.+129		; 0A 7F
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 13
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+                            661 
+                            662 	;	JR	CC,'Relative Jump Address'
+   0510 0B 80               663 	jr	f,.-126			; 0B 80
+   0512 0B 81               664 	jr	f,.-125			; 0B 81
+   0514 0B FB               665 	jr	f,.-3			; 0B FB
+   0516 0B FC               666 	jr	f,.-2			; 0B FC
+   0518 0B FD               667 	jr	f,.-1			; 0B FD
+   051A 0B FE               668 	jr	f,.+0			; 0B FE
+   051C 0B FF               669 	jr	f,.+1			; 0B FF
+   051E 0B 00               670 	jr	f,.+2			; 0B 00
+   0520 0B 01               671 	jr	f,.+3			; 0B 01
+   0522 0B 7E               672 	jr	f,.+128			; 0B 7E
+   0524 0B 7F               673 	jr	f,.+129			; 0B 7F
+                            674 
+                            675 	;	JP	CC,'Jump Address'
+   0526 0D 05 32            676 jpadr1:	jp	f,jpadr5		; 0Ds05r32
+   0529 0D 05 2F            677 jpadr2:	jp	f,jpadr4		; 0Ds05r2F
+   052C 0D 05 2C            678 jpadr3:	jp	f,.			; 0Ds05r2C
+   052F 0D 05 29            679 jpadr4:	jp	f,jpadr2		; 0Ds05r29
+   0532 0D 05 26            680 jpadr5:	jp	f,jpadr1		; 0Ds05r26
+                            681 
+                            682 	;	JP	@RR
+   0535 30 E0               683 	jp	@rr0			; 30 E0
+   0537 30 E0               684 	jp	(rr0)			; 30 E0
+   0539 30 20               685 	jp	@0x20			; 30 20
+   053B 30 20               686 	jp	(0x20)			; 30 20
+                            687 
+                            688 	;	CALL	@RR
+   053D D4 E0               689 	call	@rr0			; D4 E0
+   053F D4 E0               690 	call	(rr0)			; D4 E0
+   0541 D4 20               691 	call	@0x20			; D4 20
+   0543 D4 20               692 	call	(0x20)			; D4 20
+                            693 
+                            694 	; S_LDCE
+                            695 	;	LDC	LDE
+                            696 
+                            697 	;	LDC	r,@rr
+   0545 C2 00               698 	ldc	r0,@RR0			; C2 00
+   0547 C2 0E               699 	ldc	r0,@RR14		; C2 0E
+   0549 C2 00               700 	ldc	r0,(RR0)		; C2 00
+   054B C2 0E               701 	ldc	r0,(RR14)		; C2 0E
+   054D C2 F0               702 	ldc	r15,@RR0		; C2 F0
+   054F C2 FE               703 	ldc	r15,@RR14		; C2 FE
+   0551 C2 F0               704 	ldc	r15,(RR0)		; C2 F0
+   0553 C2 FE               705 	ldc	r15,(RR14)		; C2 FE
+                            706 
+                            707 	;	LDC	@rr,r
+   0555 D2 00               708 	ldc	@RR0,r0			; D2 00
+   0557 D2 0E               709 	ldc	@RR14,r0		; D2 0E
+   0559 D2 00               710 	ldc	(RR0),r0		; D2 00
+   055B D2 0E               711 	ldc	(RR14),r0		; D2 0E
+   055D D2 F0               712 	ldc	@RR0,r15		; D2 F0
+   055F D2 FE               713 	ldc	@RR14,r15		; D2 FE
+   0561 D2 F0               714 	ldc	(RR0),r15		; D2 F0
+   0563 D2 FE               715 	ldc	(RR14),r15		; D2 FE
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 14
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+                            716 
+                            717 	; S_LDCEI
+                            718 	;	LDCI	LDEI
+                            719 
+                            720 	;	LDCI	@r,@rr
+   0565 C3 00               721 	ldci	@r0,@RR0		; C3 00
+   0567 C3 0E               722 	ldci	@r0,@RR14		; C3 0E
+   0569 C3 00               723 	ldci	@r0,(RR0)		; C3 00
+   056B C3 0E               724 	ldci	@r0,(RR14)		; C3 0E
+   056D C3 F0               725 	ldci	@r15,@RR0		; C3 F0
+   056F C3 FE               726 	ldci	@r15,@RR14		; C3 FE
+   0571 C3 F0               727 	ldci	@r15,(RR0)		; C3 F0
+   0573 C3 FE               728 	ldci	@r15,(RR14)		; C3 FE
+                            729 
+                            730 	;	LDCI	@rr,@r
+   0575 D3 00               731 	ldci	@RR0,@r0		; D3 00
+   0577 D3 0E               732 	ldci	@RR14,@r0		; D3 0E
+   0579 D3 00               733 	ldci	(RR0),@r0		; D3 00
+   057B D3 0E               734 	ldci	(RR14),@r0		; D3 0E
+   057D D3 F0               735 	ldci	@RR0,@r15		; D3 F0
+   057F D3 FE               736 	ldci	@RR14,@r15		; D3 FE
+   0581 D3 F0               737 	ldci	(RR0),@r15		; D3 F0
+   0583 D3 FE               738 	ldci	(RR14),@r15		; D3 FE
+                            739 
+                            740 	; S_LD
+                            741 	;	LD
+                            742 
+                            743 	;	LD	r,R
+   0585 08 00               744 	ld	r0,0			; 08 00
+   0587 08 0F               745 	ld	r0,15			; 08 0F
+   0589 08 10               746 	ld	r0,16			; 08 10
+   058B 08 FF               747 	ld	r0,255			; 08 FF
+   058D F8 00               748 	ld	r15,0			; F8 00
+   058F F8 0F               749 	ld	r15,15			; F8 0F
+   0591 F8 10               750 	ld	r15,16			; F8 10
+   0593 F8 FF               751 	ld	r15,255			; F8 FF
+                            752 
+                            753 	;	LD	r,R
+                            754 	; symbols
+   0595 08 00               755 	ld	r0,n0			; 08 00
+   0597 08 0F               756 	ld	r0,n15			; 08 0F
+   0599 08 10               757 	ld	r0,n16			; 08 10
+   059B 08 FF               758 	ld	r0,n255			; 08 FF
+   059D F8 00               759 	ld	r15,n0			; F8 00
+   059F F8 0F               760 	ld	r15,n15			; F8 0F
+   05A1 F8 10               761 	ld	r15,n16			; F8 10
+   05A3 F8 FF               762 	ld	r15,n255		; F8 FF
+                            763 
+                            764 	;	LD	R,r
+   05A5 09 00               765 	ld	0,r0			; 09 00
+   05A7 09 0F               766 	ld	15,r0			; 09 0F
+   05A9 09 10               767 	ld	16,r0			; 09 10
+   05AB 09 FF               768 	ld	255,r0			; 09 FF
+   05AD F9 00               769 	ld	0,r15			; F9 00
+   05AF F9 0F               770 	ld	15,r15			; F9 0F
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 15
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+   05B1 F9 10               771 	ld	16,r15			; F9 10
+   05B3 F9 FF               772 	ld	255,r15			; F9 FF
+                            773 
+                            774 	;	LD	R,r
+                            775 	; symbols
+   05B5 09 00               776 	ld	n0,r0			; 09 00
+   05B7 09 0F               777 	ld	n15,r0			; 09 0F
+   05B9 09 10               778 	ld	n16,r0			; 09 10
+   05BB 09 FF               779 	ld	n255,r0			; 09 FF
+   05BD F9 00               780 	ld	n0,r15			; F9 00
+   05BF F9 0F               781 	ld	n15,r15			; F9 0F
+   05C1 F9 10               782 	ld	n16,r15			; F9 10
+   05C3 F9 FF               783 	ld	n255,r15		; F9 FF
+                            784 
+                            785 	;	LD	R,r	<<= r,r
+   05C5 09 E0               786 	ld	r0,r0			; 09 E0
+   05C7 F9 E0               787 	ld	r0,r15			; F9 E0
+   05C9 09 EF               788 	ld	r15,r0			; 09 EF
+   05CB F9 EF               789 	ld	r15,r15			; F9 EF
+                            790 
+                            791 	;	LD	r,@r
+   05CD E3 00               792 	ld	r0,@r0			; E3 00
+   05CF E3 0F               793 	ld	r0,@r15			; E3 0F
+   05D1 E3 F0               794 	ld	r15,@r0			; E3 F0
+   05D3 E3 FF               795 	ld	r15,@r15		; E3 FF
+                            796 
+                            797 	;	LD	r,@r	<<== r,(r)
+   05D5 E3 00               798 	ld	r0,(r0)			; E3 00
+   05D7 E3 0F               799 	ld	r0,(r15)		; E3 0F
+   05D9 E3 F0               800 	ld	r15,(r0)		; E3 F0
+   05DB E3 FF               801 	ld	r15,(r15)		; E3 FF
+                            802 
+                            803 	;	LD	@r,r
+   05DD F3 00               804 	ld	@r0,r0			; F3 00
+   05DF F3 F0               805 	ld	@r15,r0			; F3 F0
+   05E1 F3 0F               806 	ld	@r0,r15			; F3 0F
+   05E3 F3 FF               807 	ld	@r15,r15		; F3 FF
+                            808 
+                            809 	;	LD	@r,r	<<== (r),r
+   05E5 F3 00               810 	ld	(r0),r0			; F3 00
+   05E7 F3 F0               811 	ld	(r15),r0		; F3 F0
+   05E9 F3 0F               812 	ld	(r0),r15		; F3 0F
+   05EB F3 FF               813 	ld	(r15),r15		; F3 FF
+                            814 
+                            815 	;	LD	R,R
+   05ED E4 00 00            816 	ld	0,0			; E4 00 00
+   05F0 E4 0F 00            817 	ld	0,15			; E4 0F 00
+   05F3 E4 10 00            818 	ld	0,16			; E4 10 00
+   05F6 E4 FF 00            819 	ld	0,255			; E4 FF 00
+   05F9 E4 00 0F            820 	ld	15,0			; E4 00 0F
+   05FC E4 0F 0F            821 	ld	15,15			; E4 0F 0F
+   05FF E4 10 0F            822 	ld	15,16			; E4 10 0F
+   0602 E4 FF 0F            823 	ld	15,255			; E4 FF 0F
+   0605 E4 00 10            824 	ld	16,0			; E4 00 10
+   0608 E4 0F 10            825 	ld	16,15			; E4 0F 10
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 16
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+   060B E4 10 10            826 	ld	16,16			; E4 10 10
+   060E E4 FF 10            827 	ld	16,255			; E4 FF 10
+   0611 E4 00 FF            828 	ld	255,0			; E4 00 FF
+   0614 E4 0F FF            829 	ld	255,15			; E4 0F FF
+   0617 E4 10 FF            830 	ld	255,16			; E4 10 FF
+   061A E4 FF FF            831 	ld	255,255			; E4 FF FF
+                            832 
+                            833 	;	LD	R,R
+                            834 	; symbols
+   061D E4 0F 00            835 	ld	n0,15			; E4 0F 00
+   0620 E4 10 0F            836 	ld	n15,16			; E4 10 0F
+   0623 E4 FF 10            837 	ld	n16,255			; E4 FF 10
+   0626 E4 00 FF            838 	ld	n255,0			; E4 00 FF
+                            839 
+                            840 	;	LD	R,R
+                            841 	; symbols
+   0629 E4 0F 00            842 	ld	0,n15			; E4 0F 00
+   062C E4 10 0F            843 	ld	15,n16			; E4 10 0F
+   062F E4 FF 10            844 	ld	16,n255			; E4 FF 10
+   0632 E4 00 FF            845 	ld	255,n0			; E4 00 FF
+                            846 
+                            847 	;	LD	R,R
+                            848 	; symbols
+   0635 E4 0F 00            849 	ld	n0,n15			; E4 0F 00
+   0638 E4 10 0F            850 	ld	n15,n16			; E4 10 0F
+   063B E4 FF 10            851 	ld	n16,n255		; E4 FF 10
+   063E E4 00 FF            852 	ld	n255,n0			; E4 00 FF
+                            853 
+                            854 	;	LD	R,@R
+   0641 E5 00 00            855 	ld	0,@0			; E5 00 00
+   0644 E5 0F 00            856 	ld	0,@15			; E5 0F 00
+   0647 E5 10 00            857 	ld	0,@16			; E5 10 00
+   064A E5 FF 00            858 	ld	0,@255			; E5 FF 00
+   064D E5 00 0F            859 	ld	15,@0			; E5 00 0F
+   0650 E5 0F 0F            860 	ld	15,@15			; E5 0F 0F
+   0653 E5 10 0F            861 	ld	15,@16			; E5 10 0F
+   0656 E5 FF 0F            862 	ld	15,@255			; E5 FF 0F
+   0659 E5 00 10            863 	ld	16,@0			; E5 00 10
+   065C E5 0F 10            864 	ld	16,@15			; E5 0F 10
+   065F E5 10 10            865 	ld	16,@16			; E5 10 10
+   0662 E5 FF 10            866 	ld	16,@255			; E5 FF 10
+   0665 E5 00 FF            867 	ld	255,@0			; E5 00 FF
+   0668 E5 0F FF            868 	ld	255,@15			; E5 0F FF
+   066B E5 10 FF            869 	ld	255,@16			; E5 10 FF
+   066E E5 FF FF            870 	ld	255,@255		; E5 FF FF
+                            871 
+                            872 	;	LD	R,@R
+                            873 	; symbols
+   0671 E5 0F 00            874 	ld	n0,@15			; E5 0F 00
+   0674 E5 10 0F            875 	ld	n15,@16			; E5 10 0F
+   0677 E5 FF 10            876 	ld	n16,@255		; E5 FF 10
+   067A E5 00 FF            877 	ld	n255,@0			; E5 00 FF
+                            878 
+                            879 	;	LD	R,@R
+                            880 	; symbols
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 17
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+   067D E5 0F 00            881 	ld	0,@n15			; E5 0F 00
+   0680 E5 10 0F            882 	ld	15,@n16			; E5 10 0F
+   0683 E5 FF 10            883 	ld	16,@n255		; E5 FF 10
+   0686 E5 00 FF            884 	ld	255,@n0			; E5 00 FF
+                            885 
+                            886 	;	LD	R,@R
+                            887 	; symbols
+   0689 E5 0F 00            888 	ld	n0,@n15			; E5 0F 00
+   068C E5 10 0F            889 	ld	n15,@n16		; E5 10 0F
+   068F E5 FF 10            890 	ld	n16,@n255		; E5 FF 10
+   0692 E5 00 FF            891 	ld	n255,@n0		; E5 00 FF
+                            892 
+                            893 	;	LD	R,@R	<<== R,(R)
+   0695 E5 00 00            894 	ld	0,(0)			; E5 00 00
+   0698 E5 0F 00            895 	ld	0,(15)			; E5 0F 00
+   069B E5 10 00            896 	ld	0,(16)			; E5 10 00
+   069E E5 FF 00            897 	ld	0,(255)			; E5 FF 00
+   06A1 E5 00 0F            898 	ld	15,(0)			; E5 00 0F
+   06A4 E5 0F 0F            899 	ld	15,(15)			; E5 0F 0F
+   06A7 E5 10 0F            900 	ld	15,(16)			; E5 10 0F
+   06AA E5 FF 0F            901 	ld	15,(255)		; E5 FF 0F
+   06AD E5 00 10            902 	ld	16,(0)			; E5 00 10
+   06B0 E5 0F 10            903 	ld	16,(15)			; E5 0F 10
+   06B3 E5 10 10            904 	ld	16,(16)			; E5 10 10
+   06B6 E5 FF 10            905 	ld	16,(255)		; E5 FF 10
+   06B9 E5 00 FF            906 	ld	255,(0)			; E5 00 FF
+   06BC E5 0F FF            907 	ld	255,(15)		; E5 0F FF
+   06BF E5 10 FF            908 	ld	255,(16)		; E5 10 FF
+   06C2 E5 FF FF            909 	ld	255,(255)		; E5 FF FF
+                            910 
+                            911 	;	LD	R,(R)
+                            912 	; symbols
+   06C5 E5 0F 00            913 	ld	n0,(15)			; E5 0F 00
+   06C8 E5 10 0F            914 	ld	n15,(16)		; E5 10 0F
+   06CB E5 FF 10            915 	ld	n16,(255)		; E5 FF 10
+   06CE E5 00 FF            916 	ld	n255,(0)		; E5 00 FF
+                            917 
+                            918 	;	LD	R,(R)
+                            919 	; symbols
+   06D1 E5 0F 00            920 	ld	0,(n15)			; E5 0F 00
+   06D4 E5 10 0F            921 	ld	15,(n16)		; E5 10 0F
+   06D7 E5 FF 10            922 	ld	16,(n255)		; E5 FF 10
+   06DA E5 00 FF            923 	ld	255,(n0)		; E5 00 FF
+                            924 
+                            925 	;	LD	R,(R)
+                            926 	; symbols
+   06DD E5 0F 00            927 	ld	n0,(n15)		; E5 0F 00
+   06E0 E5 10 0F            928 	ld	n15,(n16)		; E5 10 0F
+   06E3 E5 FF 10            929 	ld	n16,(n255)		; E5 FF 10
+   06E6 E5 00 FF            930 	ld	n255,(n0)		; E5 00 FF
+                            931 
+                            932 	;	LD	@R,R
+   06E9 F5 00 00            933 	ld	@0,0			; F5 00 00
+   06EC F5 0F 00            934 	ld	@0,15			; F5 0F 00
+   06EF F5 10 00            935 	ld	@0,16			; F5 10 00
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 18
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+   06F2 F5 FF 00            936 	ld	@0,255			; F5 FF 00
+   06F5 F5 00 0F            937 	ld	@15,0			; F5 00 0F
+   06F8 F5 0F 0F            938 	ld	@15,15			; F5 0F 0F
+   06FB F5 10 0F            939 	ld	@15,16			; F5 10 0F
+   06FE F5 FF 0F            940 	ld	@15,255			; F5 FF 0F
+   0701 F5 00 10            941 	ld	@16,0			; F5 00 10
+   0704 F5 0F 10            942 	ld	@16,15			; F5 0F 10
+   0707 F5 10 10            943 	ld	@16,16			; F5 10 10
+   070A F5 FF 10            944 	ld	@16,255			; F5 FF 10
+   070D F5 00 FF            945 	ld	@255,0			; F5 00 FF
+   0710 F5 0F FF            946 	ld	@255,15			; F5 0F FF
+   0713 F5 10 FF            947 	ld	@255,16			; F5 10 FF
+   0716 F5 FF FF            948 	ld	@255,255		; F5 FF FF
+                            949 
+                            950 	;	LD	@R,R
+                            951 	; symbols
+   0719 F5 0F 00            952 	ld	@n0,15			; F5 0F 00
+   071C F5 10 0F            953 	ld	@n15,16			; F5 10 0F
+   071F F5 FF 10            954 	ld	@n16,255		; F5 FF 10
+   0722 F5 00 FF            955 	ld	@n255,0			; F5 00 FF
+                            956 
+                            957 	;	LD	@R,R
+                            958 	; symbols
+   0725 F5 0F 00            959 	ld	@0,n15			; F5 0F 00
+   0728 F5 10 0F            960 	ld	@15,n16			; F5 10 0F
+   072B F5 FF 10            961 	ld	@16,n255		; F5 FF 10
+   072E F5 00 FF            962 	ld	@255,n0			; F5 00 FF
+                            963 
+                            964 	;	LD	@R,R
+                            965 	; symbols
+   0731 F5 0F 00            966 	ld	@n0,n15			; F5 0F 00
+   0734 F5 10 0F            967 	ld	@n15,n16		; F5 10 0F
+   0737 F5 FF 10            968 	ld	@n16,n255		; F5 FF 10
+   073A F5 00 FF            969 	ld	@n255,n0		; F5 00 FF
+                            970 
+                            971 	;	LD	R,#
+   073D E6 00 00            972 	ld	0,#0			; E6 00 00
+   0740 E6 00 0F            973 	ld	0,#15			; E6 00 0F
+   0743 E6 00 10            974 	ld	0,#16			; E6 00 10
+   0746 E6 00 FF            975 	ld	0,#255			; E6 00 FF
+   0749 E6 0F 00            976 	ld	15,#0			; E6 0F 00
+   074C E6 0F 0F            977 	ld	15,#15			; E6 0F 0F
+   074F E6 0F 10            978 	ld	15,#16			; E6 0F 10
+   0752 E6 0F FF            979 	ld	15,#255			; E6 0F FF
+   0755 E6 10 00            980 	ld	16,#0			; E6 10 00
+   0758 E6 10 0F            981 	ld	16,#15			; E6 10 0F
+   075B E6 10 10            982 	ld	16,#16			; E6 10 10
+   075E E6 10 FF            983 	ld	16,#255			; E6 10 FF
+   0761 E6 FF 00            984 	ld	255,#0			; E6 FF 00
+   0764 E6 FF 0F            985 	ld	255,#15			; E6 FF 0F
+   0767 E6 FF 10            986 	ld	255,#16			; E6 FF 10
+   076A E6 FF FF            987 	ld	255,#255		; E6 FF FF
+                            988 
+                            989 	;	LD	R,#
+                            990 	; (symbols)
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 19
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+   076D E6 00 00            991 	ld	0,#n0			; E6 00 00
+   0770 E6 00 0F            992 	ld	0,#n15			; E6 00 0F
+   0773 E6 00 10            993 	ld	0,#n16			; E6 00 10
+   0776 E6 00 FF            994 	ld	0,#n255			; E6 00 FF
+   0779 E6 0F 00            995 	ld	15,#n0			; E6 0F 00
+   077C E6 0F 0F            996 	ld	15,#n15			; E6 0F 0F
+   077F E6 0F 10            997 	ld	15,#n16			; E6 0F 10
+   0782 E6 0F FF            998 	ld	15,#n255		; E6 0F FF
+   0785 E6 10 00            999 	ld	16,#n0			; E6 10 00
+   0788 E6 10 0F           1000 	ld	16,#n15			; E6 10 0F
+   078B E6 10 10           1001 	ld	16,#n16			; E6 10 10
+   078E E6 10 FF           1002 	ld	16,#n255		; E6 10 FF
+   0791 E6 FF 00           1003 	ld	255,#n0			; E6 FF 00
+   0794 E6 FF 0F           1004 	ld	255,#n15		; E6 FF 0F
+   0797 E6 FF 10           1005 	ld	255,#n16		; E6 FF 10
+   079A E6 FF FF           1006 	ld	255,#n255		; E6 FF FF
+                           1007 
+                           1008 	;	LD	@R,#
+   079D E7 00 00           1009 	ld	@0,#0			; E7 00 00
+   07A0 E7 00 0F           1010 	ld	@0,#15			; E7 00 0F
+   07A3 E7 00 10           1011 	ld	@0,#16			; E7 00 10
+   07A6 E7 00 FF           1012 	ld	@0,#255			; E7 00 FF
+   07A9 E7 0F 00           1013 	ld	@15,#0			; E7 0F 00
+   07AC E7 0F 0F           1014 	ld	@15,#15			; E7 0F 0F
+   07AF E7 0F 10           1015 	ld	@15,#16			; E7 0F 10
+   07B2 E7 0F FF           1016 	ld	@15,#255		; E7 0F FF
+   07B5 E7 10 00           1017 	ld	@16,#0			; E7 10 00
+   07B8 E7 10 0F           1018 	ld	@16,#15			; E7 10 0F
+   07BB E7 10 10           1019 	ld	@16,#16			; E7 10 10
+   07BE E7 10 FF           1020 	ld	@16,#255		; E7 10 FF
+   07C1 E7 FF 00           1021 	ld	@255,#0			; E7 FF 00
+   07C4 E7 FF 0F           1022 	ld	@255,#15		; E7 FF 0F
+   07C7 E7 FF 10           1023 	ld	@255,#16		; E7 FF 10
+   07CA E7 FF FF           1024 	ld	@255,#255		; E7 FF FF
+                           1025 
+                           1026 	;	LD	@R,#	<<== (R),#
+   07CD E7 00 00           1027 	ld	(0),#0			; E7 00 00
+   07D0 E7 00 0F           1028 	ld	(0),#15			; E7 00 0F
+   07D3 E7 00 10           1029 	ld	(0),#16			; E7 00 10
+   07D6 E7 00 FF           1030 	ld	(0),#255		; E7 00 FF
+   07D9 E7 0F 00           1031 	ld	(15),#0			; E7 0F 00
+   07DC E7 0F 0F           1032 	ld	(15),#15		; E7 0F 0F
+   07DF E7 0F 10           1033 	ld	(15),#16		; E7 0F 10
+   07E2 E7 0F FF           1034 	ld	(15),#255		; E7 0F FF
+   07E5 E7 10 00           1035 	ld	(16),#0			; E7 10 00
+   07E8 E7 10 0F           1036 	ld	(16),#15		; E7 10 0F
+   07EB E7 10 10           1037 	ld	(16),#16		; E7 10 10
+   07EE E7 10 FF           1038 	ld	(16),#255		; E7 10 FF
+   07F1 E7 FF 00           1039 	ld	(255),#0		; E7 FF 00
+   07F4 E7 FF 0F           1040 	ld	(255),#15		; E7 FF 0F
+   07F7 E7 FF 10           1041 	ld	(255),#16		; E7 FF 10
+   07FA E7 FF FF           1042 	ld	(255),#255		; E7 FF FF
+                           1043 
+                           1044 	;	LD	@R,#
+                           1045 	; (symbols)
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 20
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+   07FD E7 00 00           1046 	ld	@0,#n0			; E7 00 00
+   0800 E7 00 0F           1047 	ld	@0,#n15			; E7 00 0F
+   0803 E7 00 10           1048 	ld	@0,#n16			; E7 00 10
+   0806 E7 00 FF           1049 	ld	@0,#n255		; E7 00 FF
+   0809 E7 0F 00           1050 	ld	@15,#n0			; E7 0F 00
+   080C E7 0F 0F           1051 	ld	@15,#n15		; E7 0F 0F
+   080F E7 0F 10           1052 	ld	@15,#n16		; E7 0F 10
+   0812 E7 0F FF           1053 	ld	@15,#n255		; E7 0F FF
+   0815 E7 10 00           1054 	ld	@16,#n0			; E7 10 00
+   0818 E7 10 0F           1055 	ld	@16,#n15		; E7 10 0F
+   081B E7 10 10           1056 	ld	@16,#n16		; E7 10 10
+   081E E7 10 FF           1057 	ld	@16,#n255		; E7 10 FF
+   0821 E7 FF 00           1058 	ld	@255,#n0		; E7 FF 00
+   0824 E7 FF 0F           1059 	ld	@255,#n15		; E7 FF 0F
+   0827 E7 FF 10           1060 	ld	@255,#n16		; E7 FF 10
+   082A E7 FF FF           1061 	ld	@255,#n255		; E7 FF FF
+                           1062 
+                           1063 	;	LD	@R,#	<<== (R),#
+                           1064 	; (symbols)
+   082D E7 00 00           1065 	ld	(0),#n0			; E7 00 00
+   0830 E7 00 0F           1066 	ld	(0),#n15		; E7 00 0F
+   0833 E7 00 10           1067 	ld	(0),#n16		; E7 00 10
+   0836 E7 00 FF           1068 	ld	(0),#n255		; E7 00 FF
+   0839 E7 0F 00           1069 	ld	(15),#n0		; E7 0F 00
+   083C E7 0F 0F           1070 	ld	(15),#n15		; E7 0F 0F
+   083F E7 0F 10           1071 	ld	(15),#n16		; E7 0F 10
+   0842 E7 0F FF           1072 	ld	(15),#n255		; E7 0F FF
+   0845 E7 10 00           1073 	ld	(16),#n0		; E7 10 00
+   0848 E7 10 0F           1074 	ld	(16),#n15		; E7 10 0F
+   084B E7 10 10           1075 	ld	(16),#n16		; E7 10 10
+   084E E7 10 FF           1076 	ld	(16),#n255		; E7 10 FF
+   0851 E7 FF 00           1077 	ld	(255),#n0		; E7 FF 00
+   0854 E7 FF 0F           1078 	ld	(255),#n15		; E7 FF 0F
+   0857 E7 FF 10           1079 	ld	(255),#n16		; E7 FF 10
+   085A E7 FF FF           1080 	ld	(255),#n255		; E7 FF FF
+                           1081 
+                           1082 	;	LD	@R,#	<<== @r,#
+   085D E7 E0 00           1083 	ld	@r0,#0			; E7 E0 00
+   0860 E7 E0 0F           1084 	ld	@r0,#15			; E7 E0 0F
+   0863 E7 E0 10           1085 	ld	@r0,#16			; E7 E0 10
+   0866 E7 E0 FF           1086 	ld	@r0,#255		; E7 E0 FF
+   0869 E7 EF 00           1087 	ld	@r15,#0			; E7 EF 00
+   086C E7 EF 0F           1088 	ld	@r15,#15		; E7 EF 0F
+   086F E7 EF 10           1089 	ld	@r15,#16		; E7 EF 10
+   0872 E7 EF FF           1090 	ld	@r15,#255		; E7 EF FF
+                           1091 
+                           1092 	;	LD	@R,#	<<== (r),#
+   0875 E7 E0 00           1093 	ld	(r0),#0			; E7 E0 00
+   0878 E7 E0 0F           1094 	ld	(r0),#15		; E7 E0 0F
+   087B E7 E0 10           1095 	ld	(r0),#16		; E7 E0 10
+   087E E7 E0 FF           1096 	ld	(r0),#255		; E7 E0 FF
+   0881 E7 EF 00           1097 	ld	(r15),#0		; E7 EF 00
+   0884 E7 EF 0F           1098 	ld	(r15),#15		; E7 EF 0F
+   0887 E7 EF 10           1099 	ld	(r15),#16		; E7 EF 10
+   088A E7 EF FF           1100 	ld	(r15),#255		; E7 EF FF
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 21
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Assembler Addressing Mode Tests
+
+                           1101 
+                           1102 	;	LD	@R,#	<<== @r,#
+                           1103 	; symbols
+   088D E7 E0 00           1104 	ld	@r0,#n0			; E7 E0 00
+   0890 E7 E0 0F           1105 	ld	@r0,#n15		; E7 E0 0F
+   0893 E7 E0 10           1106 	ld	@r0,#n16		; E7 E0 10
+   0896 E7 E0 FF           1107 	ld	@r0,#n255		; E7 E0 FF
+   0899 E7 EF 00           1108 	ld	@r15,#n0		; E7 EF 00
+   089C E7 EF 0F           1109 	ld	@r15,#n15		; E7 EF 0F
+   089F E7 EF 10           1110 	ld	@r15,#n16		; E7 EF 10
+   08A2 E7 EF FF           1111 	ld	@r15,#n255		; E7 EF FF
+                           1112 
+                           1113 	;	LD	@R,#	<<== (r),#
+                           1114 	; symbols
+   08A5 E7 E0 00           1115 	ld	(r0),#n0		; E7 E0 00
+   08A8 E7 E0 0F           1116 	ld	(r0),#n15		; E7 E0 0F
+   08AB E7 E0 10           1117 	ld	(r0),#n16		; E7 E0 10
+   08AE E7 E0 FF           1118 	ld	(r0),#n255		; E7 E0 FF
+   08B1 E7 EF 00           1119 	ld	(r15),#n0		; E7 EF 00
+   08B4 E7 EF 0F           1120 	ld	(r15),#n15		; E7 EF 0F
+   08B7 E7 EF 10           1121 	ld	(r15),#n16		; E7 EF 10
+   08BA E7 EF FF           1122 	ld	(r15),#n255		; E7 EF FF
+                           1123 
+                           1124 	;	LD	r,offset(r)
+   08BD C7 0F 00           1125 	ld	r0,0(r15)		; C7 0F 00
+   08C0 C7 1E 0F           1126 	ld	r1,15(r14)		; C7 1E 0F
+   08C3 C7 2D 10           1127 	ld	r2,16(r13)		; C7 2D 10
+   08C6 C7 3C FF           1128 	ld	r3,255(r12)		; C7 3C FF
+                           1129 
+                           1130 	;	LD	r,offset(r)
+                           1131 	; symbols
+   08C9 C7 0F 00           1132 	ld	r0,n0(r15)		; C7 0F 00
+   08CC C7 1E 0F           1133 	ld	r1,n15(r14)		; C7 1E 0F
+   08CF C7 2D 10           1134 	ld	r2,n16(r13)		; C7 2D 10
+   08D2 C7 3C FF           1135 	ld	r3,n255(r12)		; C7 3C FF
+                           1136 
+                           1137 	;	LD	offset(r),r
+   08D5 D7 0F 00           1138 	ld	0(r15),r0		; D7 0F 00
+   08D8 D7 1E 0F           1139 	ld	15(r14),r1		; D7 1E 0F
+   08DB D7 2D 10           1140 	ld	16(r13),r2		; D7 2D 10
+   08DE D7 3C FF           1141 	ld	255(r12),r3		; D7 3C FF
+                           1142 
+                           1143 	;	LD	offset(r),r
+                           1144 	; symbols
+   08E1 D7 0F 00           1145 	ld	n0(r15),r0		; D7 0F 00
+   08E4 D7 1E 0F           1146 	ld	n15(r14),r1		; D7 1E 0F
+   08E7 D7 2D 10           1147 	ld	n16(r13),r2		; D7 2D 10
+   08EA D7 3C FF           1148 	ld	n255(r12),r3		; D7 3C FF
+                           1149 
+                           1150 
+                           1151 
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 22
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Symbol Table
+
+    .__.$$$.       =   2710 L   |     .__.ABS.       =   0000 G
+    .__.CPU.       =   0000 L   |     .__.H$L.       =   0001 L
+  0 jpadr1             0526 GR  |   0 jpadr2             0529 GR
+  0 jpadr3             052C GR  |   0 jpadr4             052F GR
+  0 jpadr5             0532 GR  |     n0             =   0000 G
+    n15            =   000F G   |     n16            =   0010 G
+    n255           =   00FF G
+
+ASxxxx Assembler V05.50  (Zilog Z8)                                    Page 23
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:32 2023
+Test of Z8 assembler
+Area Table
+
+[_CSEG]
+   0 _CODE            size  8ED   flags C180
+[_DSEG]
+   1 _DATA            size    0   flags C0C0
+

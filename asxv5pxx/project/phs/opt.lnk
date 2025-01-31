@@ -1,0 +1,20 @@
+-wmxus+ opt
+-v
+phs
+acia
+acq
+hvctrl
+termio
+select
+status
+histos
+help
+aiconv
+phsmon
+-o
+opt
+-a WORKPG = 0x0F00
+-a BUFSAV = bufsav
+-a PGMSAV = pgmsav
+-a IRQVEC = irqvec
+-e

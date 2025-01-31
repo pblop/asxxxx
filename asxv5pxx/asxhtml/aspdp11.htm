@@ -1,0 +1,875 @@
+<HTML>
+<HEAD>
+<TITLE></TITLE>
+</HEAD>
+<BODY BGCOLOR="#C0C0C0">
+
+<A href="../home.htm">
+<IMG width=343 height=58 border=0 SRC="welcom.gif" ALT="Welcome"></A>
+
+<H2>ASPDP11  Assembler</H2>
+
+<A NAME = "TOP"> </A> 
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+     The  assembler  supports  the full instruction set of PDP11
+processors.  Each of the original PDP11 cores  supports  a  dif-
+ferent  subset of the full PDP11 instruction set.  It is left to
+the programmer to  use  only  the  instructions  native  to  the
+particular processor core used in your application.  
+
+     The  assembler  supports  the basic PDP11 core instructions
+and the various subsets:  EIS, FIS, FPP, and  CIS  instructions.
+Various  alternate  instruction sequences used in the early UNIX
+(R) V7 assembler developed at AT&T are also implemented.  
+
+     The  cycle  counts for each instruction were extracted from
+the DCJ11 documentation and is  expressed  in  microcycles  (one
+microcyle  is  four clock cycles).  For other processors see the
+individual data books for instruction execution times.   If  the
+number  of microcycles exceeds 99 then the cycle count will show
+[99].  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+PROCESSOR SPECIFIC DIRECTIVES 
+
+.rad50 Directive 
+
+     Format:  
+
+        .rad50          /string 1/, ..., /string N/ 
+
+where:  string  represents a series of characters to be
+                packed.  The string must consist of the
+                characters A through Z, 0 through 9,
+                dollar sign ($), period (.), and a
+                space ( ).  An illegal printing character
+                causes a 'q' error.
+
+                If fewer than three characters are to be
+                packed, the string is packed left justified
+                within the word, and trailing spaces are
+                assumed.
+
+        ^/  /   represent delimiting characters.  These
+                delimiters may be any paired printable
+                characters other than the left angle
+                bracket (<) or semicolon (;), providing
+                that the delimiting character is not
+                contained within the text string itself.
+
+
+     The  .RAD50  directive  allows the user to generate data in
+Radix-50 packed format.  Radix-50 form allows  three  characters
+to  be  packed  into  sixteen  bits  (one  word);  therefor, any
+6-character symbol can be stored in two consecutive words.   Ex-
+amples of a .RAD50 directives are shown below:  
+
+    .RAD50   ^/ABC/     ;Packs ABC into one word.
+    .RAD50   ^/AB/      ;Packs AB (SPACE) into one word
+    .RAD50   ^/ABCD/    ;Packs ABC into the first word and
+                        ;D (SPACE) (SPACE) into second word
+    .RAD50   ^/ABCDEF/  ;Packs ABC into the first word and
+                        ;Packs DEF into the second word.
+
+
+     Each  character is translated into its Radix-50 equivalent,
+as indicated in the following table (values in octal):  
+
+        (space)                 0
+        A-Z                     1-32
+        $                       33
+        .                       34
+        (undefined)             35
+        0-9                     36-47
+
+
+     The  Radix-50  equivalents  for characters 1 through 3 (C1,
+C2, C3) are combined as follows:  
+
+        Radix-50 Value = ((C1*50)+C2)*50+C3
+
+
+     Angle  brackets  (&lt;&gt;)  must be used in the .RAD50 directive
+whenever special codes are to be inserted into the text  string,
+as shown in the example below:  
+
+        .RAD50  ^/AB/&lt;35&gt;       Stores 3255 in one word
+
+   CHR1 = 1
+   CHR2 = 2
+   CHR3 = 3     then
+
+        .RAD50  ^/<CHR1><CHR2><CHR3>/   ; .RAD50  ^/ABC/
+
+
+^R - The Temporary Radix-50 Control Operator 
+
+     Format:  
+
+        ^Rccc 
+
+where:  ccc     represents a maximum of three characters
+                to be converted to a 16-bit  Radix-50
+                value.  If more than three characters
+                are specified, any following the third
+                are ignored.  If fewer than three are
+                specified, it is assumed that the
+                trailing characters are blank.
+
+
+     The  ^R  operator  specifies that an argument is to be con-
+verted to Radix-50 format.  This allows up to  three  characters
+to be stored in one word.  The following example shows how the R
+operator might be used to pack a 3-character file type specifier
+(ASM) into a single 16-bit word:  
+
+        MOV  #^RASM,FILEXT      ;Store RAD50 ASM
+                                ;as file extension
+
+
+     The  number  sign  (#)  is  used to indicate immediate data
+(data to be assembled directly into object code).  ^R  specifies
+that  the  characters ASM are to be converted to Radix-50.  This
+value is then stored in location FILEXT.  
+
+
+.int32 
+
+     Format:  
+
+        .int32 arg1, arg2, ...  
+
+where:  arg1, arg2, ...    represent one or more integers.
+                           .int32 creates a 32-bit integer.
+
+
+     .int32 causes two words of storage to be generated for each
+argument.   As  in  the  .word  directive,  the  arguments   are
+evaluated and the results are stored in the object module.  Glo-
+bal values are not allowed in the argument and will give an  'r'
+error.  
+
+
+.flt16, .flt32 and .flt64 
+
+     Format:  
+
+        .flt16 arg1, arg2, ...  
+        .flt32 arg1, arg2, ...  
+        .flt64 arg1, arg2, ...  
+
+where:  arg1, arg2, ...    represent one or more
+                           floating-point numbers.
+                           .flt16 creates a 16-bit float.
+                           .flt32 creates a 32-bit float.
+                           .flt64 creates a 64-bit float.
+
+
+     .flt16  causes one word of storage to be generated for each
+argument, .flt32 causes two words of storage to be generated for
+each  argument,  while  .flt64  generates 4 words of storage for
+each argument.  As in the .word  directive,  the  arguments  are
+evaluated  and the results are stored in the object module.  Un-
+like the .word directive only the sign operators (+) and (-) may
+be  used  in  the  evaluation  of a floating-point argument.  No
+arithmetic operations are allowed in  the  floating-point  argu-
+ment.  
+
+     A  floating-point  number  is  represented  by  a string of
+decimal digits.  The string (which can  be  a  single  digit  in
+length)  may  contain  an optional decimal point and may be fol-
+lowed by an optional exponent indicator in the form  of  'E'  or
+'e'  followed  by a signed decimal integer exponent.  The number
+may not contain embedded blanks, tabs, or angle brackets and may
+not be an expression.  
+
+     The  list  below  of numeric representations contains seven
+distinct,  valid  representations  of  the  same  floating-point
+instruction:  
+
+        3
+        3.
+        3.0
+        3.0E0
+        3E0
+        .3E1
+        300E-2
+
+
+     As can be inferred, the list could be extended almost inde-
+finitely (3000E-3, .03E2, and so no).  A leading  plus  sign  is
+optional (3.0 is considered +3.0).  A leading minus sign comple-
+ments the sign bit.  No other operators are allowed  (for  exam-
+ple, 3.0 + N is illegal).  
+
+     Internally  all  floating-point numbers are evaluated as 64
+bits in the following format:  
+
+        63      62    55        54        0
+         S      EEEEEEEE        MMM.....MMM
+
+                Mantissa  (55 bits)
+                Exponent  (8 bits
+                Sign      (1 bit)
+
+
+     The  ASPDP11  assembler  returns a value of the appropriate
+size and precision via one  of  the  floating-point  directives.
+The  values  returned may be truncated or rounded as selected by
+'.enable (fpt)' or '.dsabl (fpt)' respectively.  
+
+     Floating-point numbers are normally rounded.  That is, when
+a floating-point number exceeds the limits of the field in which
+it is to be stored, the high-order bit of the unretained portion
+is added to the low-order bit of the retained portion.  
+
+     All  numeric  operands  associated  with the Floating Point
+Processor instructions are  automatically  evaluated  as  single
+word,  decimal,  floating-point  values unless a temporary radix
+control operator is specified.  For example, to  add  (floating)
+the  octal  constant  #0Q41040 to the contents of floating-point
+accumulator 0, the following instruction must be used:  
+
+        addf    #0Q41040,ac0
+
+
+^F - The One Word Floating-Point Operator 
+
+     Format:  
+
+        ^F 
+
+     ^F is a unary operator for numeric control which allows you
+to specify an argument that is a 1-word  floating-point  number.
+For example, the following statement:  
+
+        A:      MOV     #^F3.7,R0
+
+creates  a 1-word floating-point number at location A+2 contain-
+ing the value 3.7 formatted as shown below:  
+
+     Bit 15     14     7     6     0
+          S     EEEEEEEE     MMMMMMM
+
+        Sign     (1 bit)
+        Exponent (8 bits)
+        Mantissa (7 bits)
+
+
+     The ^F operator is only allowed in an instruction.  
+
+
+.enabl and .dsabl 
+
+     Format:  
+
+        .enabl (arg1, arg2, ...) 
+        .dsabl (arg1, arg2, ...) 
+
+where:  arg1, arg2, ...    represent one or more
+                           of the following options
+
+                fpt     Floating-Point Truncation
+                ama     Absolute Memory Addressing
+                smi     Self Modifying Instruction
+                awg     Automatic .WORD Generation
+                rtyp    Require Floating Register Types
+
+
+     fpt:  controls whether floating-point truncation is active.
+Normal mode is fpt disabled and rounding is enabled.  
+
+     ama:   controls whether relative addressing is converted to
+absolute addressing.  This may be useful  when  debugging  code.
+Normal  mode is ama disabled and relative addressing is enabled.
+The addressing mode affected is the relative mode 'A', a special
+form  of  X(Rn)  where Rn is the program counter R7 or PC.  This
+form  is  converted  to  the  absolute  addressing  form   '@#A'
+equivalent  to form @X(Rn) where Rn is again the program counter
+R7 or PC.  
+
+     smi:   controls  whether  self  modifying  instructions, ie
+those that modify the current instruction's  program  code,  are
+allowed.  The default is to report an error.  For example:  
+
+        MOV     (PC)+,(PC)+     Moves the second word
+SCND:   .word   0               of the instruction to
+THRD:   .word   0               the third word.
+
+would normally be reported as an error.  
+
+     awg:   controls whether assembly lines not having assembler
+or macro directives are treated as arguments of a  .word  direc-
+tive.   This  allows lists to be created without using the .word
+directive.  eg:  
+
+FNCTNS:
+        ASK             ; &lt;lt;--  .WORD   ASK
+        SAVE            ; &lt;lt;--  .WORD   SAVE
+        ...
+
+DATA:
+        104400,0        ; &lt;lt;--  .WORD   104400,0
+        104401,1        ; &lt;lt;--  .WORD   104401,1
+        ...
+
+The  default  is  to  report an error without the explicit .WORD
+directive.  Note that when awg is enabled any misspelled  direc-
+tive  or  macro gets treated as a .WORD argument which will lead
+to some unexpected coding.  
+
+     rtyp:   The default is to allow any valid register designa-
+tion in floating point instructions.  Setting rtyp to a non-zero
+value  will  require floating register types to be used.  (These
+include ACn, Fn, or FRn where 0 <= n <= 5) 
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+PDP-11 REGISTER SET 
+
+     The  following  is  a  list  of the PDP11 registers used by
+ASPDP11.  Eight 16-bit registers provide addresses and data  and
+six  floating-point registers handle single and double precision
+values:  
+
+        r0  /  %0          -    working register r0
+        r1  /  %1          -    working register r1
+        r2  /  %2          -    working register r2
+        r3  /  %3          -    working register r3
+        r4  /  %4          -    working register r4
+        r5  /  %5          -    working register r5
+        r6  /  %6  /  sp   -    stack pointer
+        r7  /  %7  /  pc   -    program counter
+
+        ac0 /  f0  /  fr0  -    floating-point register ac0
+        ac1 /  f1  /  fr1  -    floating-point register ac1
+        ac2 /  f2  /  fr2  -    floating-point register ac2
+        ac3 /  f3  /  fr3  -    floating-point register ac3
+        ac4 /  f4  /  fr4  -    floating-point register ac4
+        ac5 /  f5  /  fr5  -    floating-point register ac5
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+PDP-11 ADDRESSING MODES 
+
+Addressing modes suported by ASPDP11:
+
+Mode Addressing Mode  Syntax           Description
+---- ---------------  ------  ----------------------------
+  0    Register         Rn    Register content is operand.
+
+  1    Register        (Rn)   Register contains the
+        Deferred              address of the operand.
+
+  2    Autoincrement   (Rn)+  Register is used as a
+                              pointer to sequential data
+                              then incremented.
+
+  3    Autoincrement  @(Rn)+  Register is first used as a
+        Deferred              pointer to a word containing
+                              the address of the operand
+                              then incremented (always by 2,
+                              even for byte instructions).
+
+  4    Autodecrement  -(Rn)   Register is decremented and
+                              then used as a pointer.
+
+  5    Autodecrement  @-(Rn)  Register is decremented
+        Deferred              (always by 2, even for
+                              byte instructions) and then
+                              used as a pointer to a word
+                              containing the address of
+                              the operand.
+
+  6    Index           X(Rn)  Value of X is added to the
+                              contents of Rn to produce
+                              address of operand. Neither
+                              X or Rn are modified.
+
+  7    Index          @X(Rn)  Value X (stored in the word
+        Deferred              following the instruction)
+                              and Rn are added and the sum
+                              is used as a pointer to a
+                              word containing the address
+                              of the operand.  Neither X
+                              or Rn are modified.
+
+        The following short forms are also supported:
+                @Rn     <==>    (Rn)
+                @Rn+    <==>    (Rn)+
+                -@Rn    <==>    -(Rn)
+                @(Rn)   <==>    @X(Rn) when X is blank (0)
+
+
+     Although  register 7 is a general purpose register, it dou-
+bles  in  function  as  the  Program  Counter  for  the  PDP-11.
+Whenever  the  processor  uses  the program counter to acquire a
+word of memory, the program counter is automatically incremented
+by  two  to contain the address of the next word of the instruc-
+tion being executed or the address of the next instruction to be
+executed.   (When  the  program uses the PC to locate byte data,
+the PC is still incremented by two.) 
+
+     The  PC  responds  to  all  the  standard PDP-11 addressing
+modes.  However, There are four of these modes which  have  spe-
+cial forms:  
+
+Mode Addressing Mode  Syntax           Description
+---- ---------------  ------  ----------------------------
+  2    Immediate        #n    Operand follows instruction.
+
+  3    Absolute        @#A    Absolute Address Follows
+                              instruction.
+
+  6    Relative          A    Relative Address (index value)
+                              follows the instruction.
+
+  7    Relative         @A    Index value (stored in the
+        Deferred              word following the instruction)
+                              is the relative address for the
+                              for the address of the operand.
+
+
+     These  special  forms  are  the same as the modes described
+earlier, but the general register selected is  R7,  the  program
+counter.  
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+PDP-11 INSTRUCTION SET 
+
+     The following table lists all the instructions found in all
+models of the PDP-11 (except as noted *).  The (B) indicates  an
+instruction has a byte option and the brackets '[]' indicate one
+of the described addressing modes.  The EIS, FIS, FPP,  and  CIS
+Instruction  Sets are present depending upon the specific PDP-11
+model.  
+
+
+Single Operand 
+
+    General
+        CLR(B)  []      Clear Destination
+        COM(B)  []      Complement Destination
+        INC(B)  []      Increment Destination
+        DEC(B)  []      Decrement Destination
+        NEG(B)  []      Negate Destination
+        TST(B)  []      Test Destination
+
+    Shift & Rotate
+        ASR(B)  []      Arithmetic Shift Right
+        ASL(B)  []      Arithmetic Shift Left
+        ROR(B)  []      Rotate Right
+        ROL(B)  []      Rotate Left
+        SWAB    []      Swap Bytes
+
+    Multiple Precision
+        ADC(B)  []      Add Carry
+        SBC(B)  []      Subtract Carry
+      * SXT     []      Sign Extend
+
+
+Double Operand 
+
+    General
+        MOV(B)  [],[]   Move Source To Destination
+        CMP(B)  [],[]   Compare Source To Destination
+        ADD     [],[]   Add Source To Destination
+        SUB     [],[]   Subtract Source From Destination
+
+    Logical
+        BIT(B)  [],[]   Test A Bit
+        BIC(B)  [],[]   Clear A Bit
+        BIS(B)  [],[]   Set A Bit
+
+      * XOR     Rn,[]   Exclusive OR
+
+
+Program Control 
+
+     The  branch instructions have a range of -127 to +128 words
+of the current program counter value.   The  branch  instruction
+argument is normally an address.  
+
+    Branch
+        BR      Branch (Unconditional)
+        BNE     Branch If Not Equal (To Zero)
+        BEQ     Branch If Equal (To Zero)
+        BPL     Branch If Plus
+        BMI     Branch If Minus
+        BVC     Branch If Overflow Is Clear
+        BVS     Branch If Overflow Is Set
+        BCC     Branch If Carry Is Clear
+        BCS     Branch If Carry Is Set
+
+    Signed Conditional Branch
+        BGE     Branch If Greater Than Or Equal To Zero
+        BLT     Branch If Less Than (Zero)
+        BGT     Branch If Greater Than (Zero)
+        BLE     Branch If Less Than (Zero)
+
+    Unsigned Conditional Branch
+        BHI     Branch If Higher
+        BLOS    Branch If Lower Or Same
+        BHIS    Branch If Higher Or Same
+        BLO     Branch If Lower
+
+    Jump & Subroutine
+        JMP     []      Jump  ([] Not Rn)
+        JSR     Rn,[]   Jump To Subroutine  ([] Not Rn)
+        RTS     Rn      Return From Subroutine
+
+      * CSM     []      Call To Supervisor Mode 
+      * MARK            Mark
+      * SOB     Rn      Subtract One And Branch (If Not Zero)
+      * SPL     #N      Set Priority Level
+
+    Trap & Interrupt
+        EMT     #N      Emulator Trap (N = 0 To 255)
+        TRAP    #N      Trap (N = 0 To 255)
+        BPT             Break Point Trap
+        IOT             Input/Output Trap
+        RTI             Return From Interrupt
+      * RTT             Return From Interrupt (Trace)
+
+    Miscellaneous
+        HALT            Halt Processor
+        WAIT            Wait For Interrupt
+      * MFPT            Move Processor Type
+      * MTPD    []      Move To Previous Data Space
+      * MTPI    []      Move To Previous Instruction Space
+      * MFPD    []      Move From Previous Data Space
+      * MFPI    []      Move From Previous Data Space
+      * WRTLCK          Write R0 With Bus Lock
+        RESET           Reset External Bus
+      * TSTSET          Lock/Read/Write/Unlock
+
+    Condition Code Operation
+        CLC, CLV, CLZ, CLN, CCC         Clear Condition Code
+        SEC, SEV, SEZ, SEN, SCC         Set Condition Code
+        NOP             Do Nothing
+
+    PS Word Operators
+      * MFPS            Move Byte From Processor Status Word
+      * MTPS            Move Byte To Processor Status Word
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+EIS - Extended Instruction Set 
+
+        ASH     [],Rn   Single Register Shifted Arithmetically
+        ASHC    [],Rn   Double Register Shifted Arithmetically
+                [] Specifies The Shift Count of -32 To +31
+
+        DIV     [],Rn   Divide    (R, R|1)/(src) --> R, R|1
+                The 32-bit 2's Complement integer In R And R|1
+                Is Divided By The Source Operand. The Quotient
+                Is Left In R; The Remainder Is Left In R|1 With
+                The Same Sign As The Dividend. R Must Be Even.
+
+        MUL     [],Rn   Multiply  (src) x Rn --> R, R|1
+                The Contents Of The Destination Register And
+                Source Taken As 2's Complement Integers Are
+                Multiplied And Stored In The Destination
+                Register And The Succeeding Register, If R Is
+                Even.  If R Is Odd, Only The Low-Order Product
+                Is Stored.
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+FIS - Floating-Point Instruction Set 
+
+        R Contains The Address Of A Block Of Memory Where:
+                (R)     Is High B Argument Address
+                (R)+2   Is Low  B Argument Address      
+                (R)+4   Is High A Argument Address
+                (R)+6   Is Low  A Argument Address
+
+        After The Floating-Point Operation, The Answer Is
+        Stored As Follows:
+                (R)+4   Is Address For High Part Of Answer
+                (R)+6   Is Address For Low  Part Of Answer
+
+        If The Result Of The Floating-Point Instruction
+        Is < 2 ** (-128) Then The Argument Is Left Unchanged.
+
+        FADD    R       Floating-Point Add
+            [(R)+4, (R)+6] <- [(R)+4, (R)+6] + [(R), (R)+2]
+
+        FSUB    R       Floating Point Subtract
+            [(R)+4, (R)+6] <- [(R)+4, (R)+6] - [(R), (R)+2]
+
+        FMUL    R       Floating-Point Multiplication
+            [(R)+4, (R)+6] <- [(R)+4, (R)+6] X [(R), (R)+2]
+
+        FDIV    R       Floating-Point Division
+            [(R)+4, (R)+6] <- [(R)+4, (R)+6] / [(R), (R)+2]
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+FPP - Floating-Point Processor Instructions 
+
+     The  FPP (Floating-Point Processor) instructions process 16
+/ 32-Bit integer and 32 / 64-Bit floating-point operations.  The
+instructions  use  the  regular addressing modes denoted by '[]'
+and floating addressing modes denoted by '*[].  The floating ad-
+dressing modes substitute a floating-point register when the ad-
+dressing mode is  only  a  register  (mode  0)  and  allow  only
+AC0-AC5.   The  double  operand floating-point instruction argu-
+ments are a register (AC0-AC3) and *[].  Arguments in  ()  indi-
+cate contents of.  
+
+     For  all  floating-point  arguments the precision is deter-
+mined by the floating double precision mode bit (FD).   FD  =  0
+Single(F) or FD = 1 Double(D).  
+
+     For  all  integer  arguments the precision is determined by
+the floating long integer mode bit (FL) FL = 0 is 16-Bit Integer
+or FL = 1 is 32-Bit Long Integer.  
+
+    Double Operands
+        ADDF/D     *[],ACn      (AC)   <-- (AC) + (*[])
+        CMPF/D     *[],ACn                 (*[]) - (AC)
+        DIVF/D     *[],ACn      (AC)   <-- (AC) / (*[])
+        LDCDF/FD   *[],ACn      (AC)   <-- Cxy(*[])
+        STCFD/DF   ACn,*[]      (*[])  <-- Cxy(AC)
+                     Where Cxy Specifies Conversion From
+                     Floating Mode x To Floating Mode y
+                     x = D, y = F  If FD = 0 (Single) LDCDF
+                     x = F, y = D  If FD = 1 (Double) LDCFD
+        LDF/D      *[],ACn      (AC)   <-- (*[])
+        STF/D      ACn,*[]      (*[])  <-- (AC)
+        MODF/D     *[],ACn      PROD   <-- INT((AC) X (*[]))
+                     AC(Even)   (AC)   <-- INT(PROD)
+                                (AC|1) <-- PROD - INT(PROD)
+                     AC(Odd)    (AC)   <-- PROD - INT(PROD)
+        MULF/D     *[],ACn      (AC)   <-- (AC) X (*[])
+        SUBF/D     *[],ACn      (AC)   <-- (AC) - (*[])
+        LDEXP      [],ACn       Load ACn Exponent From []
+        STEXP      ACn,[]       Store ACn Exponent Into []
+
+    Single Operand
+        ABSF/D     *[]          (*[])  <-- | (*[]) |
+        CLRF/D     *[]          (*[])  <-- 0
+        NEGF/D     *[]          (*[])  <-- - (*[])
+        TSTF/D     *[]          Test Contents Of *[]
+                     FC=0, FV=0,
+                     FZ <-- 1 If (*[]) Is = Zero Else FZ <-- 0
+                     FN <-- 1 If (*[]) Is < Zero Else FN <-- 0
+
+    Mixed Integer And Floating
+        LDCIF/ID/LF/LD  [],ACn          (AC)  <-- Cjx(SRC)
+                        Where Cjx Specifies Conversion From
+                        Integer Mode j To Floating Mode x
+        STCFI/FL/DI/DL  ACn,[]          (*[]) <-- Cxj(AC)
+                        Where Cxj Specifies Conversion From
+                        Floating Mode x To Integer Mode j
+
+                        j = I If FL = 0, j = L If FL = 1
+                        x = F If FD = 0, x = D If FD = 1
+
+    Support Instructions
+        CFCC            Copy Floating Condition Codes
+        LDFPS   []      Load Floating-Point Status From []
+        STFPS   []      Store Floating-Point Status Into []
+        SETD            FD <-- 1        Set Double-Precision
+        SETF            FD <-- 0        Set Single-Precision
+        SETL            FL <-- 1        Set Long-Integer
+        SETI            FL <-- 0        Set Short-Integer
+        STST    []      ([])    <-- FEC Floating Exception
+                                          Register
+                        ([]+2)  <-- FEA Floating Address
+                                          Register
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+CIS - Commercial Instruction Set 
+
+
+     The  PDP-11  Commercial Instruction SET (CIS11) consists of
+the following extended instruction groups:  
+
+        Commercial Load 2 Descriptors
+        Commercial Load 3 Descriptors
+
+        Character String Move
+        Character String Search
+        Numeric String
+        Packed String
+
+        Character String Move (In Line)
+        Character String Search (In Line)
+        Numeric String (In Line)
+        Packed String (In Line)
+
+
+     As seen from the table each generic type of instruction has
+two forms:  The first uses the general registers and the  second
+uses  'In  Line' parameters following the opcode of the instruc-
+tion.  
+
+     The  CIS  instruction  set  was  used  only  in  two PDP-11
+machines but is included here for completeness.  
+
+    Load Descriptor Instructions
+        L2Dn            Load 2 Descriptors Using @(Rn)+
+        LD3n            Load 3 Descriptors Using @(Rn)+
+
+    Character String Move Instructions
+        MOVC(I)         Move Character
+        MOVRC(I)        Move Reverse Justified Character
+        MOVTC(I)        Move Translated Character
+
+    Character String Search Instructions
+        LOCC(I)         Locate Character
+        SKPC(I)         Skip Character
+        SCANC(I)        Scan Character
+        SPANC(I)        Span Character
+        CMPC(I)         Compare Character
+        MATC(I)         Match Character
+
+    Numeric String Instructions
+        ADDN(I)         Add Numeric
+        SUBN(I)         Subtract Numeric
+        ASHN(I)         Arithmetic Shift Numeric
+        CMPN(I)         Compare Numeric
+
+    Packed String Instructions
+        ADDP(I)         Add Packed
+        SUBP(I)         Subtract Packed
+        MULP(I)         Multiply Packed
+        DIVP(I)         Divide Packed
+        ASHP(I)         Arithmetic Shift Packed
+        CMPP(I)         Compare Packed
+
+    Convert Instructions
+        CVTNL           Convert Numeric To Long
+        CVTLN           Convert Long To Numeric
+        CVTPL           Convert Packed Yo Long
+        CVTLP           Convert Long To Packed
+        CVTNP           Convert Numeric To Packed
+        CVTPN           Convert Packed To Numeric
+
+</PRE></B></H4>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4><B><PRE>
+AT&T UNIX V7 ALTERNATE MNEMONICS 
+
+     Several  assembler  mnemonics  used by the V7 assembler are
+included as alternates to those generally used by the PDP-11 as-
+semblers.  These sections describe those instructions.  
+
+    General Instructions 
+
+        SYS     #N      Equivalent To 'Trap  #N'
+
+        BEC             Branch On Error Clear
+        BES             Branch On Error Set
+                        These Were Used When The 'C' Bit
+                        Was Used For Error Reporting
+
+        MPY     [],Rn   EIS - 'MUL'
+        DVD     [],Rn   EIS - 'DIV'
+        ALS     [],Rn   EIS - 'ASH'
+        ALSC    [],Rn   EIS - 'ASHC'
+
+    Extended Branch Instructions 
+
+     The  extended  branch  instructions  are  implemented  as a
+normal branch if close enough or a converse branch  over  a  JMP
+instruction when the range is more than +128 or -127 words rela-
+tive to the current program counter.  
+
+        JBR
+                Assembles as a regular branch
+                instruction if close enough,
+                else as a relative JMP when the
+                destination is outside the range
+                of a regular BR instruction.
+
+        JNE     JEQ     JGE     JLT
+        JGT     JLE     JPL     JMI
+        JHI     JLOS    JVC     JVS
+        JHIS    JEC     JCC     JLO
+        JCS     JES
+                Assembled as a regular conditional
+                branch instruction if close enough,
+                else as a converse branch followed
+                by a relative JMP when the
+                destination is outside the range
+                of a regular branch instruction.
+
+The Floating-Point MOVE Instructions 
+
+     The  Unix V7 mnemonics for various instructions were a con-
+solidation of the DEC mnemonics.  For example, the  single  MOVF
+mnemonic  replaced  the  LDF, LDD, STF, and STD mnemonics by not
+specifying single or double mode.  The mode is specified by  the
+FL  and FD bits using the same single mnemonic.  Thus MOVF means
+move float (single or double precision) or MOVIF means move  in-
+teger (16 or 32 bit) to float (single or double precision).  The
+following table describes the combined mnemonics:  
+
+        MOVF    *[],ACn         =  LDF/LDD      *[],ACn
+        MOVF    ACn,*[]         =  STF/STD      ACn,*[]
+
+        MOVIF   [],ACn          =  LDCxy        [],ACn
+                                xy = IF, LF, ID, LD
+
+        MOVFI   ACn,[]          =  STCxy        ACn,[]
+                                xy = FI, FL, DI, DL
+
+        MOVOF   *[],ACn         = LDCxy         *[],ACn
+        MOVFO   ACn,*[]         = STCxy         ACn,*[]
+                                xy = FD, DF
+
+        MOVIE   [],ACn          = LDEXP         [],ACn
+        MOVEI   ACn,[]          = STEXP         ACn,[]
+
+</PRE></B></H4>
+<H5><A HREF="asxdoc.htm#TOP"> Go to the Documentation Index</A></H5>
+
+<IMG width=576 height=5 border=0 SRC="rnbow.gif">
+
+<H4>
+<P><A HREF="asxxxx.htm#JUMP">
+<IMG width=32 height=32 border=0 SRC="spcshp.gif" ALIGN=bottom></A>
+<B>...  Exit the ASxxxx Documentation</B></A></P>
+
+<P><A href="../home.htm">
+<IMG width=32 height=32 border=0 SRC="home.gif" ALIGN=bottom></A>
+<B>...  Home Page</B></P>
+</H4>
+
+<H6><P><B>Last Updated: September 2023</B></P></H6>
+</BODY> 
+</HTML>

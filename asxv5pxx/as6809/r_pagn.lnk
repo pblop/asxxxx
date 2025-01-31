@@ -1,0 +1,7 @@
+-xmsu
+-g DATA=0x0000
+-a DATA=0x0000
+-g CODE=0x0200
+-a CODE=0x0200
+r_pagn
+-e

@@ -1,0 +1,2229 @@
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)              Page 1
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+
+
+                              1 	.title	Machine Independent Assembler Test
+                              2 	.module Asmtst
+                              3 
+                              4 	;  The file 'as12bthi.asm' must be assembled with
+                              5 	; a HI/LO assembler (in file ___ext.c, hilo = 1).
+                              6 	;
+                              7 	;   as12bthi:	Specifically For The AS6100 Assembler
+                              8 	;
+                              9 	;		12bt	12-Bit PC addressing
+                             10 	;			(No Concept of a Byte) 
+                             11 	;		hi	HI/LO assembler
+                             12 	;
+                             13 	; All .areas must be of type DSEG.
+                             14 
+                             15 	.sbttl	Memory Allocation Directives
+                             16 
+                             17 	.area	_DATA	(abs,ovr)	; Data Area
+                             18 
+                             19 	.radix	O			; set default to octal
+                             20 
+                             21 					; binary constants
+   0000 00 C0                22 	.byte	0b11000000		; 00 C0
+   0001 00 0E                23 	.byte	0B1110			; 00 0E
+   0002 00 C0                24 	.byte	$%11000000		; 00 C0
+                             25 
+                             26 					; octal constants
+   0003 00 14                27 	.byte	24			; 00 14
+   0004 00 14                28 	.byte	024			; 00 14
+   0005 00 14                29 	.byte	0q024			; 00 14
+   0006 00 14                30 	.byte	0Q024			; 00 14
+   0007 00 14                31 	.byte	0o024			; 00 14
+   0008 00 14                32 	.byte	0O024			; 00 14
+   0009 00 14                33 	.byte	$&24			; 00 14
+                             34 
+                             35 					; decimal constant
+   000A 00 18                36 	.byte	0d024			; 00 18
+   000B 00 18                37 	.byte	0D024			; 00 18
+   000C 00 18                38 	.byte	$#24			; 00 18
+                             39 
+                             40 					; hexidecimal constants
+   000D 00 24                41 	.byte	0h024			; 00 24
+   000E 00 24                42 	.byte	0H024			; 00 24
+   000F 00 24                43 	.byte	0x024			; 00 24
+   0010 00 24                44 	.byte	0X024			; 00 24
+   0011 00 24                45 	.byte	$@24			; 00 24
+                             46 
+   0012 00 00                47 	.db	0			; 00 00
+   0013 00 00                48 	.dw	0			; 00 00
+                             49 
+                             50 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)              Page 2
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Memory Allocation Directives
+
+                             52 	.radix	D			; set default to decimal
+                             53 
+   0014 00 01 00 02 00 03    54 	.byte	1,2,3			; 00 01 00 02 00 03
+   0017 00 04 00 05 00 06    55 	.byte	4,5,6			; 00 04 00 05 00 06
+   001A 00 07 00 08 00 09    56 	.byte	7,8,9			; 00 07 00 08 00 09
+   001D 00 01 00 02 00 03    57 	.word	1,2,3			; 00 01 00 02 00 03
+   0020 00 04 00 05 00 06    58 	.word	4,5,6			; 00 04 00 05 00 06
+   0023 00 07 00 08 00 09    59 	.word	7,8,9			; 00 07 00 08 00 09
+                             60 
+   0026                      61 	.blkb	16
+   0036                      62 	.ds	16
+                             63 
+   0046                      64 	.blkw	16
+   0056                      65 	.ds	16*2
+                             66 
+   0076s00r78                67 word:	.word	.+2			;s00r78
+   0077s00r75                68 	.word	.-2			;s00r75
+   0078s00r7A                69 	.word	2+.			;s00r7A
+   0079 00 01                70 	.word	.-(word+2)		; 00 01
+                             71 
+                             72 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)              Page 3
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Boundary Directives
+
+                             74 	.sbttl	Boundary Directives
+                             75 
+                             76 	.area	bndry_1	(ABS,OVR,DSEG)
+   0000                      77 	.org	0
+   0000                      78 bndry_1:
+                             79 
+   0000                      80 	.even
+   0000 00 00                81 1$:	.byte	1$ - bndry_1		; 00 00
+   0002                      82 	.even
+   0002 00 02                83 2$:	.byte	2$ - bndry_1		; 00 02
+   0004                      84 	.even
+   0005                      85 	.odd
+   0005 00 05                86 3$:	.byte	3$ - bndry_1		; 00 05
+   0007                      87 	.odd
+   0007 00 07                88 4$:	.byte	4$ - bndry_1		; 00 07
+   0009                      89 	.odd
+   000A                      90 	.even
+   000A 00 0A                91 5$:	.word	5$ - bndry_1		; 00 0A
+   000B                      92 	.odd
+   000B 00 0B                93 6$:	.word	6$ - bndry_1		; 00 0B
+   000C                      94 	.even
+   000C 00 0C                95 7$:	.word	7$ - bndry_1		; 00 0C
+                             96 
+                             97 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)              Page 4
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Power of 2 Boundary Modes
+
+                             99 	.sbttl	Power of 2 Boundary Modes
+                            100 
+                            101 	.area	bndry_2	(ABS,OVR,DSEG)
+   0000                     102 	.org	0
+                            103 
+   0000                     104 	.even			; Address == 0
+   0000                     105 	.bndry	2		; Address == 0
+   0000                     106 	.bndry	4		; Address == 0
+   0000                     107 	.bndry	8		; Address == 0
+   0000                     108 	.bndry	16		; Address == 0
+   0000                     109 	.bndry	32		; Address == 0
+   0000                     110 	.bndry	64		; Address == 0
+   0000                     111 	.bndry	128		; Address == 0
+   0000                     112 	.bndry	256		; Address == 0
+   0000                     113 	.bndry	512		; Address == 0
+   0000                     114 	.bndry	1024		; Address == 0
+                            115 
+   0000                     116 	.org	0
+   0000                     117 bndry_2:
+                            118 
+   0000                     119 	.org	0
+   0000                     120 	.even			; Address == 0
+   0000 00 00               121 1$:	.word	1$ - bndry_2	; 00 00
+                            122 
+   0000                     123 	.org	0
+   0000                     124 	.bndry	2		; Address == 0
+   0000 00 00               125 2$:	.word	2$ - bndry_2	; 00 00
+                            126 
+   0000                     127 	.org	0
+   0000                     128 	.bndry	4		; Address == 0
+   0000 00 00               129 3$:	.word	3$ - bndry_2	; 00 00
+                            130 
+   0000                     131 	.org	0
+   0000                     132 	.bndry	8		; Address == 0
+   0000 00 00               133 4$:	.word	4$ - bndry_2	; 00 00
+                            134 
+   0000                     135 	.org	0
+   0000                     136 	.bndry	16		; Address == 0
+   0000 00 00               137 5$:	.word	5$ - bndry_2	; 00 00
+                            138 
+   0000                     139 	.org	0
+   0000                     140 	.bndry	32		; Address == 0
+   0000 00 00               141 6$:	.word	6$ - bndry_2	; 00 00
+                            142 
+   0000                     143 	.org	0
+   0000                     144 	.bndry	64		; Address == 0
+   0000 00 00               145 7$:	.word	7$ - bndry_2	; 00 00
+                            146 
+   0000                     147 	.org	0
+   0000                     148 	.bndry	128		; Address == 0
+   0000 00 00               149 8$:	.word	8$ - bndry_2	; 00 00
+                            150 
+   0000                     151 	.org	0
+   0000                     152 	.bndry	256		; Address == 0
+   0000 00 00               153 9$:	.word	9$ - bndry_2	; 00 00
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)              Page 5
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Power of 2 Boundary Modes
+
+                            154 
+   0000                     155 	.org	0
+   0000                     156 	.bndry	512		; Address == 0
+   0000 00 00               157 10$:	.word	10$ - bndry_2	; 00 00
+                            158 
+   0000                     159 	.org	0
+   0000                     160 	.bndry	1024		; Address == 0
+   0000 00 00               161 11$:	.word	11$ - bndry_2	; 00 00
+                            162 
+                            163 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)              Page 6
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Power of 2 Boundary Modes
+
+                            165 
+                            166 	.area	bndry_3	(ABS,OVR,DSEG)
+   0001                     167 	.org	1
+                            168 
+   0002                     169 	.even			; Address == 2
+   0002                     170 	.bndry	2		; Address == 2
+   0004                     171 	.bndry	4		; Address == 4
+   0008                     172 	.bndry	8		; Address == 8
+   0010                     173 	.bndry	16		; Address == 16
+   0020                     174 	.bndry	32		; Address == 32
+   0040                     175 	.bndry	64		; Address == 64
+   0080                     176 	.bndry	128		; Address == 128
+   0100                     177 	.bndry	256		; Address == 256
+   0200                     178 	.bndry	512		; Address == 512
+   0400                     179 	.bndry	1024		; Address == 1024
+                            180 
+   0000                     181 	.org	0
+   0000                     182 bndry_3:
+                            183 
+   0001                     184 	.org	1
+   0002                     185 	.even			; Address == 2
+   0002 00 02               186 1$:	.word	1$ - bndry_3	; 00 02
+                            187 
+   0001                     188 	.org	1
+   0002                     189 	.bndry	2		; Address == 2
+   0002 00 02               190 2$:	.word	2$ - bndry_3	; 00 02
+                            191 
+   0001                     192 	.org	1
+   0004                     193 	.bndry	4		; Address == 4
+   0004 00 04               194 3$:	.word	3$ - bndry_3	; 00 04
+                            195 
+   0001                     196 	.org	1
+   0008                     197 	.bndry	8		; Address == 8
+   0008 00 08               198 4$:	.word	4$ - bndry_3	; 00 08
+                            199 
+   0001                     200 	.org	1
+   0010                     201 	.bndry	16		; Address == 16
+   0010 00 10               202 5$:	.word	5$ - bndry_3	; 00 10
+                            203 
+   0001                     204 	.org	1
+   0020                     205 	.bndry	32		; Address == 32
+   0020 00 20               206 6$:	.word	6$ - bndry_3	; 00 20
+                            207 
+   0001                     208 	.org	1
+   0040                     209 	.bndry	64		; Address == 64
+   0040 00 40               210 7$:	.word	7$ - bndry_3	; 00 40
+                            211 
+   0001                     212 	.org	1
+   0080                     213 	.bndry	128		; Address == 128
+   0080 00 80               214 8$:	.word	8$ - bndry_3	; 00 80
+                            215 
+   0001                     216 	.org	1
+   0100                     217 	.bndry	256		; Address == 256
+   0100 01 00               218 9$:	.word	9$ - bndry_3	; 01 00
+                            219 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)              Page 7
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Power of 2 Boundary Modes
+
+   0001                     220 	.org	1
+   0200                     221 	.bndry	512		; Address == 512
+   0200 02 00               222 10$:	.word	10$ - bndry_3	; 02 00
+                            223 
+   0001                     224 	.org	1
+   0400                     225 	.bndry	1024		; Address == 1024
+   0400 04 00               226 11$:	.word	11$ - bndry_3	; 04 00
+                            227 
+                            228 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)              Page 8
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Non Power of 2 Boundary Modes
+
+                            230 	.sbttl	Non Power of 2 Boundary Modes
+                            231 
+                            232 	.area	bndry_4	(ABS,OVR,DSEG)
+   0000                     233 	.org	0
+                            234 
+   0000                     235 	.bndry	1		; Address == 0
+   0000                     236 	.bndry	3		; Address == 0
+   0000                     237 	.bndry	7		; Address == 0
+   0000                     238 	.bndry	15		; Address == 0
+   0000                     239 	.bndry	31		; Address == 0
+                            240 
+   0000                     241 	.org	0
+   0000                     242 bndry_4:
+                            243 
+   0000                     244 	.org	0
+   0000                     245 	.bndry	1		; Address == 0
+   0000 00 00               246 1$:	.word	1$ - bndry_4	; 00 00
+                            247 
+   0000                     248 	.org	0
+   0000                     249 	.bndry	3		; Address == 0
+   0000 00 00               250 2$:	.word	2$ - bndry_4	; 00 00
+                            251 
+   0000                     252 	.org	0
+   0000                     253 	.bndry	7		; Address == 0
+   0000 00 00               254 3$:	.word	3$ - bndry_4	; 00 00
+                            255 
+   0000                     256 	.org	0
+   0000                     257 	.bndry	15		; Address == 0
+   0000 00 00               258 4$:	.word	4$ - bndry_4	; 00 00
+                            259 
+   0000                     260 	.org	0
+   0000                     261 	.bndry	31		; Address == 0
+   0000 00 00               262 5$:	.word	5$ - bndry_4	; 00 00
+                            263 
+                            264 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)              Page 9
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Non Power of 2 Boundary Modes
+
+                            266 
+                            267 	.area	bndry_5	(ABS,OVR,DSEG)
+   0001                     268 	.org	1
+                            269 
+   0003                     270 	.bndry	3		; Address == 3
+   0005                     271 	.bndry	5		; Address == 5
+   0009                     272 	.bndry	9		; Address == 9
+   0011                     273 	.bndry	17		; Address == 17
+   0021                     274 	.bndry	33		; Address == 33
+                            275 
+   0000                     276 	.org	0
+   0000                     277 bndry_5:
+                            278 
+   0001                     279 	.org	1
+   0003                     280 	.bndry	3		; Address == 3
+   0003 00 03               281 1$:	.word	1$ - bndry_5	; 00 03
+                            282 
+   0001                     283 	.org	1
+   0005                     284 	.bndry	5		; Address == 5
+   0005 00 05               285 2$:	.word	2$ - bndry_5	; 00 05
+                            286 
+   0001                     287 	.org	1
+   0009                     288 	.bndry	9		; Address == 9
+   0009 00 09               289 3$:	.word	3$ - bndry_5	; 00 09
+                            290 
+   0001                     291 	.org	1
+   0011                     292 	.bndry	17		; Address == 17
+   0011 00 11               293 4$:	.word	4$ - bndry_5	; 00 11
+                            294 
+   0001                     295 	.org	1
+   0021                     296 	.bndry	33		; Address == 33
+   0021 00 21               297 5$:	.word	5$ - bndry_5	; 00 21
+                            298 
+                            299 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 10
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Non Power of 2 Boundary Modes
+
+                            301 
+                            302 	.area	bndry_6	(ABS,OVR,DSEG)
+   002F                     303 	.org	47
+                            304 
+   0030                     305 	.bndry	3		; Address == 48
+   0030                     306 	.bndry	6		; Address == 48
+   0030                     307 	.bndry	12		; Address == 48
+   0030                     308 	.bndry	24		; Address == 48
+   0030                     309 	.bndry	48		; Address == 48
+   0060                     310 	.bndry	96		; Address == 96
+   00C0                     311 	.bndry	192		; Address == 192
+   0180                     312 	.bndry	384		; Address == 384
+   0300                     313 	.bndry	768		; Address == 768
+   0600                     314 	.bndry	1536		; Address == 1536
+                            315 
+   0000                     316 	.org	0
+   0000                     317 bndry_6:
+                            318 
+   002F                     319 	.org	47
+   0030                     320 	.bndry	3		; Address == 48
+   0030 00 30               321 1$:	.word	1$ - bndry_6	; 00 30
+                            322 
+   002F                     323 	.org	47
+   0030                     324 	.bndry	6		; Address == 48
+   0030 00 30               325 2$:	.word	2$ - bndry_6	; 00 30
+                            326 
+   002F                     327 	.org	47
+   0030                     328 	.bndry	12		; Address == 48
+   0030 00 30               329 3$:	.word	3$ - bndry_6	; 00 30
+                            330 
+   002F                     331 	.org	47
+   0030                     332 	.bndry	24		; Address == 48
+   0030 00 30               333 4$:	.word	4$ - bndry_6	; 00 30
+                            334 
+   002F                     335 	.org	47
+   0030                     336 	.bndry	48		; Address == 48
+   0030 00 30               337 5$:	.word	5$ - bndry_6	; 00 30
+                            338 
+   002F                     339 	.org	47
+   0060                     340 	.bndry	96		; Address == 96
+   0060 00 60               341 6$:	.word	6$ - bndry_6	; 00 60
+                            342 
+   002F                     343 	.org	47
+   00C0                     344 	.bndry	192		; Address == 192
+   00C0 00 C0               345 7$:	.word	7$ - bndry_6	; 00 C0
+                            346 
+   002F                     347 	.org	47
+   0180                     348 	.bndry	384		; Address == 384
+   0180 01 80               349 8$:	.word	8$ - bndry_6	; 01 80
+                            350 
+   002F                     351 	.org	47
+   0300                     352 	.bndry	768		; Address == 768
+   0300 03 00               353 9$:	.word	9$ - bndry_6	; 03 00
+                            354 
+   002F                     355 	.org	47
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 11
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Non Power of 2 Boundary Modes
+
+   0600                     356 	.bndry	1536		; Address == 1536
+   0600 06 00               357 10$:	.word	10$ - bndry_6	; 06 00
+                            358 
+                            359 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 12
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+String Directives
+
+                            361 	.sbttl	String Directives
+                            362 
+                            363 	.area	_DATA			; Data Area
+                            364 
+   007A 00 61 00 62         365 	.ascii	"ab"			; 00 61 00 62
+   007C 00 61 00 62 00 00   366 	.asciz	"ab"			; 00 61 00 62 00 00
+   007F 00 61 00 E2         367 	.ascis	"ab"			; 00 61 00 E2
+                            368 
+                            369 
+                            370 	.sbttl	Expression Evaluation
+                            371 
+                     0000   372 	n0x00	=	0x00
+                     0001   373 	n0x01	=	0x01
+                     0010   374 	n0x10	=	0x10
+                     00FF   375 	n0xff	=	0xff
+                     EEFF   376 	n0xeeff =	0xeeff
+                            377 
+                            378 
+                     00FF   379 	n	=	< n0xeeff	; 0xff		low byte
+   0081 00 00 00 FF         380 	.byte	>n,<n			; 00 00 00 FF
+                     00EE   381 	n	=	> n0xeeff	; 0xee		high byte
+   0083 00 00 00 EE         382 	.byte	>n,<n			; 00 00 00 EE
+                            383 
+                            384 
+                     0041   385 	n	=	'A		; 0x41		single character
+   0085 00 00 00 41         386 	.byte	>n,<n			; 00 00 00 41
+                     4142   387 	n	=	"AB		; 0x4142	double character
+   0087 00 41 00 42         388 	.byte	>n,<n			; 00 41 00 42
+                     0001   389 	n	=	n0x01		; 0x01		assignment
+   0089 00 00 00 01         390 	.byte	>n,<n			; 00 00 00 01
+                     0002   391 	n	=	n + n0x01	; 0x02		addition
+   008B 00 00 00 02         392 	.byte	>n,<n			; 00 00 00 02
+                     0001   393 	n	=	n - n0x01	; 0x01		subtraction
+   008D 00 00 00 01         394 	.byte	>n,<n			; 00 00 00 01
+                     0005   395 	n	=	n * 0x05	; 0x05		multiplication
+   008F 00 00 00 05         396 	.byte	>n,<n			; 00 00 00 05
+                     0002   397 	n	=	n / 0x02	; 0x02		division
+   0091 00 00 00 02         398 	.byte	>n,<n			; 00 00 00 02
+                     0001   399 	n	=	n0x10 % 0x05	; 0x01		modulus
+   0093 00 00 00 01         400 	.byte	>n,<n			; 00 00 00 01
+                     0011   401 	n	=	n0x10 | n0x01	; 0x11		or
+   0095 00 00 00 11         402 	.byte	>n,<n			; 00 00 00 11
+                     0001   403 	n	=	n0xff & n0x01	; 0x01		and
+   0097 00 00 00 01         404 	.byte	>n,<n			; 00 00 00 01
+                     0010   405 	n	=	n0x01 << 4	; 0x10		left shift
+   0099 00 00 00 10         406 	.byte	>n,<n			; 00 00 00 10
+                     0001   407 	n	=	n0x10 >> 4	; 0x01		right shift
+   009B 00 00 00 01         408 	.byte	>n,<n			; 00 00 00 01
+                     00EF   409 	n	=	n0xff ^ n0x10	; 0xef		xor
+   009D 00 00 00 EF         410 	.byte	>n,<n			; 00 00 00 EF
+                     00FF   411 	n	=	n ^ n0x10	; 0xff		xor
+   009F 00 00 00 FF         412 	.byte	>n,<n			; 00 00 00 FF
+                     FFEF   413 	n	=	~n0x10		; 0xffef	1's complement
+   00A1 00 FF 00 EF         414 	.byte	>n,<n			; 00 FF 00 EF
+                     FFF0   415 	n	=	-n0x10		; 0xfff0	2's complement
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 13
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Expression Evaluation
+
+   00A3 00 FF 00 F0         416 	.byte	>n,<n			; 00 FF 00 F0
+                            417 
+                            418 
+                            419 
+                     00FF   420 	n	=	n0xeeff & 0xff	; 0xff		low byte
+   00A5 00 00 00 FF         421 	.byte	>n,<n			; 00 00 00 FF
+                     00EE   422 	n = (n0xeeff & 0xff00)/0x100	; 0xee		high byte
+   00A7 00 00 00 EE         423 	.byte	>n,<n			; 00 00 00 EE
+                            424 
+                            425 
+                     00FF   426 	n	=	n0xeeff % 0x100 ; 0xff		low byte
+   00A9 00 00 00 FF         427 	.byte	>n,<n			; 00 00 00 FF
+                     00EE   428 	n	=	n0xeeff / 0x100 ; 0xee		high byte
+   00AB 00 00 00 EE         429 	.byte	>n,<n			; 00 00 00 EE
+                            430 
+                            431 
+                     004E   432 	n	=	3*(2 + 4*(6))	; 0x4e		expression evaluation
+   00AD 00 00 00 4E         433 	.byte	>n,<n			; 00 00 00 4E
+                     021E   434 	n	=	2*(0x20 + <~n0x10)	; 0x21e
+   00AF 00 02 00 1E         435 	.byte	>n,<n			; 00 02 00 1E
+                            436 
+                            437 
+                            438 	.sbttl	arithmatic tests
+                            439 
+                            440 	;
+                            441 	; The following series of tests verify that
+                            442 	; the arithmetic is 16-Bit and unsigned.
+                            443 
+                            444 
+                            445 	.sbttl	Addition
+                            446 
+                     0002   447 	n =	 1 +  1			; 0x0001 + 0x0001 ; 0x0002
+   00B1 00 00 00 02         448 	.byte	>n,<n			; 00 00 00 02
+                     0000   449 	n =	-1 +  1			; 0xFFFF + 0x0001 ; 0x0000
+   00B3 00 00 00 00         450 	.byte	>n,<n			; 00 00 00 00
+                     FFFE   451 	n =	-1 + -1			; 0xFFFF + 0xFFFF ; 0xFFFE
+   00B5 00 FF 00 FE         452 	.byte	>n,<n			; 00 FF 00 FE
+                            453 
+                     0000   454 	n =	 32768 +  32768		; 0x8000 + 0x8000 ; 0x0000
+   00B7 00 00 00 00         455 	.byte	>n,<n			; 00 00 00 00
+                     0000   456 	n =	-32768 +  32768		; 0x8000 + 0x8000 ; 0x0000
+   00B9 00 00 00 00         457 	.byte	>n,<n			; 00 00 00 00
+                     0000   458 	n =	-32768 + -32768		; 0x8000 + 0x8000 ; 0x0000
+   00BB 00 00 00 00         459 	.byte	>n,<n			; 00 00 00 00
+                            460 
+                     0000   461 	n =	 65535 +  1		; 0xFFFF + 0x0001 ; 0x0000
+   00BD 00 00 00 00         462 	.byte	>n,<n			; 00 00 00 00
+                     FFFE   463 	n =	 65535 + -1		; 0xFFFF + 0xFFFF ; 0xFFFE
+   00BF 00 FF 00 FE         464 	.byte	>n,<n			; 00 FF 00 FE
+                            465 
+                            466 
+                            467 	.sbttl	Subtraction
+                            468 
+                     0000   469 	n =	 1 -  1			; 0x0001 - 0x0001 ; 0x0000
+   00C1 00 00 00 00         470 	.byte	>n,<n			; 00 00 00 00
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 14
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Subtraction
+
+                     FFFE   471 	n =	-1 -  1			; 0xFFFF - 0x0001 ; 0xFFFE
+   00C3 00 FF 00 FE         472 	.byte	>n,<n			; 00 FF 00 FE
+                     0000   473 	n =	-1 - -1			; 0xFFFF - 0xFFFF ; 0x0000
+   00C5 00 00 00 00         474 	.byte	>n,<n			; 00 00 00 00
+                            475 
+                     0000   476 	n =	 32768 -  32768		; 0x8000 - 0x8000 ; 0x0000
+   00C7 00 00 00 00         477 	.byte	>n,<n			; 00 00 00 00
+                     0000   478 	n =	-32768 -  32768		; 0x8000 - 0x8000 ; 0x0000
+   00C9 00 00 00 00         479 	.byte	>n,<n			; 00 00 00 00
+                     0000   480 	n =	-32768 - -32768		; 0x8000 - 0x8000 ; 0x0000
+   00CB 00 00 00 00         481 	.byte	>n,<n			; 00 00 00 00
+                            482 
+                     FFFE   483 	n =	 65535 -  1		; 0xFFFF - 0x0001 ; 0xFFFE
+   00CD 00 FF 00 FE         484 	.byte	>n,<n			; 00 FF 00 FE
+                     0000   485 	n =	 65535 - -1		; 0xFFFF - 0xFFFF ; 0x0000
+   00CF 00 00 00 00         486 	.byte	>n,<n			; 00 00 00 00
+                            487 
+                            488 
+                            489 	.sbttl	Multiplication
+                            490 
+                     0001   491 	n =	 1 *  1			; 0x0001 * 0x0001 ; 0x0001
+   00D1 00 00 00 01         492 	.byte	>n,<n			; 00 00 00 01
+                     FFFF   493 	n =	 1 * -1			; 0x0001 * 0xFFFF ; 0xFFFF
+   00D3 00 FF 00 FF         494 	.byte	>n,<n			; 00 FF 00 FF
+                     0001   495 	n =	-1 * -1			; 0xFFFF * 0xFFFF ; 0x0001
+   00D5 00 00 00 01         496 	.byte	>n,<n			; 00 00 00 01
+                            497 
+                     0000   498 	n =	 256 *  256		; 0x0100 * 0x0100 ; 0x0000
+   00D7 00 00 00 00         499 	.byte	>n,<n			; 00 00 00 00
+                     0000   500 	n =	 256 * -256		; 0x0100 * 0xFF00 ; 0x0000
+   00D9 00 00 00 00         501 	.byte	>n,<n			; 00 00 00 00
+                     0000   502 	n =	-256 * -256		; 0xFF00 * 0xFF00 ; 0x0000
+   00DB 00 00 00 00         503 	.byte	>n,<n			; 00 00 00 00
+                            504 
+                            505 
+                            506 	.sbttl	Division
+                            507 
+                     0001   508 	n =	 1 /  1			; 0x0001 / 0x0001 ; 0x0001
+   00DD 00 00 00 01         509 	.byte	>n,<n			; 00 00 00 01
+                     0005   510 	n =	10 /  2			; 0x000A / 0x0002 ; 0x0005
+   00DF 00 00 00 05         511 	.byte	>n,<n			; 00 00 00 05
+                     0080   512 	n =	512 / 4			; 0x0200 / 0x0004 ; 0x0080
+   00E1 00 00 00 80         513 	.byte	>n,<n			; 00 00 00 80
+                     4000   514 	n =	32768 / 2		; 0x8000 / 0x0002 ; 0x4000
+   00E3 00 40 00 00         515 	.byte	>n,<n			; 00 40 00 00
+                     7FFF   516 	n =	65535 / 2		; 0xFFFF / 0x0002 ; 0x7FFF
+   00E5 00 7F 00 FF         517 	.byte	>n,<n			; 00 7F 00 FF
+                            518 
+                     0000   519 	n = 	 1 / -1			; 0x0001 / 0xFFFF ; 0x0000
+   00E7 00 00 00 00         520 	.byte	>n,<n			; 00 00 00 00
+                     0000   521 	n =	 32767 / -1		; 0x7FFF / 0xFFFF ; 0x0000
+   00E9 00 00 00 00         522 	.byte	>n,<n			; 00 00 00 00
+                     0000   523 	n =	 32768 / -1		; 0x8000 / 0xFFFF ; 0x0000
+   00EB 00 00 00 00         524 	.byte	>n,<n			; 00 00 00 00
+                     0000   525 	n =	 65534 / -1		; 0xFFFE / 0xFFFF ; 0x0000
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 15
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Division
+
+   00ED 00 00 00 00         526 	.byte	>n,<n			; 00 00 00 00
+                     0001   527 	n =	 65535 / -1		; 0xFFFF / 0xFFFF ; 0x0001
+   00EF 00 00 00 01         528 	.byte	>n,<n			; 00 00 00 01
+                     0001   529 	n =	-1 / -1			; 0xFFFF / 0xFFFF ; 0x0001
+   00F1 00 00 00 01         530 	.byte	>n,<n			; 00 00 00 01
+                     0000   531 	n =	-2 / -1			; 0xFFFE / 0xFFFF ; 0x0000
+   00F3 00 00 00 00         532 	.byte	>n,<n			; 00 00 00 00
+                     0000   533 	n =	-32768 / -1		; 0x8000 / 0xFFFF ; 0x0000
+   00F5 00 00 00 00         534 	.byte	>n,<n			; 00 00 00 00
+                     0000   535 	n =	-32769 / -1		; 0x7FFF / 0xFFFF ; 0x0000
+   00F7 00 00 00 00         536 	.byte	>n,<n			; 00 00 00 00
+                     0000   537 	n =	-65535 / -1		; 0x0001 / 0xFFFF ; 0x0000
+   00F9 00 00 00 00         538 	.byte	>n,<n			; 00 00 00 00
+                     0000   539 	n =	-65536 / -1		; 0x0000 / 0xFFFF ; 0x0000
+   00FB 00 00 00 00         540 	.byte	>n,<n			; 00 00 00 00
+                            541 
+                     0000   542 	n =	-256 /   -1		; 0xFF00 / 0xFFFF ; 0x0000
+   00FD 00 00 00 00         543 	.byte	>n,<n			; 00 00 00 00
+                     0000   544 	n =	-256 / -255		; 0xFF00 / 0xFF01 ; 0x0000
+   00FF 00 00 00 00         545 	.byte	>n,<n			; 00 00 00 00
+                     0001   546 	n =	-256 / -256		; 0xFF00 / 0xFF00 ; 0x0001
+   0101 00 00 00 01         547 	.byte	>n,<n			; 00 00 00 01
+                     0001   548 	n =	-256 / -257		; 0xFF00 / 0xFEFF ; 0x0001
+   0103 00 00 00 01         549 	.byte	>n,<n			; 00 00 00 01
+                     0001   550 	n =	-256 / -32767		; 0xFF00 / 0x8001 ; 0x0001
+   0105 00 00 00 01         551 	.byte	>n,<n			; 00 00 00 01
+                     0001   552 	n =	-256 / -32768		; 0xFF00 / 0x8000 ; 0x0001
+   0107 00 00 00 01         553 	.byte	>n,<n			; 00 00 00 01
+                     0001   554 	n =	-256 /  32768		; 0xFF00 / 0x8000 ; 0x0001
+   0109 00 00 00 01         555 	.byte	>n,<n			; 00 00 00 01
+                     0001   556 	n =	-256 /  65280		; 0xFF00 / 0xFF00 ; 0x0001
+   010B 00 00 00 01         557 	.byte	>n,<n			; 00 00 00 01
+                     0000   558 	n =	-256 /  65281		; 0xFF00 / 0xFF01 ; 0x0000
+   010D 00 00 00 00         559 	.byte	>n,<n			; 00 00 00 00
+                     0000   560 	n =	-256 /  65535		; 0xFF00 / 0xFFFF ; 0x0000
+   010F 00 00 00 00         561 	.byte	>n,<n			; 00 00 00 00
+                            562 
+                            563 
+                            564 	.sbttl	Modulus
+                            565 
+                     0000   566 	n =	 1 %  1			; 0x0001 % 0x0001 ; 0x0000
+   0111 00 00 00 00         567 	.byte	>n,<n			; 00 00 00 00
+                     0000   568 	n =	10 %  2			; 0x000A % 0x0002 ; 0x0000
+   0113 00 00 00 00         569 	.byte	>n,<n			; 00 00 00 00
+                     0000   570 	n =	512 % 4			; 0x0200 % 0x0004 ; 0x0000
+   0115 00 00 00 00         571 	.byte	>n,<n			; 00 00 00 00
+                     0000   572 	n =	32768 % 2		; 0x8000 % 0x0002 ; 0x0000
+   0117 00 00 00 00         573 	.byte	>n,<n			; 00 00 00 00
+                     0001   574 	n =	65535 % 2		; 0xFFFF % 0x0002 ; 0x0001
+   0119 00 00 00 01         575 	.byte	>n,<n			; 00 00 00 01
+                            576 
+                     0001   577 	n = 	 1 % -1			; 0x0001 % 0xFFFF ; 0x0001
+   011B 00 00 00 01         578 	.byte	>n,<n			; 00 00 00 01
+                     7FFF   579 	n =	 32767 % -1		; 0x7FFF % 0xFFFF ; 0x7FFF
+   011D 00 7F 00 FF         580 	.byte	>n,<n			; 00 7F 00 FF
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 16
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Modulus
+
+                     8000   581 	n =	 32768 % -1		; 0x8000 % 0xFFFF ; 0x8000
+   011F 00 80 00 00         582 	.byte	>n,<n			; 00 80 00 00
+                     FFFE   583 	n =	 65534 % -1		; 0xFFFE % 0xFFFF ; 0xFFFE
+   0121 00 FF 00 FE         584 	.byte	>n,<n			; 00 FF 00 FE
+                     0000   585 	n =	 65535 % -1		; 0xFFFF % 0xFFFF ; 0x0000
+   0123 00 00 00 00         586 	.byte	>n,<n			; 00 00 00 00
+                     0000   587 	n =	-1 % -1			; 0xFFFF % 0xFFFF ; 0x0000
+   0125 00 00 00 00         588 	.byte	>n,<n			; 00 00 00 00
+                     FFFE   589 	n =	-2 % -1			; 0xFFFE % 0xFFFF ; 0xFFFE
+   0127 00 FF 00 FE         590 	.byte	>n,<n			; 00 FF 00 FE
+                     8000   591 	n =	-32768 % -1		; 0x8000 % 0xFFFF ; 0x8000
+   0129 00 80 00 00         592 	.byte	>n,<n			; 00 80 00 00
+                     7FFF   593 	n =	-32769 % -1		; 0x7FFF % 0xFFFF ; 0x7FFF
+   012B 00 7F 00 FF         594 	.byte	>n,<n			; 00 7F 00 FF
+                     0001   595 	n =	-65535 % -1		; 0x0001 % 0xFFFF ; 0x0001
+   012D 00 00 00 01         596 	.byte	>n,<n			; 00 00 00 01
+                     0000   597 	n =	-65536 % -1		; 0x0000 % 0xFFFF ; 0x0000
+   012F 00 00 00 00         598 	.byte	>n,<n			; 00 00 00 00
+                            599 
+                     FF00   600 	n =	-256 %   -1		; 0xFF00 % 0xFFFF ; 0xFF00
+   0131 00 FF 00 00         601 	.byte	>n,<n			; 00 FF 00 00
+                     FF00   602 	n =	-256 % -255		; 0xFF00 % 0xFF01 ; 0xFF00
+   0133 00 FF 00 00         603 	.byte	>n,<n			; 00 FF 00 00
+                     0000   604 	n =	-256 % -256		; 0xFF00 % 0xFF00 ; 0x0000
+   0135 00 00 00 00         605 	.byte	>n,<n			; 00 00 00 00
+                     0001   606 	n =	-256 % -257		; 0xFF00 % 0xFEFF ; 0x0001
+   0137 00 00 00 01         607 	.byte	>n,<n			; 00 00 00 01
+                     7EFF   608 	n =	-256 % -32767		; 0xFF00 % 0x8001 ; 0x7EFF
+   0139 00 7E 00 FF         609 	.byte	>n,<n			; 00 7E 00 FF
+                     7F00   610 	n =	-256 % -32768		; 0xFF00 % 0x8000 ; 0x7F00
+   013B 00 7F 00 00         611 	.byte	>n,<n			; 00 7F 00 00
+                     7F00   612 	n =	-256 %  32768		; 0xFF00 % 0x8000 ; 0x7F00
+   013D 00 7F 00 00         613 	.byte	>n,<n			; 00 7F 00 00
+                     0000   614 	n =	-256 %  65280		; 0xFF00 % 0xFF00 ; 0x0000
+   013F 00 00 00 00         615 	.byte	>n,<n			; 00 00 00 00
+                     FF00   616 	n =	-256 %  65281		; 0xFF00 % 0xFF01 ; 0xFF00
+   0141 00 FF 00 00         617 	.byte	>n,<n			; 00 FF 00 00
+                     FF00   618 	n =	-256 %  65535		; 0xFF00 % 0xFFFF ; 0xFF00
+   0143 00 FF 00 00         619 	.byte	>n,<n			; 00 FF 00 00
+                            620 
+                            621 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 17
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+IF, ELSE, and ENDIF
+
+                            623 	.sbttl	IF, ELSE, and ENDIF
+                            624 
+                            625 	;*******************************************************
+                            626 
+                     0000   627 	n = 0
+                     0000   628 	m = 0
+                            629 
+                     0000   630 	.if	0
+                            631 		n = 1
+                            632 		.if	0
+                            633 		m = 1
+                            634 		.else
+                            635 		m = 2
+                            636 		.endif
+                     0001   637 	.else
+                     0002   638 		n = 2
+                            639 	.endif
+                            640 
+                            641 					; n = 2, m = 0
+   0145 00 02 00 00         642 	.byte	n,m			; 00 02 00 00
+                            643 
+                            644 
+                     0000   645 	n = 0
+                     0000   646 	m = 0
+                            647 
+                     0001   648 	.if	1
+                     0001   649 		n = 1
+                     0000   650 		.if	0
+                            651 		m = 1
+                     0001   652 		.else
+                     0002   653 		m = 2
+                            654 		.endif
+                     0000   655 	.else
+                            656 		n = 2
+                            657 	.endif
+                            658 
+                            659 					; n = 1, m = 2
+   0147 00 01 00 02         660 	.byte	n,m			; 00 01 00 02
+                            661 
+                            662 	;*******************************************************
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 18
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+IF, ELSE, and ENDIF
+
+                            664 	;*******************************************************
+                            665 
+                     0000   666 	n = 0
+                     0000   667 	m = 0
+                            668 
+                     0000   669 	.if	0
+                            670 		n = 1
+                            671 		.if	1
+                            672 		m = 1
+                            673 		.else
+                            674 		m = 2
+                            675 		.endif
+                     0001   676 	.else
+                     0002   677 		n = 2
+                            678 	.endif
+                            679 
+                            680 					; n = 2, m = 0
+   0149 00 02 00 00         681 	.byte	n,m			; 00 02 00 00
+                            682 
+                            683 
+                     0000   684 	n = 0
+                     0000   685 	m = 0
+                            686 
+                     0001   687 	.if	1
+                     0001   688 		n = 1
+                     0001   689 		.if	1
+                     0001   690 		m = 1
+                     0000   691 		.else
+                            692 		m = 2
+                            693 		.endif
+                     0000   694 	.else
+                            695 		n = 2
+                            696 	.endif
+                            697 
+                            698 					; n = 1, m = 1
+   014B 00 01 00 01         699 	.byte	n,m			; 00 01 00 01
+                            700 
+                            701 	;*******************************************************
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 19
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+IF, ELSE, and ENDIF
+
+                            703 	;*******************************************************
+                            704 
+                     0000   705 	n = 0
+                     0000   706 	m = 0
+                            707 
+                     0000   708 	.if	0
+                            709 		n = 1
+                     0001   710 	.else
+                     0000   711 		.if	0
+                            712 		m = 1
+                     0001   713 		.else
+                     0002   714 		m = 2
+                            715 		.endif
+                     0002   716 		n = 2
+                            717 	.endif
+                            718 
+                            719 					; n = 2, m = 2
+   014D 00 02 00 02         720 	.byte	n,m			; 00 02 00 02
+                            721 
+                            722 
+                     0000   723 	n = 0
+                     0000   724 	m = 0
+                            725 
+                     0001   726 	.if	1
+                     0001   727 		n = 1
+                     0000   728 	.else
+                            729 		.if	0
+                            730 		m = 1
+                            731 		.else
+                            732 		m = 2
+                            733 		.endif
+                            734 		n = 2
+                            735 	.endif
+                            736 
+                            737 					; n = 1, m = 0
+   014F 00 01 00 00         738 	.byte	n,m			; 00 01 00 00
+                            739 
+                            740 	;*******************************************************
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 20
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+IF, ELSE, and ENDIF
+
+                            742 	;*******************************************************
+                            743 
+                     0000   744 	n = 0
+                     0000   745 	m = 0
+                            746 
+                     0000   747 	.if	0
+                            748 		n = 1
+                     0001   749 	.else
+                     0001   750 		.if	1
+                     0001   751 		m = 1
+                     0000   752 		.else
+                            753 		m = 2
+                            754 		.endif
+                     0002   755 		n = 2
+                            756 	.endif
+                            757 
+                            758 					; n = 2, m = 1
+   0151 00 02 00 01         759 	.byte	n,m			; 00 02 00 01
+                            760 
+                            761 
+                     0000   762 	n = 0
+                     0000   763 	m = 0
+                            764 
+                     0001   765 	.if	1
+                     0001   766 		n = 1
+                     0000   767 	.else
+                            768 		.if	1
+                            769 		m = 1
+                            770 		.else
+                            771 		m = 2
+                            772 		.endif
+                            773 		n = 2
+                            774 	.endif
+                            775 
+                            776 					; n = 1, m = 0
+   0153 00 01 00 00         777 	.byte	n,m			; 00 01 00 00
+                            778 
+                            779 	;*******************************************************
+                            780 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 21
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Signed Conditionals With -1
+
+                            782 	.sbttl	Signed Conditionals With -1
+                            783 
+                     FFFF   784 	n = -1
+                            785 
+                     0000   786 	.ifeq	n
+                            787 		.error	1		; n = -1, .ifeq n  != 0
+                            788 	.endif
+                            789 
+                     0001   790 	.ifne	n
+                     0000   791 	.else
+                            792 		.error	1		; n = -1, .ifne n  != 0
+                            793 	.endif
+                            794 
+                     0000   795 	.ifgt	n
+                            796 		.error	1		; n = -1, .ifgt n  !>= 0
+                            797 	.endif
+                            798 
+                     0001   799 	.iflt	n
+                     0000   800 	.else
+                            801 		.error	1		; n = -1, .iflt n  !>= 0
+                            802 	.endif
+                            803 
+                     0000   804 	.ifge	n
+                            805 		.error	1		; n = -1, .ifge n  !>= 0
+                            806 	.endif
+                            807 
+                     0001   808 	.ifle	n
+                     0000   809 	.else
+                            810 		.error	1		; n = -1, .ifle n  !> 0
+                            811 	.endif
+                            812 
+                            813 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 22
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Signed Conditionals With 0
+
+                            815 	.sbttl	Signed Conditionals With 0
+                            816 
+                     0000   817 	n = 0
+                            818 
+                     0001   819 	.ifeq	n
+                     0000   820 	.else
+                            821 		.error	1		; n = 0, .ifeq n  == 0
+                            822 	.endif
+                            823 
+                     0000   824 	.ifne	n
+                            825 		.error	1		; n = 0, .ifne n  == 0
+                            826 	.endif
+                            827 
+                     0000   828 	.ifgt	n
+                            829 		.error	1		; n = 0, .ifgt n  !> 0
+                            830 	.endif
+                            831 
+                     0000   832 	.iflt	n
+                            833 		.error	1		; n = 0, .iflt n  !< 0
+                            834 	.endif
+                            835 
+                     0001   836 	.ifge	n
+                     0000   837 	.else
+                            838 		.error	1		; n = 0, .ifge n  !< 0
+                            839 	.endif
+                            840 
+                     0001   841 	.ifle	n
+                     0000   842 	.else
+                            843 		.error	1		; n = 0, .ifle n  !> 0
+                            844 	.endif
+                            845 
+                            846 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 23
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Signed Conditionals With +1
+
+                            848 	.sbttl	Signed Conditionals With +1
+                            849 
+                     0001   850 	n = +1
+                            851 
+                     0000   852 	.ifeq	n
+                            853 		.error	1		; n = +1, .ifeq n  != 0
+                            854 	.endif
+                            855 
+                     0001   856 	.ifne	n
+                     0000   857 	.else
+                            858 		.error	1		; n = +1, .ifne n  != 0
+                            859 	.endif
+                            860 
+                     0001   861 	.ifgt	n
+                     0000   862 	.else
+                            863 		.error	1		; n = +1, .ifgt n  !<= 0
+                            864 	.endif
+                            865 
+                     0000   866 	.iflt	n
+                            867 		.error	1		; n = +1, .iflt n  !<= 0
+                            868 	.endif
+                            869 
+                     0001   870 	.ifge	n
+                     0000   871 	.else
+                            872 		.error	1		; n = +1, .ifge n  !< 0
+                            873 	.endif
+                            874 
+                     0000   875 	.ifle	n
+                            876 		.error	1		; n = +1, .ifle n  !<= 0
+                            877 	.endif
+                            878 
+                            879 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 24
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Alternate Signed Conditionals With -1
+
+                            881 	.sbttl	Alternate Signed Conditionals With -1
+                            882 
+                     FFFF   883 	n = -1
+                            884 
+                     0000   885 	.if	eq	n
+                            886 		.error	1		; n = -1, .ifeq n  != 0
+                            887 	.endif
+                            888 
+                     0001   889 	.if	ne	n
+                     0000   890 	.else
+                            891 		.error	1		; n = -1, .ifne n  != 0
+                            892 	.endif
+                            893 
+                     0000   894 	.if	gt	n
+                            895 		.error	1		; n = -1, .ifgt n  !>= 0
+                            896 	.endif
+                            897 
+                     0001   898 	.if	lt	n
+                     0000   899 	.else
+                            900 		.error	1		; n = -1, .iflt n  !>= 0
+                            901 	.endif
+                            902 
+                     0000   903 	.if	ge	n
+                            904 		.error	1		; n = -1, .ifge n  !>= 0
+                            905 	.endif
+                            906 
+                     0001   907 	.if	le	n
+                     0000   908 	.else
+                            909 		.error	1		; n = -1, .ifle n  !> 0
+                            910 	.endif
+                            911 
+                            912 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 25
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Alternate Signed Conditionals With 0
+
+                            914 	.sbttl	Alternate Signed Conditionals With 0
+                            915 
+                     0000   916 	n = 0
+                            917 
+                     0001   918 	.if	eq	n
+                     0000   919 	.else
+                            920 		.error	1		; n = 0, .ifeq n  == 0
+                            921 	.endif
+                            922 
+                     0000   923 	.if	ne	n
+                            924 		.error	1		; n = 0, .ifne n  == 0
+                            925 	.endif
+                            926 
+                     0000   927 	.if	gt	n
+                            928 		.error	1		; n = 0, .ifgt n  !> 0
+                            929 	.endif
+                            930 
+                     0000   931 	.if	lt	n
+                            932 		.error	1		; n = 0, .iflt n  !< 0
+                            933 	.endif
+                            934 
+                     0001   935 	.if	ge	n
+                     0000   936 	.else
+                            937 		.error	1		; n = 0, .ifge n  !< 0
+                            938 	.endif
+                            939 
+                     0001   940 	.if	le	n
+                     0000   941 	.else
+                            942 		.error	1		; n = 0, .ifle n  !> 0
+                            943 	.endif
+                            944 
+                            945 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 26
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Alternate Signed Conditionals With +1
+
+                            947 	.sbttl	Alternate Signed Conditionals With +1
+                            948 
+                     0001   949 	n = +1
+                            950 
+                     0000   951 	.if	eq	n
+                            952 		.error	1		; n = +1, .ifeq n  != 0
+                            953 	.endif
+                            954 
+                     0001   955 	.if	ne	n
+                     0000   956 	.else
+                            957 		.error	1		; n = +1, .ifne n  != 0
+                            958 	.endif
+                            959 
+                     0001   960 	.if	gt	n
+                     0000   961 	.else
+                            962 		.error	1		; n = +1, .ifgt n  !<= 0
+                            963 	.endif
+                            964 
+                     0000   965 	.if	lt	n
+                            966 		.error	1		; n = +1, .iflt n  !<= 0
+                            967 	.endif
+                            968 
+                     0001   969 	.if	ge	n
+                     0000   970 	.else
+                            971 		.error	1		; n = +1, .ifge n  !< 0
+                            972 	.endif
+                            973 
+                     0000   974 	.if	le	n
+                            975 		.error	1		; n = +1, .ifle n  !<= 0
+                            976 	.endif
+                            977 
+                            978 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 27
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Conditionals With String Tests
+
+                            980 	.sbttl	Conditionals With String Tests
+                            981 
+                     0000   982 	.ifb	J		; 0
+                            983 	 .error	1		; .if b,J failed
+                            984 	.endif
+                            985 
+                     0001   986 	.ifb			; 1
+   0155 00 06               987 	 .byte	0x06	        ; 00 06
+                            988 	.endif
+                            989 
+                     0000   990 	.ifnb			; 0
+                            991 	 .error	1		; .if nb failed
+                            992 	.endif
+                            993 
+                     0001   994 	.ifnb	J		; 1
+   0156 00 07               995 	 .byte	0x07		; 00 07
+                            996 	.endif
+                            997 
+                            998 	.undefine	defsym
+                     0000   999 	.ifdef	defsym		; 0
+                           1000 	 .error	1		; .if def,defsym failed
+                           1001 	.endif
+                           1002 
+                           1003 	.define		defsym
+                     0001  1004 	.ifdef	defsym		; 1
+   0157 00 08              1005 	 .byte	0x08	        ; 00 08
+                           1006 	.endif
+                           1007 
+                     0000  1008 	.ifndef	defsym		; 0
+                           1009 	 .error	1		; .if def,defsym failed
+                           1010 	.endif
+                           1011 
+                           1012 	.undefine	defsym
+                     0001  1013 	.ifndef	defsym		; 1
+   0158 00 09              1014 	 .byte	0x09		; 00 09
+                           1015 	.endif
+                           1016 
+                     0000  1017 	.ifidn	A,B		; 0
+                           1018 	 .error	1		; .if iden A,B failed
+                           1019 	.endif
+                           1020 
+                     0001  1021 	.ifidn	D,D		; 1
+   0159 00 0A              1022 	 .byte	0x0A		; 00 0A
+                           1023 	.endif
+                           1024 
+                     0000  1025 	.ifdif	D,D		; 0
+                           1026 	 .error	1		; .if dif D,D failed
+                           1027 	.endif
+                           1028 
+                     0001  1029 	.ifdif	A,B		; 1
+   015A 00 0B              1030 	 .byte	0x0B		; 00 0B
+                           1031 	.endif
+                           1032 
+                           1033 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 28
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Alternate Conditionals With String Tests
+
+                           1035 	.sbttl	Alternate Conditionals With String Tests
+                           1036 
+                     0000  1037 	.if	b	J	; 0
+                           1038 	 .error	1		; .if b,J failed
+                           1039 	.endif
+                           1040 
+                     0001  1041 	.if	b		; 1
+   015B 00 06              1042 	 .byte	0x06	        ; 00 06
+                           1043 	.endif
+                           1044 
+                     0000  1045 	.if	nb		; 0
+                           1046 	 .error	1		; .if nb failed
+                           1047 	.endif
+                           1048 
+                     0001  1049 	.if	nb	J	; 1
+   015C 00 07              1050 	 .byte	0x07		; 00 07
+                           1051 	.endif
+                           1052 
+                           1053 	.undefine	defsym
+                     0000  1054 	.if	def	defsym	; 0
+                           1055 	 .error	1		; .if def,defsym failed
+                           1056 	.endif
+                           1057 
+                           1058 	.define		defsym
+                     0001  1059 	.if	def	defsym	; 1
+   015D 00 08              1060 	 .byte	0x08	        ; 00 08
+                           1061 	.endif
+                           1062 
+                     0000  1063 	.if	ndef	defsym	; 0
+                           1064 	 .error	1		; .if def,defsym failed
+                           1065 	.endif
+                           1066 
+                           1067 	.undefine	defsym
+                     0001  1068 	.if	ndef	defsym	; 1
+   015E 00 09              1069 	 .byte	0x09		; 00 09
+                           1070 	.endif
+                           1071 
+                     0000  1072 	.if	idn	A,B	; 0
+                           1073 	 .error	1		; .if iden A,B failed
+                           1074 	.endif
+                           1075 
+                     0001  1076 	.if	idn	D,D	; 1
+   015F 00 0A              1077 	 .byte	0x0A		; 00 0A
+                           1078 	.endif
+                           1079 
+                     0000  1080 	.if	dif	D,D	; 0
+                           1081 	 .error	1		; .if dif D,D failed
+                           1082 	.endif
+                           1083 
+                     0001  1084 	.if	dif	A,B	; 1
+   0160 00 0B              1085 	 .byte	0x0B		; 00 0B
+                           1086 	.endif
+                           1087 
+                           1088 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 29
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Signed Immediate Conditionals
+
+                           1090 	.sbttl	Signed Immediate Conditionals
+                           1091 
+                     FFFF  1092 	n = -1
+                           1093 
+                           1094 	.iifeq	n	.error	1	; n = -1, .ifeq n  != 0
+   0161 00 01              1095 	.iifne	n	.byte	0x01	; 00 01
+                           1096 	.iifgt	n	.error	1	; n = -1, .ifgt n  !>= 0
+   0162 00 02              1097 	.iiflt	n	.byte	0x02	; 00 02
+                           1098 	.iifge	n	.error	1	; n = -1, .ifge n  !>= 0
+   0163 00 03              1099 	.iifle	n	.byte	0x03	; 00 03
+                           1100 
+                           1101 
+                     0000  1102 	n = 0
+                           1103 
+   0164 00 04              1104 	.iifeq	n	.byte	0x04	; 00 04
+                           1105 	.iifne	n	.error	1	; n = 0, .ifne n  == 0
+                           1106 	.iifgt	n	.error	1	; n = 0, .ifgt n  !> 0
+                           1107 	.iiflt	n	.error	1	; n = 0, .iflt n  !< 0
+   0165 00 05              1108 	.iifge	n	.byte	0x05	; 00 05
+   0166 00 06              1109 	.iifle	n	.byte	0x06	; 00 06
+                           1110 
+                           1111 
+                     0001  1112 	n = +1
+                           1113 
+                           1114 	.iifeq	n	.error	1	; n = +1, .ifeq n  != 0
+   0167 00 07              1115 	.iifne	n	.byte	0x07	; 00 07
+   0168 00 08              1116 	.iifgt	n	.byte	0x08	; 00 08
+                           1117 	.iiflt	n	.error	1	; n = +1, .iflt n  !<= 0
+   0169 00 09              1118 	.iifge	n	.byte	0x09	; 00 09
+                           1119 	.iifle	n	.error	1	; n = +1, .ifle n  !<= 0
+                           1120 
+                           1121 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 30
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Alternate Signed Immediate Conditionals
+
+                           1123 	.sbttl	Alternate Signed Immediate Conditionals
+                           1124 
+                     FFFF  1125 	n = -1
+                           1126 
+                           1127 	.iif	eq,n	.error	1	; n = -1, .ifeq n  != 0
+   016A 00 01              1128 	.iif	ne,n	.byte	0x01	; 00 01
+                           1129 	.iif	gt,n	.error	1	; n = -1, .ifgt n  !>= 0
+   016B 00 02              1130 	.iif	lt,n	.byte	0x02	; 00 02
+                           1131 	.iif	ge,n	.error	1	; n = -1, .ifge n  !>= 0
+   016C 00 03              1132 	.iif	le,n	.byte	0x03	; 00 03
+                           1133 
+                           1134 
+                     0000  1135 	n = 0
+                           1136 
+   016D 00 04              1137 	.iif	eq,n	.byte	0x04	; 00 04
+                           1138 	.iif	ne,n	.error	1	; n = 0, .ifne n  == 0
+                           1139 	.iif	gt,n	.error	1	; n = 0, .ifgt n  !> 0
+                           1140 	.iif	lt,n	.error	1	; n = 0, .iflt n  !< 0
+   016E 00 05              1141 	.iif	ge,n	.byte	0x05	; 00 05
+   016F 00 06              1142 	.iif	le,n	.byte	0x06	; 00 06
+                           1143 
+                           1144 
+                     0001  1145 	n = +1
+                           1146 
+                           1147 	.iif	eq,n	.error	1	; n = +1, .ifeq n  != 0
+   0170 00 07              1148 	.iif	ne,n	.byte	0x07	; 00 07
+   0171 00 08              1149 	.iif	gt,n	.byte	0x08	; 00 08
+                           1150 	.iif	lt,n	.error	1	; n = +1, .iflt n  !<= 0
+   0172 00 09              1151 	.iif	ge,n	.byte	0x09	; 00 09
+                           1152 	.iif	le,n	.error	1	; n = +1, .ifle n  !<= 0
+                           1153 
+                           1154 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 31
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Immediate Conditionals With Strings
+
+                           1156 	.sbttl	Immediate Conditionals With Strings
+                           1157 
+                           1158 	.iifb	J	 .error	1	; .if b,J failed
+   0173 00 01              1159 	.iifb	^!!	 .byte	0x01	; 00 01
+                           1160 	.iifnb	^!!	 .error	1	; .if nb failed
+   0174 00 02              1161 	.iifnb	J	 .byte	0x02	; 00 02
+                           1162 
+                           1163 	.undefine  defsym
+                           1164 	.iifdef	defsym	 .error	1	; .if def,defsym failed
+                           1165 
+                           1166 	.define  defsym
+   0175 00 03              1167 	.iifdef	defsym	.byte	0x03	; 00 03
+                           1168 	.iifndef defsym	.error	1	; .if def,defsym failed
+                           1169 
+                           1170 	.undefine  defsym
+   0176 00 04              1171 	.iifndef defsym	 .byte	0x04	; 00 04
+                           1172 
+                           1173 	.iifidn	A,B	.error	1	; .if iden A,B failed
+   0177 00 05              1174 	.iifidn	D,D	.byte	0x05	; 00 05
+                           1175 	.iifdif	D,D	.error	1	; .if dif D,D failed
+   0178 00 06              1176 	.iifdif	A,B	.byte	0x06	; 00 06
+                           1177 
+                           1178 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 32
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Alternate Immediate Conditionals With Strings
+
+                           1180 	.sbttl	Alternate Immediate Conditionals With Strings
+                           1181 
+                           1182 	.iif	b,J	 .error	1	; .if b,J failed
+   0179 00 01              1183 	.iif	b,^!!	 .byte	0x01	; 00 01
+                           1184 	.iif	nb,^!!	 .error	1	; .if nb failed
+   017A 00 02              1185 	.iif	nb,J	 .byte	0x02	; 00 02
+                           1186 
+                           1187 	.undefine  defsym
+                           1188 	.iif	def,defsym	 .error	1	; .if def,defsym failed
+                           1189 
+                           1190 	.define  defsym
+   017B 00 03              1191 	.iif	def,defsym	.byte	0x03	; 00 03
+                           1192 	.iif	ndef,defsym	.error	1	; .if def,defsym failed
+                           1193 
+                           1194 	.undefine  defsym
+   017C 00 04              1195 	.iif	ndef,defsym	 .byte	0x04	; 00 04
+                           1196 
+                           1197 	.iif	idn	A,B	.error	1	; .if iden A,B failed
+   017D 00 05              1198 	.iif	idn	D,D	.byte	0x05	; 00 05
+                           1199 	.iif	dif	D,D	.error	1	; .if dif D,D failed
+   017E 00 06              1200 	.iif	dif	A,B	.byte	0x06	; 00 06
+                           1201 
+                           1202 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 33
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Local Symbols
+
+                           1204 	.sbttl	Local Symbols
+                           1205 
+   0000                    1206 	.org	0
+                           1207 
+   0000                    1208 lclsym0:
+                           1209 					; forward references
+   0000s00r0As00r0B        1210 	.word	0$,1$			;s00r0As00r0B
+   0002s00r0Cs00r0D        1211 	.word	2$,3$			;s00r0Cs00r0D
+   0004s00r0Es00r0F        1212 	.word	4$,5$			;s00r0Es00r0F
+   0006s00r10s00r11        1213 	.word	6$,7$			;s00r10s00r11
+   0008s00r12s00r13        1214 	.word	8$,9$			;s00r12s00r13
+                           1215 
+   000As00r13              1216 0$:	.word	9$			;s00r13
+   000Bs00r12              1217 1$:	.word	8$			;s00r12
+   000Cs00r11              1218 2$:	.word	7$			;s00r11
+   000Ds00r10              1219 3$:	.word	6$			;s00r10
+   000Es00r0F              1220 4$:	.word	5$			;s00r0F
+   000Fs00r0E              1221 5$:	.word	4$			;s00r0E
+   0010s00r0D              1222 6$:	.word	3$			;s00r0D
+   0011s00r0C              1223 7$:	.word	2$			;s00r0C
+   0012s00r0B              1224 8$:	.word	1$			;s00r0B
+   0013s00r0A              1225 9$:	.word	0$			;s00r0A
+   0014                    1226 10$:
+                           1227 
+                           1228 					; backward references
+   0014s00r0As00r0B        1229 	.word	0$,1$			;s00r0As00r0B
+   0016s00r0Cs00r0D        1230 	.word	2$,3$			;s00r0Cs00r0D
+   0018s00r0Es00r0F        1231 	.word	4$,5$			;s00r0Es00r0F
+   001As00r10s00r11        1232 	.word	6$,7$			;s00r10s00r11
+   001Cs00r12s00r13        1233 	.word	8$,9$			;s00r12s00r13
+                           1234 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 34
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Local Symbols
+
+                           1236 
+   001E                    1237 lclsym1:
+                           1238 					; forward references
+   001Es00r28s00r29        1239 	.word	0$,1$			;s00r28s00r29
+   0020s00r2As00r2B        1240 	.word	2$,3$			;s00r2As00r2B
+   0022s00r2Cs00r2D        1241 	.word	4$,5$			;s00r2Cs00r2D
+   0024s00r2Es00r2F        1242 	.word	6$,7$			;s00r2Es00r2F
+   0026s00r30s00r31        1243 	.word	8$,9$			;s00r30s00r31
+                           1244 
+   0028s00r31              1245 0$:	.word	9$			;s00r31
+   0029s00r30              1246 1$:	.word	8$			;s00r30
+   002As00r2F              1247 2$:	.word	7$			;s00r2F
+   002Bs00r2E              1248 3$:	.word	6$			;s00r2E
+   002Cs00r2D              1249 4$:	.word	5$			;s00r2D
+   002Ds00r2C              1250 5$:	.word	4$			;s00r2C
+   002Es00r2B              1251 6$:	.word	3$			;s00r2B
+   002Fs00r2A              1252 7$:	.word	2$			;s00r2A
+   0030s00r29              1253 8$:	.word	1$			;s00r29
+   0031s00r28              1254 9$:	.word	0$			;s00r28
+   0032                    1255 10$:
+                           1256 
+                           1257 					; backward references
+   0032s00r28s00r29        1258 	.word	0$,1$			;s00r28s00r29
+   0034s00r2As00r2B        1259 	.word	2$,3$			;s00r2As00r2B
+   0036s00r2Cs00r2D        1260 	.word	4$,5$			;s00r2Cs00r2D
+   0038s00r2Es00r2F        1261 	.word	6$,7$			;s00r2Es00r2F
+   003As00r30s00r31        1262 	.word	8$,9$			;s00r30s00r31
+                           1263 
+                           1264 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 35
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Offset calculations
+
+                           1266 	.sbttl	Offset calculations
+                           1267 
+                     000A  1268 	ofsbyte	=	(10$-0$)	; 0x000A
+                     0005  1269 	ofsword	=	ofsbyte/2	; 0x0005
+                           1270 
+                           1271 					; 1$ + 0x000F
+   003Cs00r38              1272 	.word	1$+ofsbyte+ofsword	;s00r38
+                           1273 
+                           1274 
+                           1275 	.sbttl	Lower/Upper Byte Selections
+                           1276 
+                           1277 	.globl	extern
+                           1278 
+                           1279 					; low byte
+   003Ds00r01              1280 	.byte	< (extern + 0x0001)	;s00r01
+                           1281 
+                           1282 					; low byte
+   003Es00r00              1283 	.byte	< (extern + 0x0200)	;s00r00
+                           1284 
+                           1285 					; high byte
+   003Fs00r03              1286 	.byte	> (extern + 0x0003)	;s00r03
+                           1287 
+                           1288 					; high byte
+   0040s00r00              1289 	.byte	> (extern + 0x0400)	;s00r00
+                           1290 
+                           1291 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 36
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Area Definitions
+
+                           1293 	.sbttl	Area Definitions
+                           1294 
+                           1295 	.globl	code0
+                           1296 	.globl	cnstnt1,cnstnt2
+                           1297 
+                     ABCD  1298 	cnstnt0 == 0xabcd		; global equate
+                           1299 
+   0041s00r00              1300 code0:	.word	a00			;s00r00
+   0042 0B CD              1301 	.word	cnstnt0			; 0B CD
+                           1302 
+                           1303 	; Bank selected as _DSEG
+                           1304 	; Overlay and Data Segment
+                           1305 	.area	AreaA (OVR,DSEG,BANK=_DSEG)
+                           1306 
+                     1234  1307 	cnstnt1 = 0x1234
+                           1308 
+   0000 00 FF              1309 a00:	.word	0x00ff			; 00 FF
+                           1310 
+                           1311 	; Bank selected as _DSEG
+                           1312 	; Overlay and Data Segment
+                           1313 	.area	AreaB (ABS,OVR,DSEG,BANK=_DSEG)
+                           1314 
+                     5678  1315 	cnstnt2 = 0x5678
+                           1316 
+   0000s00r00              1317 	.word	a10			;s00r00
+                           1318 
+                           1319 	.area	AreaA
+                           1320 
+                     0021  1321 	.=.+0x0020
+   0021s00r00              1322 	.word	a20			;s00r00
+                           1323 
+                           1324 	.area	AreaB
+   0040                    1325 	.org	0x40
+                           1326 
+   0040s00r00s00r00s00r00  1327 	.word	a00,a10,a20		;s00r00s00r00s00r00
+   0043s00r00s00r00        1328 	.word	AreaB,OVR		;s00r00s00r00
+                           1329 
+   0045                    1330 abcdabcd::				; global symbol
+                           1331 
+                           1332 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 37
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Macro Processor Tests
+
+                           1334 	.sbttl	Macro Processor Tests
+                           1335 
+                           1338 
+                           1339 	.radix	X
+                           1340 
+                           1341 	;	The Macro Processor directives are:
+                           1342 	;
+                           1343 	;	.macro	arg(,arg ...)		Create a Macro Definition
+                           1344 	;	.endm				End of Macro Definition
+                           1345 	;
+                           1346 	;	.mexit				Unconditional GoTo .endm
+                           1347 	;
+                           1348 	;	.irp	arg(,arg ...)		Indefinite Repeat Block
+                           1349 	;	.irpc	acbdefg			Indefinite Repeat on Characters
+                           1350 	;	.rept	arg			Repeat Code Block arg Times
+                           1351 	;
+                           1352 	;	.mdelete  arg(,arg ...)		Delete Macro Definitions
+                           1353 	;
+                           1354 	;	.nchr	arg			Number of Characters in String
+                           1355 	;	.narg	sym			Return Number of args in .macro call
+                           1356 	;	.ntyp	typ,symbol		Return Symbol Type - (ABS = 0, REL = 1)
+                           1357 	;	.nval	val,symbol		Return Value of Symbol (As Absolute Value)
+                           1358 	;
+                           1359 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 38
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Macro Creation
+
+                           1361 	.sbttl	Macro Creation
+                           1362 
+                           1363 	; Macro definition with the
+                           1364 	; name 'seta' and two arguments.
+                           1365 	;
+                           1366 	.macro	seta	A,B	; Define macro seta
+                           1367 	  .byte	A,B		; 00 01 00 6A
+                           1368 	.endm
+                           1369 
+   0000                    1370 	.org	0
+                           1371 	seta	0x01, 'j
+   0000 00 01 00 6A        1367 	  .byte	0x01,'j		; 00 01 00 6A
+                           1372 
+                           1373 	.mdelete	seta
+                           1374 
+                           1375 
+                           1376 	; Macro definition with the
+                           1377 	; name 'setb' and a regular
+                           1378 	; argument and a dumby argument.
+                           1379 	;
+                           1380 	.macro	setb	A,?B	; Define macro setb
+                           1381 B:	  .byte	A		; 00 02
+                           1382 	  .word	B		;s00r00
+                           1383 	.endm
+                           1384 
+   0000                    1385 	.org	0
+                           1386 	setb	0x02, K		; Use label K
+   0000 00 02              1381 K:	  .byte	0x02		; 00 02
+   0001s00r00              1382 	  .word	K		;s00r00
+                           1387 
+                           1388 	.mdelete	setb
+                           1389 
+                           1390 
+                           1391 	.macro	setb	A,?B	; Define macro setb
+                           1392 B:	  .byte	A		; 00 03
+                           1393 	  .word	B		;s00r02
+                           1394 	.endm
+                           1395 
+                           1396 	setb	0x03		; Create a local symbol
+   0002 00 03              1392 10000$:	  .byte	0x03		; 00 03
+   0003s00r02              1393 	  .word	10000$		;s00r02
+                           1397 
+                           1398 	.mdelete	setb
+                           1399 
+                           1400 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 39
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Macro Creation
+
+                           1402 	; Macro definition with the
+                           1403 	; name 'setc' and two regular
+                           1404 	; arguments with concatenation.
+                           1405 	;
+                           1406 	.macro setc	A,B	; Define macro setc
+                           1407 A'B:	  .byte	0x04		; 00 04
+                           1408 	  .word	A'B		;s00r00
+                           1409 	.endm
+                           1410 
+   0000                    1411 	.org	0
+                           1412 	setc	J, K
+   0000 00 04              1407 JK:	  .byte	0x04		; 00 04
+   0001s00r00              1408 	  .word	JK		;s00r00
+                           1413 
+                           1414 	.mdelete	.setc
+                           1415 
+                           1416 
+                           1417 	; Macro definition with the
+                           1418 	; name 'setd' and three regular
+                           1419 	; arguments with concatenation.
+                           1420 	;
+                           1421 	.macro setd	A,B,C	; Define macro setd
+                           1422 A'B:	  .byte	0x05		; 00 05
+                           1423 	  .word	A'B		;s00r00
+                           1424 A'C:	  .byte	0x06		; 00 06
+                           1425 	  .word	A'C		;s00r02
+                           1426 B'C:	  .byte	0x07		; 00 07
+                           1427 	  .word	B'C		;s00r04
+                           1428 A''B''C:  .byte	0x08		; 00 08
+                           1429 	  .word	A''B''C		;s00r06
+                           1430 	.endm
+                           1431 
+   0000                    1432 	.org	0
+                           1433 	setd	X, Y, Z
+   0000 00 05              1422 XY:	  .byte	0x05		; 00 05
+   0001s00r00              1423 	  .word	XY		;s00r00
+   0002 00 06              1424 XZ:	  .byte	0x06		; 00 06
+   0003s00r02              1425 	  .word	XZ		;s00r02
+   0004 00 07              1426 YZ:	  .byte	0x07		; 00 07
+   0005s00r04              1427 	  .word	YZ		;s00r04
+   0006 00 08              1428 XYZ:  .byte	0x08		; 00 08
+   0007s00r06              1429 	  .word	XYZ		;s00r06
+                           1434 
+                           1435 	.mdelete	.setd
+                           1436 
+                           1437 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 40
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Macro Creation
+
+                           1439 	; Macro definition with the
+                           1440 	; name 'sete' and two regular
+                           1441 	; arguments.  The second
+                           1442 	; argument is converted to
+                           1443 	; a numerical value.
+                           1444 	.macro	sete	A,B	; Define macro sete
+                           1445 	 ...A = A
+                           1446 	 ...B = B
+                           1447 	 .byte	A,B
+                           1448 	 A = A + 1
+                           1449 	.endm
+                           1450 
+                     0000  1451 	qxd = 0
+                           1452 	sete	qxd, \(qxd+1)
+                     0000  1445 	 ...A = qxd
+                     0001  1446 	 ...B = 1
+   0008 00 00 00 01        1447 	 .byte	qxd,1
+                     0001  1448 	 qxd = qxd + 1
+                           1453 	.iif	ne,...A-0	.error	1	; ...A != 0
+                           1454 	.iif	ne,...B-1	.error	1	; ...B != 1
+                           1455 	sete	qxd, \(qxd+2)
+                     0001  1445 	 ...A = qxd
+                     0003  1446 	 ...B = 3
+   000A 00 01 00 03        1447 	 .byte	qxd,3
+                     0002  1448 	 qxd = qxd + 1
+                           1456 	.iif	ne,...A-1	.error	1	; ...A != 1
+                           1457 	.iif	ne,...B-3	.error	1	; ...B != 3
+                           1458 	sete	qxd, \(qxd+3)
+                     0002  1445 	 ...A = qxd
+                     0005  1446 	 ...B = 5
+   000C 00 02 00 05        1447 	 .byte	qxd,5
+                     0003  1448 	 qxd = qxd + 1
+                           1459 	.iif	ne,...A-2	.error	1	; ...A != 2
+                           1460 	.iif	ne,...B-5	.error	1	; ...B != 5
+                           1461 
+                           1462 	.mdelete	.sete
+                           1463 
+                           1464 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 41
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Macro Creation
+
+                           1466 	; Macro definition with
+                           1467 	; conditional exits.
+                           1468 	.macro	cond	A,B,C	; Define macro cond
+                           1469 	...A = 0
+                           1470 	.if	nb,^!A!
+                           1471 	  .if	nb,^!B!
+                           1472 	    .if	nb,^!C!
+                           1473 	      ...A = 3
+                           1474 	      .mexit	; C
+                           1475 	    .endif
+                           1476 	    ...A = 2
+                           1477 	    .mexit	; B
+                           1478 	  .endif
+                           1479 	  ...A = 1
+                           1480 	  .mexit	; A
+                           1481 	.endif
+                           1482 	.endm
+                           1483 
+                           1484 	cond
+                     0000  1469 	...A = 0
+                     0000  1470 	.if	nb,^!!
+                           1471 	  .if	nb,^!!
+                           1472 	    .if	nb,^!!
+                           1473 	      ...A = 3
+                           1474 	      .mexit	; C
+                           1475 	    .endif
+                           1476 	    ...A = 2
+                           1477 	    .mexit	; B
+                           1478 	  .endif
+                           1479 	  ...A = 1
+                           1480 	  .mexit	; A
+                           1481 	.endif
+                           1485 	.iif	ne,...A-0	.error	1	; ...A != 0
+                           1486 	cond	1
+                     0000  1469 	...A = 0
+                     0001  1470 	.if	nb,^!1!
+                     0000  1471 	  .if	nb,^!!
+                           1472 	    .if	nb,^!!
+                           1473 	      ...A = 3
+                           1474 	      .mexit	; C
+                           1475 	    .endif
+                           1476 	    ...A = 2
+                           1477 	    .mexit	; B
+                           1478 	  .endif
+                     0001  1479 	  ...A = 1
+                           1480 	  .mexit	; A
+                           1487 	.iif	ne,...A-1	.error	1	; ...A != 1
+                           1488 	cond	1,2
+                     0000  1469 	...A = 0
+                     0001  1470 	.if	nb,^!1!
+                     0001  1471 	  .if	nb,^!2!
+                     0000  1472 	    .if	nb,^!!
+                           1473 	      ...A = 3
+                           1474 	      .mexit	; C
+                           1475 	    .endif
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 42
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Macro Creation
+
+                     0002  1476 	    ...A = 2
+                           1477 	    .mexit	; B
+                           1489 	.iif	ne,...A-2	.error	1	; ...A != 2
+                           1490 	cond	1,2,3
+                     0000  1469 	...A = 0
+                     0001  1470 	.if	nb,^!1!
+                     0001  1471 	  .if	nb,^!2!
+                     0001  1472 	    .if	nb,^!3!
+                     0003  1473 	      ...A = 3
+                           1474 	      .mexit	; C
+                           1491 	.iif	ne,...A-3	.error	1	; ...A != 3
+                           1492 
+                           1493 	.mdelete	cond
+                           1494 
+                           1495 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 43
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Repeat Macro
+
+                           1497 	.sbttl	Repeat Macro
+                           1498 	; Repeat Macro Definition.
+                           1499 
+                           1500 	.macro	RMD	J,K
+                           1501 	 .byte	...cnt	J'K
+                           1502 	.endm
+                           1503 
+                     0000  1504 	...cnt = 0
+                           1505 	.rept	0d5
+                           1506 	 RMD	^!; 00 0!,\...cnt
+                           1507 	 ...cnt = ...cnt + 1
+                           1508 	.endm
+                           1506 	 RMD	^!; 00 0!,\...cnt
+   000E 00 00              1501 	 .byte	...cnt	; 00 00
+                     0001  1507 	 ...cnt = ...cnt + 1
+                           1506 	 RMD	^!; 00 0!,\...cnt
+   000F 00 01              1501 	 .byte	...cnt	; 00 01
+                     0002  1507 	 ...cnt = ...cnt + 1
+                           1506 	 RMD	^!; 00 0!,\...cnt
+   0010 00 02              1501 	 .byte	...cnt	; 00 02
+                     0003  1507 	 ...cnt = ...cnt + 1
+                           1506 	 RMD	^!; 00 0!,\...cnt
+   0011 00 03              1501 	 .byte	...cnt	; 00 03
+                     0004  1507 	 ...cnt = ...cnt + 1
+                           1506 	 RMD	^!; 00 0!,\...cnt
+   0012 00 04              1501 	 .byte	...cnt	; 00 04
+                     0005  1507 	 ...cnt = ...cnt + 1
+                           1509 	.iif	ne,...cnt - 5	.error	1	; ...cnt != 5
+                           1510 
+                           1511 
+                     0000  1512 	...cnt = 0
+                           1513 	.rept	0d10
+                           1514 	 RMD	^!; 00 0!,\...cnt
+                           1515 	 ...cnt = ...cnt + 1
+                           1516 	 .iif	eq,...cnt - 5	.mexit
+                           1517 	 .iif	gt,...cnt - 5	.error	1	; ...cnt >  5
+                           1518 	.endm
+                           1514 	 RMD	^!; 00 0!,\...cnt
+   0013 00 00              1501 	 .byte	...cnt	; 00 00
+                     0001  1515 	 ...cnt = ...cnt + 1
+                           1516 	 .iif	eq,...cnt - 5	.mexit
+                           1517 	 .iif	gt,...cnt - 5	.error	1	; ...cnt >  5
+                           1514 	 RMD	^!; 00 0!,\...cnt
+   0014 00 01              1501 	 .byte	...cnt	; 00 01
+                     0002  1515 	 ...cnt = ...cnt + 1
+                           1516 	 .iif	eq,...cnt - 5	.mexit
+                           1517 	 .iif	gt,...cnt - 5	.error	1	; ...cnt >  5
+                           1514 	 RMD	^!; 00 0!,\...cnt
+   0015 00 02              1501 	 .byte	...cnt	; 00 02
+                     0003  1515 	 ...cnt = ...cnt + 1
+                           1516 	 .iif	eq,...cnt - 5	.mexit
+                           1517 	 .iif	gt,...cnt - 5	.error	1	; ...cnt >  5
+                           1514 	 RMD	^!; 00 0!,\...cnt
+   0016 00 03              1501 	 .byte	...cnt	; 00 03
+                     0004  1515 	 ...cnt = ...cnt + 1
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 44
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Repeat Macro
+
+                           1516 	 .iif	eq,...cnt - 5	.mexit
+                           1517 	 .iif	gt,...cnt - 5	.error	1	; ...cnt >  5
+                           1514 	 RMD	^!; 00 0!,\...cnt
+   0017 00 04              1501 	 .byte	...cnt	; 00 04
+                     0005  1515 	 ...cnt = ...cnt + 1
+                           1516 	 .iif	eq,...cnt - 5	.mexit
+                           1519 	.iif	ne,...cnt - 5	.error	1	; ...cnt != 5
+                           1520 
+                           1521 	.mdelete	RMD
+                           1522 
+                           1523 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 45
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Indefinite Repeat Macro
+
+                           1525 	.sbttl	Indefinite Repeat Macro
+                           1526 
+                     000C  1527 	...val = 0d12
+                           1528 	.irp	sym	A,B,\...val
+                           1529 	 .globl	val'sym
+                           1530 	 .word	val'sym		;s00r00
+                           1531 	.endm
+                           1529 	 .globl	valA
+   0018s00r00              1530 	 .word	valA		;s00r00
+                           1529 	 .globl	valB
+   0019s00r00              1530 	 .word	valB		;s00r00
+                           1529 	 .globl	valC
+   001As00r00              1530 	 .word	valC		;s00r00
+                           1532 
+                           1533 
+                           1534 	.irp	sym	^!.word	0x1234		; 02 34!,	^!.byte	0xFF		; 00 FF!
+                           1535 	 sym
+                           1536 	.endm
+   001B 02 34              1535 	 .word	0x1234		; 02 34
+   001C 00 FF              1535 	 .byte	0xFF		; 00 FF
+                           1537 
+                           1538 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 46
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Indefinite Repeat on Character
+
+                           1540 	.sbttl	Indefinite Repeat on Character
+                           1541 	;
+                           1542 	; Note that these macros are used to create
+                           1543 	; comments.  The comment delimiter ';' always
+                           1544 	; terminates the macro substitution scan when
+                           1545 	; found in a macro call.
+                           1546 	;(even if the ';' is within a delimited string !!!)
+                           1547 	;
+                           1548 	; The ';' character is thus placed in the last
+                           1549 	; argument of the macro call.
+                           1550 	;
+                           1551 
+                           1552 	.macro	irpcm1	I	J,K,L,M
+                           1553 	 .byte	''I,''I - '0	M'J'K'L
+                           1554 	.endm
+                           1555 
+                           1556 	.macro	irpcm2	I	J,K,L
+                           1557 	 .asciz	"'I"			L'J'K
+                           1558 	.endm
+                           1559 
+                           1560 	.irpc	sym	0123456789abcdef
+                           1561 	 ...sym = ''sym
+                           1562 	 .if	ge,''sym - '0
+                           1563 	  .if	le,''sym - '9
+                           1564 	   irpcm1	sym	\''sym, ^! 00 0!, \(''sym-'0), ^!; 00 !
+                           1565 	  .else
+                           1566 	   irpcm2	sym	\''sym, ^! 00 00!, ^!; 00 !
+                           1567 	  .endif
+                           1568 	 .endif
+                           1569 	.endm
+                     0030  1561 	 ...sym = '0
+                     0001  1562 	 .if	ge,'0 - '0
+                     0001  1563 	  .if	le,'0 - '9
+                           1564 	   irpcm1	0	\'0, ^! 00 0!, \('0-'0), ^!; 00 !
+   001D 00 30 00 00        1553 	 .byte	'0,'0 - '0	; 00 30 00 00
+                     0000  1565 	  .else
+                           1566 	   irpcm2	0	\'0, ^! 00 00!, ^!; 00 !
+                           1567 	  .endif
+                           1568 	 .endif
+                     0031  1561 	 ...sym = '1
+                     0001  1562 	 .if	ge,'1 - '0
+                     0001  1563 	  .if	le,'1 - '9
+                           1564 	   irpcm1	1	\'1, ^! 00 0!, \('1-'0), ^!; 00 !
+   001F 00 31 00 01        1553 	 .byte	'1,'1 - '0	; 00 31 00 01
+                     0000  1565 	  .else
+                           1566 	   irpcm2	1	\'1, ^! 00 00!, ^!; 00 !
+                           1567 	  .endif
+                           1568 	 .endif
+                     0032  1561 	 ...sym = '2
+                     0001  1562 	 .if	ge,'2 - '0
+                     0001  1563 	  .if	le,'2 - '9
+                           1564 	   irpcm1	2	\'2, ^! 00 0!, \('2-'0), ^!; 00 !
+   0021 00 32 00 02        1553 	 .byte	'2,'2 - '0	; 00 32 00 02
+                     0000  1565 	  .else
+                           1566 	   irpcm2	2	\'2, ^! 00 00!, ^!; 00 !
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 47
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Indefinite Repeat on Character
+
+                           1567 	  .endif
+                           1568 	 .endif
+                     0033  1561 	 ...sym = '3
+                     0001  1562 	 .if	ge,'3 - '0
+                     0001  1563 	  .if	le,'3 - '9
+                           1564 	   irpcm1	3	\'3, ^! 00 0!, \('3-'0), ^!; 00 !
+   0023 00 33 00 03        1553 	 .byte	'3,'3 - '0	; 00 33 00 03
+                     0000  1565 	  .else
+                           1566 	   irpcm2	3	\'3, ^! 00 00!, ^!; 00 !
+                           1567 	  .endif
+                           1568 	 .endif
+                     0034  1561 	 ...sym = '4
+                     0001  1562 	 .if	ge,'4 - '0
+                     0001  1563 	  .if	le,'4 - '9
+                           1564 	   irpcm1	4	\'4, ^! 00 0!, \('4-'0), ^!; 00 !
+   0025 00 34 00 04        1553 	 .byte	'4,'4 - '0	; 00 34 00 04
+                     0000  1565 	  .else
+                           1566 	   irpcm2	4	\'4, ^! 00 00!, ^!; 00 !
+                           1567 	  .endif
+                           1568 	 .endif
+                     0035  1561 	 ...sym = '5
+                     0001  1562 	 .if	ge,'5 - '0
+                     0001  1563 	  .if	le,'5 - '9
+                           1564 	   irpcm1	5	\'5, ^! 00 0!, \('5-'0), ^!; 00 !
+   0027 00 35 00 05        1553 	 .byte	'5,'5 - '0	; 00 35 00 05
+                     0000  1565 	  .else
+                           1566 	   irpcm2	5	\'5, ^! 00 00!, ^!; 00 !
+                           1567 	  .endif
+                           1568 	 .endif
+                     0036  1561 	 ...sym = '6
+                     0001  1562 	 .if	ge,'6 - '0
+                     0001  1563 	  .if	le,'6 - '9
+                           1564 	   irpcm1	6	\'6, ^! 00 0!, \('6-'0), ^!; 00 !
+   0029 00 36 00 06        1553 	 .byte	'6,'6 - '0	; 00 36 00 06
+                     0000  1565 	  .else
+                           1566 	   irpcm2	6	\'6, ^! 00 00!, ^!; 00 !
+                           1567 	  .endif
+                           1568 	 .endif
+                     0037  1561 	 ...sym = '7
+                     0001  1562 	 .if	ge,'7 - '0
+                     0001  1563 	  .if	le,'7 - '9
+                           1564 	   irpcm1	7	\'7, ^! 00 0!, \('7-'0), ^!; 00 !
+   002B 00 37 00 07        1553 	 .byte	'7,'7 - '0	; 00 37 00 07
+                     0000  1565 	  .else
+                           1566 	   irpcm2	7	\'7, ^! 00 00!, ^!; 00 !
+                           1567 	  .endif
+                           1568 	 .endif
+                     0038  1561 	 ...sym = '8
+                     0001  1562 	 .if	ge,'8 - '0
+                     0001  1563 	  .if	le,'8 - '9
+                           1564 	   irpcm1	8	\'8, ^! 00 0!, \('8-'0), ^!; 00 !
+   002D 00 38 00 08        1553 	 .byte	'8,'8 - '0	; 00 38 00 08
+                     0000  1565 	  .else
+                           1566 	   irpcm2	8	\'8, ^! 00 00!, ^!; 00 !
+                           1567 	  .endif
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 48
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Indefinite Repeat on Character
+
+                           1568 	 .endif
+                     0039  1561 	 ...sym = '9
+                     0001  1562 	 .if	ge,'9 - '0
+                     0001  1563 	  .if	le,'9 - '9
+                           1564 	   irpcm1	9	\'9, ^! 00 0!, \('9-'0), ^!; 00 !
+   002F 00 39 00 09        1553 	 .byte	'9,'9 - '0	; 00 39 00 09
+                     0000  1565 	  .else
+                           1566 	   irpcm2	9	\'9, ^! 00 00!, ^!; 00 !
+                           1567 	  .endif
+                           1568 	 .endif
+                     0061  1561 	 ...sym = 'a
+                     0001  1562 	 .if	ge,'a - '0
+                     0000  1563 	  .if	le,'a - '9
+                           1564 	   irpcm1	a	\'a, ^! 00 0!, \('a-'0), ^!; 00 !
+                     0001  1565 	  .else
+                           1566 	   irpcm2	a	\'a, ^! 00 00!, ^!; 00 !
+   0031 00 61 00 00        1557 	 .asciz	"a"			; 00 61 00 00
+                           1567 	  .endif
+                           1568 	 .endif
+                     0062  1561 	 ...sym = 'b
+                     0001  1562 	 .if	ge,'b - '0
+                     0000  1563 	  .if	le,'b - '9
+                           1564 	   irpcm1	b	\'b, ^! 00 0!, \('b-'0), ^!; 00 !
+                     0001  1565 	  .else
+                           1566 	   irpcm2	b	\'b, ^! 00 00!, ^!; 00 !
+   0033 00 62 00 00        1557 	 .asciz	"b"			; 00 62 00 00
+                           1567 	  .endif
+                           1568 	 .endif
+                     0063  1561 	 ...sym = 'c
+                     0001  1562 	 .if	ge,'c - '0
+                     0000  1563 	  .if	le,'c - '9
+                           1564 	   irpcm1	c	\'c, ^! 00 0!, \('c-'0), ^!; 00 !
+                     0001  1565 	  .else
+                           1566 	   irpcm2	c	\'c, ^! 00 00!, ^!; 00 !
+   0035 00 63 00 00        1557 	 .asciz	"c"			; 00 63 00 00
+                           1567 	  .endif
+                           1568 	 .endif
+                     0064  1561 	 ...sym = 'd
+                     0001  1562 	 .if	ge,'d - '0
+                     0000  1563 	  .if	le,'d - '9
+                           1564 	   irpcm1	d	\'d, ^! 00 0!, \('d-'0), ^!; 00 !
+                     0001  1565 	  .else
+                           1566 	   irpcm2	d	\'d, ^! 00 00!, ^!; 00 !
+   0037 00 64 00 00        1557 	 .asciz	"d"			; 00 64 00 00
+                           1567 	  .endif
+                           1568 	 .endif
+                     0065  1561 	 ...sym = 'e
+                     0001  1562 	 .if	ge,'e - '0
+                     0000  1563 	  .if	le,'e - '9
+                           1564 	   irpcm1	e	\'e, ^! 00 0!, \('e-'0), ^!; 00 !
+                     0001  1565 	  .else
+                           1566 	   irpcm2	e	\'e, ^! 00 00!, ^!; 00 !
+   0039 00 65 00 00        1557 	 .asciz	"e"			; 00 65 00 00
+                           1567 	  .endif
+                           1568 	 .endif
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 49
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Indefinite Repeat on Character
+
+                     0066  1561 	 ...sym = 'f
+                     0001  1562 	 .if	ge,'f - '0
+                     0000  1563 	  .if	le,'f - '9
+                           1564 	   irpcm1	f	\'f, ^! 00 0!, \('f-'0), ^!; 00 !
+                     0001  1565 	  .else
+                           1566 	   irpcm2	f	\'f, ^! 00 00!, ^!; 00 !
+   003B 00 66 00 00        1557 	 .asciz	"f"			; 00 66 00 00
+                           1567 	  .endif
+                           1568 	 .endif
+                           1570 
+                           1571 	.mdelete	irpcm1, irpcm2
+                           1572 
+                           1573 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 50
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Macro Definitions and User Labels
+
+                           1575 	.sbttl	Macro Definitions and User Labels
+                           1576 
+                           1577 	.macro	DUL	A	B,C
+                           1578 	 .byte	A	C'B
+                           1579 	.endm
+                           1580 
+                           1581 	.macro	LESS	I,J	; Define macro LESS
+                           1582 	  .iif	lt,(I - J)	DUL	I	\I, ^!; 00 0!
+                           1583 	  .iif	gt,(I - J)	DUL	J	\J, ^!; 00 0!
+                           1584 	  .iif	eq,(I - J)	DUL	0	\0, ^!; 00 0!
+                           1585 	.endm
+                           1586 
+                     0001  1587 	sym1	=	1
+                     0002  1588 	sym2	=	2
+                           1589 
+   0000                    1590 	.org	0
+                           1591 				;LESS is defined as a label
+   0000 00 02              1592 LESS:	.byte	2	        ; 00 02
+                           1593 	  ;
+                           1594 	  ;
+                           1595 	  ;			;LESS is considered to be a label
+   0001s00r00              1596 	.word	LESS		;s00r00
+                           1597 	  ;
+                           1598 	  ;
+                           1599 	  ;
+                           1600 	LESS	sym1,sym2	;LESS is a macro call
+                           1582 	  .iif	lt,(sym1 - sym2)	DUL	sym1	\sym1, ^!; 00 0!
+   0002 00 01              1578 	 .byte	sym1	; 00 01
+                           1583 	  .iif	gt,(sym1 - sym2)	DUL	sym2	\sym2, ^!; 00 0!
+                           1584 	  .iif	eq,(sym1 - sym2)	DUL	0	\0, ^!; 00 0!
+                           1601 
+                           1602 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 51
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Immediate Conditional Macro Execution
+
+                           1604 	.sbttl	Immediate Conditional Macro Execution
+                           1605 
+                     0000  1606 	.if	ne,0
+                           1607 	  .byte	0xE0		; 00 E0
+                           1608 	  .iif    f	LESS	sym1,sym2
+                           1582 	  .iif	lt,(sym1 - sym2)	DUL	sym1	\sym1, ^!; 00 0!
+   0003 00 01              1578 	 .byte	sym1	; 00 01
+                           1583 	  .iif	gt,(sym1 - sym2)	DUL	sym2	\sym2, ^!; 00 0!
+                           1584 	  .iif	eq,(sym1 - sym2)	DUL	0	\0, ^!; 00 0!
+                           1609 	  .byte 0xE1		; 00 E1
+                           1610 	  .iif	  t	LESS	sym2,sym1
+                           1611 	  .byte	0xE2		; 00 E2
+                           1612 	  .iif    tf	LESS	sym1,sym1
+                           1582 	  .iif	lt,(sym1 - sym1)	DUL	sym1	\sym1, ^!; 00 0!
+                           1583 	  .iif	gt,(sym1 - sym1)	DUL	sym1	\sym1, ^!; 00 0!
+                           1584 	  .iif	eq,(sym1 - sym1)	DUL	0	\0, ^!; 00 0!
+   0004 00 00              1578 	 .byte	0	; 00 00
+                           1613 	  .byte	0xE3		; 00 E3
+                           1614 	.endif
+                           1615 
+                     0001  1616 	.if	eq,0
+   0005 00 F0              1617 	  .byte	0xF0		; 00 F0
+                           1618 	  .iif	  f	LESS	sym1,sym2
+   0006 00 F1              1619 	  .byte	0xF1		; 00 F1
+                           1620 	  .iif    t	LESS	sym2,sym1
+                           1582 	  .iif	lt,(sym2 - sym1)	DUL	sym2	\sym2, ^!; 00 0!
+                           1583 	  .iif	gt,(sym2 - sym1)	DUL	sym1	\sym1, ^!; 00 0!
+   0007 00 01              1578 	 .byte	sym1	; 00 01
+                           1584 	  .iif	eq,(sym2 - sym1)	DUL	0	\0, ^!; 00 0!
+   0008 00 F2              1621 	  .byte 0xF2		; 00 F2
+                           1622 	  .iif    tf	LESS	sym2,sym2
+                           1582 	  .iif	lt,(sym2 - sym2)	DUL	sym2	\sym2, ^!; 00 0!
+                           1583 	  .iif	gt,(sym2 - sym2)	DUL	sym2	\sym2, ^!; 00 0!
+                           1584 	  .iif	eq,(sym2 - sym2)	DUL	0	\0, ^!; 00 0!
+   0009 00 00              1578 	 .byte	0	; 00 00
+   000A 00 F3              1623 	  .byte	0xF3		; 00 F3
+                           1624 	.endif
+                           1625 
+                           1626 	.mdelete	DUL, LESS
+                           1627 
+                           1628 
+                           1629 	.sbttl	Assembler Symbol Table Output
+                           1630 
+                     0000  1631 .if 0
+                           1632 
+                           1633  Listing of Symbol Table
+                           1634 
+                           1635        assembled by:
+                           1636                 as6100 -glacxff as12bthi.asm
+                           1637 
+                           1638 Symbol Table
+                           1639 
+                           1640     ...A           =   0003     |     ...B           =   0005 
+                           1641     ...cnt         =   0005     |     ...sym         =   0066 
+                           1642     ...val         =   000C     |     .__.$$$.       =   2711 L
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 52
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Assembler Symbol Table Output
+
+                           1643     .__.ABS.       =   0000 G   |     .__.CPU.       =   0000 L
+                           1644     .__.H$L.       =   0001 L   |     AreaB              **** GX
+                           1645   3 JK                 0000 R   |   3 K                  0000 R
+                           1646   3 LESS               0000 R   |     OVR                **** GX
+                           1647   3 XY                 0000 R   |   3 XYZ                0006 R
+                           1648   3 XZ                 0002 R   |   3 YZ                 0004 R
+                           1649   2 a00                0000 R   |     a10                **** GX
+                           1650     a20                **** GX  |   3 abcdabcd           0045 GR
+                           1651   1 bndry_1            0000 R   |   1 bndry_2            0000 R
+                           1652   1 bndry_3            0000 R   |   1 bndry_4            0000 R
+                           1653   1 bndry_5            0000 R   |   1 bndry_6            0000 R
+                           1654     cnstnt0        =   ABCD G   |     cnstnt1        =   1234 G
+                           1655     cnstnt2        =   5678 G   |   1 code0              0041 GR
+                           1656     extern             **** GX  |   1 lclsym0            0000 R
+                           1657   1 lclsym1            001E R   |     m              =   0000 
+                           1658     n              =   0001     |     n0x00          =   0000 
+                           1659     n0x01          =   0001     |     n0x10          =   0010 
+                           1660     n0xeeff        =   EEFF     |     n0xff          =   00FF 
+                           1661     ofsbyte        =   000A     |     ofsword        =   0005 
+                           1662     qxd            =   0003     |     sym1           =   0001 
+                           1663     sym2           =   0002     |     valA               **** GX
+                           1664     valB               **** GX  |     valC               **** GX
+                           1665   1 word               0076 R
+                           1666 
+                           1667 ASxxxx Assembler V05.06+  (Intersil IM6100 / Harris HM6100)            Page 56
+                           1668 Hexadecimal [16-Bits]                                 Mon Oct 28 17:32:24 2013
+                           1669 Machine Independent Assembler Test
+                           1670 Area Table
+                           1671 
+                           1672 [_CSEG]
+                           1673    0 _CODE            size    0   flags C081
+                           1674 [_DSEG]
+                           1675    1 _DATA            size   43   flags CDCD
+                           1676    2 AreaA            size   22   flags C5C5
+                           1677    3 AreaB            size    B   flags CDCD
+                           1678 
+                           1679 .endif
+                           1680 
+                           1681 
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 53
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Symbol Table
+
+    ...A           =   0003 G   |     ...B           =   0005 G
+    ...cnt         =   0005 G   |     ...sym         =   0066 G
+    ...val         =   000C G   |     .__.$$$.       =   2711 L
+    .__.ABS.       =   0000 G   |     .__.CPU.       =   0000 L
+    .__.H$L.       =   0001 L   |     AreaB              **** GX
+  9 JK                 0000 GR  |   9 K                  0000 GR
+  9 LESS               0000 GR  |     OVR                **** GX
+  9 XY                 0000 GR  |   9 XYZ                0006 GR
+  9 XZ                 0002 GR  |   9 YZ                 0004 GR
+  8 a00                0000 GR  |     a10                **** GX
+    a20                **** GX  |   9 abcdabcd           0045 GR
+  2 bndry_1            0000 GR  |   3 bndry_2            0000 GR
+  4 bndry_3            0000 GR  |   5 bndry_4            0000 GR
+  6 bndry_5            0000 GR  |   7 bndry_6            0000 GR
+    cnstnt0        =   ABCD G   |     cnstnt1        =   1234 G
+    cnstnt2        =   5678 G   |   1 code0              0041 GR
+    extern             **** GX  |   1 lclsym0            0000 GR
+  1 lclsym1            001E GR  |     m              =   0000 G
+    n              =   0001 G   |     n0x00          =   0000 G
+    n0x01          =   0001 G   |     n0x10          =   0010 G
+    n0xeeff        =   EEFF G   |     n0xff          =   00FF G
+    ofsbyte        =   000A G   |     ofsword        =   0005 G
+    qxd            =   0003 G   |     sym1           =   0001 G
+    sym2           =   0002 G   |     valA               **** GX
+    valB               **** GX  |     valC               **** GX
+  1 word               0076 GR
+
+ASxxxx Assembler V05.50  (Intersil IM6100 / Harris HM6100)             Page 54
+Hexadecimal [16-Bits]                                 Sun Aug 27 19:25:01 2023
+Machine Independent Assembler Test
+Area Table
+
+[_CSEG]
+   0 _CODE            size    0   flags C081
+   2 bndry_1          size    D   flags 4D4D
+   3 bndry_2          size    1   flags 4D4D
+   4 bndry_3          size  401   flags 4D4D
+   5 bndry_4          size    1   flags 4D4D
+   6 bndry_5          size   22   flags 4D4D
+   7 bndry_6          size  601   flags 4D4D
+[_DSEG]
+   1 _DATA            size   43   flags CDCD
+   8 AreaA            size   22   flags C5C5
+   9 AreaB            size    B   flags CDCD
+

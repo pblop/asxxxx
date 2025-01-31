@@ -1,0 +1,352 @@
+.nlist
+	.list	(!,src)
+;	area.def        Areas/Banks             Defined
+	.nlist
+
+	.sbttl	Memory Organization
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	The system variables are allocated in the
+;	[Areas] shown in the table.
+;
+;	[BrkPoints], [MBits], and [MData] are allocated to the
+;	monitor (mondeb51.asm)
+;
+;	[RData] is used by the serial port (sp0_x.asm), the timers
+;	(timers.asm), the integer/ascii conversion functions (aiconv.asm),
+;	and optionally the debug routines (debug.asm)
+;
+;	[Bits], [Data], and [IData] are used by the MFM/IDE control
+;	functions (mfmide.asm), the disk configuration functions
+;	(dskcfg.asm), and otpionally by the bebug functions (debug.asm)
+;
+;	[LData] is used by the optional debug functions (debug.asm)
+;
+;	The remaining external ram is variously used for the system
+;	stack, serial port buffers, miscellaneous variables, and
+;	by the control,	disk configuration, and debug functions.
+;
+;
+;                                              @r0/@r1	 movx (@r0/@r1/@dptr)
+; Addressing:   Bit         Direct            InDirect        External
+;
+;       +---------          -0x00               -------+        -
+;       |       |  \        | RBNK0   R0-R7     |      |        |
+;  [BrkPoints]  -   \       -0x08  -----+--------      |        -
+;       |       |    \      | RBNK1     |       |      |        |
+;       +--------     \     -0x10       |       -      |        -
+;       |       |      \    | RBNK2  [RData]    |      |        |
+;       |       -       \   -0x18       |       -      |        -
+;       |       |        \  | RBNK3     |       |      |        |
+;       |       -         ---0x20  -----+--------      |        -------+
+;       |       |   128     |                   |      |        |      |
+;       |       -  Logical  -0x28               -      |        -      |
+;       |       |   Bits    |                   |      |        |      |
+;       |       -         ---0x30  -----+--------      |        -      |
+;    [Bits]     |        /  |           |       |      |        |      |
+;       |       -       /   -0x38       |       -      |        -      |
+;       |       |      /    |           |       |      |        |      |
+;       |       -     |     -0x40       |       -      |        -      |
+;       |       |     |     |           |       |      |        |      |
+;       |       -     |     -0x48       |       -      |        -      |
+;       |       |     |     |           |       |      |        |   [LData]
+;       |       -     |     -0x50       |       -      |        -      |
+;       |       |     |     |         [Data]    |      |        |      |
+;       |       -     |     -0x58       |       -      |        -      |
+;       |       |     |     |           |       |      |        |      |
+;       +--------     |     -0x60       |       -      |        -      |
+;       |       |     |     |           |       |      |        |      |
+;       |       -     |     -0x68       |       -      |        -      |
+;       |       |     |     |           |       |      |        |      |
+;    [MBits]    -    /      -0x70       |       -      |        -      |
+;       |       |   /       |           |       |      |        |      |
+;       |       -  /        -0x78       |       -      |        -      |
+;       |       | /         |           |       |      |        |      |
+;       +--------------------0x80  -----+       -------+        -------+
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0x88       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0x90       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0x98       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0xA0       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0xA8       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0xB0       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0xB8       |       -      |        -      |
+;    128 SFR    |    ///    |          SFRs     |   [IData]     |   [MData]
+;    Logical    -------------0xC0       |       -      |        -      |
+;     Bits      |    ///    |           |       |      |        |      |
+;       |       -------------0xC8       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0xD0       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0xD8       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0xE0       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0xE8       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0xF0       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       |       -------------0xF8       |       -      |        -      |
+;       |       |    ///    |           |       |      |        |      |
+;       +--------------------0x0100 ----+       -------+        -------+
+;
+;                                                           movx (@dptr)
+; Addressing:                                                 External
+;
+;                           -0x0100 -----------------------------------+
+;                           |          Serial Port Buffers ...  |   [EData]
+;                           -0x0300 -----------------------------------+
+;                           |             System Stack Area     |   [Stack]
+;                           -0x0400 -----------------------------------+
+;                           |           IDE PIO Disk Buffers    |   [IOBLK]
+;                           -0x1000 -----------------------------------+
+;                           |                  Unused           |   [FData]
+;                           -0x3000 -----------------------------------+
+;                           |          MFM and IDE Registers    |   [XData]
+;                           -0xFFFF -----------------------------------+
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Internal Memory Space						.area	.bank
+;
+;	0x00 - 0x1F	4 Banks of R0-R7
+;	  0x08 - 0x1F	  Data Variables (Register Banks 1-3)		RDATA	RData
+;
+;	0x20 - 0x2F	Logical Bit Variables 0-127
+;	  0x00 - 0x0F	  Program Break Points				BrkPnts	BrkPnts
+;	  0x10 - 0x5F	  Program Bit Addresses				Bits	Bits
+;	  0x60 - 0x7F	  Monitor Bit Addresses				MBits	MBits
+;
+;	0x30 - 0x7F	Data Variables (Direct Addressing)		Data	Data
+;
+;	0x80 - 0xFF	SFR Region (Special Function Registers)
+;	  0x80 - 0xFF	  Logical Bit Variables 128-255
+;
+;	0x80 - 0xFF	Data Variables (Indirect Addressing)		IData	IData
+;
+; *****
+;
+;	External Ram (On Chip 4K Space) (@DPTR Addressing)
+;
+;	0x0020 - 0x007F		? Variables Space			LDATA	LData
+;	0x0080 - 0x00FF		Mondeb Work Space			MData	MData
+;	0x0100 - 0x02FF		External Data Space			EData	EData
+;	0x0300 - 0x03FF		Stack Space				Stack	Stack
+;	0x0400 - 0x0FFF		IO Data Space				IOBlk	IOBlk
+;
+;	Flash Memory (On Chip 8K Space) (@DPTR Addressing)
+;
+;	0x1000 - 0x2FFF		Flash Memory				FData	FData
+;
+;	External Ram (Off Chip 52K Space) (@DPTR Addressing)
+;
+;	0x3000 - 0xFFFF		Not Implemented				XData	XData
+;
+;	External Peripheral Access (@DPTR Addressing)
+;
+;	0x8000 - 0x8017		MFM/IDE Registers
+;
+; *****
+;
+;	Programmable Memory (On Chip 32K Space)
+;
+;	0x0000 - 0x00FF		Intrrupt Vector Space			Vctr	Vctr
+;	0x0100 - 0x7FFF		Program Space	(Multiple areas)	_____	Code
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.page
+	.sbttl	Bank Definitions
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	The Definition Of Memory Banks.
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Real
+;	Usage:	Interrupt Vector Code
+;	Where:	0x0000 - 0x00FF		Internal Programmable Memory
+;
+	.bank	Vctr	(BASE=0x0000, SIZE=0x0100)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Real
+;	Usage:	Program Code
+;	Where:	0x0100 - 0x7FFF		Internal Programmable Memory
+;
+	.bank	Code	(BASE=0x0100, SIZE=0x7F00)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	Bit Address Space For Program Break Points
+;	Where:	0x00 - 0x0F		Bit Addresses
+;
+	.bank	BrkPnts	(Base=0x0000, SIZE=0x0010, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	Bit Address Space For Programs
+;	Where:	0x10 - 0x5F		Bit Addresses
+;
+	.bank	Bits	(Base=0x0010, SIZE=0x0050, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	Bit Address Space For The Monitor
+;	Where:	0x60 - 0x7F		Bit Addresses
+;
+	.bank	MBits	(Base=0x0060, SIZE=0x0020, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	Low Internal Memory Address Space
+;	Where:	0x08 - 0x1F		Internal Local Memory (DATA)
+;
+	.bank	RData	(Base=0x0008, SIZE=0x0018, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	Low Internal Memory Address Space
+;	Where:	0x30 - 0x7F		Internal Local Memory (DATA)
+;
+	.bank	Data	(Base=0x0030, SIZE=0x0050, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	High Internal Memory Address Space
+;	Where:	0x80 - 0xFF		Internal Local Memory (IDATA)
+;
+	.bank	IData	(Base=0x0080, SIZE=0x0080, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.page
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	? Variables Address Space
+;	Where:	0x0020 - 0x007F		On-Chip Extra Memory Address Space
+;
+	.bank	LData	(BASE=0x0020, SIZE=0x0060, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	Monitor Variables Address Space
+;	Where:	0x0080 - 0x00FF		On-Chip Extra Memory Address Space
+;
+	.bank	MData	(BASE=0x0080, SIZE=0x0080, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	Extra Data Ram
+;	Where:	0x0100 - 0x02FF		On-Chip Extra Memory Address Space
+;
+	.bank	EData	(BASE=0x0100, SIZE=0x0200, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	Processor STACK In Extra Data Ram
+;	Where:	0x0300 - 0x03FF		On-Chip Extra Memory Address Space
+;
+	.bank	Stack	(BASE=0x0300, SIZE=0x0100, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	IDE IO Data Block
+;	Where:	0x0400 - 0x0FFF		On-Chip Extra Memory Address Space
+;
+	.bank	IOBlk	(BASE=0x0400, SIZE=0x0C00, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	Flash Data Ram
+;	Where:	0x1000 - 0x2FFF		On-Chip Flash Memory Address Space
+;
+	.bank	FData	(BASE=0x1000, SIZE=0x2000, FSFX=_fd)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	Type:	Dumby
+;	Usage:	External Extra Data Ram
+;	Where:	0x3000 - 0xFFFF		External RAM Memory Address Space
+;
+	.bank	XData	(BASE=0x3000, SIZE=0xD000, FSFX=_vo)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+
+	.page
+	.sbttl	Area Definitions
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	The Data Areas Should Never Contain Code.
+;	They Are Used To Specify Variable Locations Only. 
+;
+	.area	BrkPnts	(rel, con, DSEG, BANK=BrkPnts)
+	.area	Bits	(rel, con, DSEG, BANK=Bits)
+	.area	MBits	(rel, con, DSEG, BANK=MBits)
+	.area	RData	(rel, con, DSEG, BANK=RData)
+	.area	Data	(rel, con, DSEG, BANK=Data)
+	.area	IData	(rel, con, DSEG, BANK=IData)
+	.area	LData	(rel, con, DSEG, BANK=LData)
+	.area	MData	(rel, con, DSEG, BANK=MData)
+	.area	EData	(rel, con, DSEG, BANK=EData)
+	.area	Stack	(rel, con, DSEG, BANK=Stack)
+	.area	IOBlk	(rel, con, DSEG, BANK=IOBlk)
+	.area	XData	(rel, con, DSEG, BANK=XData)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	The Flash Data Area Should Contain only
+;	Fixed Data and String Data.
+;
+	.area	FData	(rel, con, DSEG, BANK=FData)
+;
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+;
+;	The Program Areas Should Only Contain Code.
+;	They Are Used To Order The Linking Of Code Sections. 
+;
+	.area	Vctr	(abs, ovr, CSEG, BANK=Vctr)
+	.area	Code	(rel, con, CSEG, BANK=Code)
+
+	; Command Structures
+	.area	CmdTbl	(rel, con, CSEG, BANK=Code)
+	.area	CmdLst	(rel, con, CSEG, BANK=Code)
+	.area	OptLst	(rel, con, CSEG, BANK=Code)
+	.area	EndLst	(rel, con, CSEG, BANK=Code)
+
+
+	; Extended Help Structures
+	.area	X_Help	(rel, con, CSEG, BANK=Code)
+	.area	X_Ptrs	(rel, con, CSEG, BANK=Code)
+	.area	X_Strs	(rel, con, CSEG, BANK=Code)
+
+	; Other Code Areas
+	.area	LBSFR	(rel, con, CSEG, BANK=Code)
+	.area	SP0_X	(rel, con, CSEG, BANK=Code)
+	.area	aiconv	(rel, con, CSEG, BANK=Code)
+
+; *****-----*****-----*****-----*****-----*****-----*****-----*****
+

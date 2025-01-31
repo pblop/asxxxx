@@ -1,0 +1,41 @@
+-imu
+mfm.obj
+sp0_x.obj
+print.obj
+macros.obj
+mondeb51.obj
+xhelp.obj
+lbsfr.obj
+fpga.obj
+btcs.obj
+timers.obj
+mfmide.obj
+spchr.obj
+ideblk.obj
+dskcfg.obj
+aiconv.obj
+debug.obj
+-e
+
+; Notes:
+;   Any file containing MONDEB51 commands must
+;   follow mondeb and xhelp in the linking order !!!
+;
+; Sequence (04_22_2020)
+mfm
+sp0_x
+print
+macros
+mondeb51
+xhelp
+lbsfr
+fpga
+btcs
+timers
+mfmide
+spchr
+ideblk
+dsknfg
+aiconv
+debug
+

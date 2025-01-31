@@ -1,0 +1,158 @@
+.nlist
+;****************************************************************************
+;
+; Include This File To Define The COP Registers
+;
+;	!!! NOTE !!!
+;		Only Registers And
+;		Register Bit Numbers Are Defined
+;
+;****************************************************************************
+;
+	; Set UPPER_CASE_REG Non Zero To Define Upper Case Registers
+	; Set LOWER_CASE_REG Non Zero To Define Lower Case Registerss
+	; Else Both Upper And Lower Case Registers Will Be Defined
+
+	.ifeq	UPPER_CASE_REG + LOWER_CASE_REG
+		UPPER_CASE_REG =: 1
+		LOWER_CASE_REG =: 1
+	.endif
+
+.ifne	UPPER_CASE_REG + LOWER_CASE_REG
+	.list	(!,src)
+;	Supports Chips:
+;		COP684BC, COP884BC
+	.nlist
+.endif
+;
+;****************************************************************************
+;
+	.include "regdef.mac"
+	.xtnd	1		; Extended Instruction Set
+	.__.CPU. =: 4		; Processor Code
+;
+;****************************************************************************
+;
+
+.ifne	UPPER_CASE_REG
+	.list	(!,src)
+;	Upper Case Register Definitions         Defined
+	.nlist
+
+	;	Name	Addr	Bit7	Bit6	Bit5	Bit4	Bit3	Bit2	Bit1	Bit0
+	;	----	----	----	----	----	----	----	----	----	----
+	.reg	PSCAL,	0xA0,	,	,	,	,	,	,	,
+	.reg	RLON,	0xA1,	,	,	,	,	,	,	,
+	.reg	PWMCON, 0xA2,	,	ESEL,	PWPND,	PWIE,	PWMD,	PWON,	PWEN1,	PWEN2
+	;
+	.reg	TXD1,	0xB0,	,	,	,	,	,	,	,	
+	.reg	TXD2,	0xB1,	,	,	,	,	,	,	,	
+	.reg	TDLC,	0xB2,	TID3,	TID2,	TID1,	TID0,	TDLC3,	TDLC2,	TDLC1,	TDLC0
+	.reg	TID,	0xB3,	TRTR,	TID10,	TID9,	TID8,	TID7,	TID6,	TID5,	TID4
+	.reg	RXD2,	0xB4,	,	,	,	,	,	,	,
+	.reg	RXD2,	0xB5,	,	,	,	,	,	,	,
+	.reg	RIDL,	0xB6,	RID3,	RID2,	RID1,	RID0,	RDLC3,	RDLC2,	RDLC1,	RDLC0
+	.reg	RID,	0xB7,	,	RID10,	RID9,	RID8,	RID7,	RID6,	RID5,	RID4
+	;
+	.reg	CSCAL,	0xB8,	CKS7,	CKS6,	CKS5,	CKS4,	CKS3,	CKS2,	CKS1,	CKS0
+	.reg	CTIM,	0xB9,	PPS2,	PPS1,	PPS0,	PS2,	PS1,	PS0,	SJ1,	SJ0
+	.reg	CBUS,	0xBA,	,	RAF,	TXEN1,	TXEN0,	RXREF1,	RXREF0,	,	FMOD
+	;
+	.reg	TCNTL,	0xBB,	NS1,	NS0,	TERR,	RERR,	CEIE,	TIE,	RIE,	TXSS
+	.reg	RTSTAT,	0xBC,	TBE,	TXPND,	RRTR,	ROLB,	RORN,	RFV,	RCV,	RBF
+	.reg	TEC	0xBD,	TEC7,	TEC6,	TEC5,	REC4,	TEC3,	TEC2,	TEC1,	TEC0
+	.reg	REC,	0xBE,	REC7,	REC6,	REC5,	REC4,	REC3,	REC2,	REC1,	REC0
+	;
+	.reg	WKEDG,	0xC8,	,	,	,	,	,	,	,
+	.reg	WKEN,	0xC9,	,	,	,	,	,	,	,
+	.reg	WKPND,	0xCA,	,	,	,	,	,	,	,
+	;
+	.reg	MIWU,	0xD0,	,	,	,	,	,	,	,
+	.reg	PORTLD,	0xD0,	,	CMP2OUT, ALT2INM, CMP2INP, CMP2INM, CMP1OUT, CMP1INM, CMP1INP
+	.reg	PORTLD,	0xD0,	,	CAPTIN,	,	,	,	,	,
+	.reg	PORTLD,	0xD0,	,	PWM0,	PWM1,	,	,	,	,
+	.reg	PORTLC,	0xD1,	,	,	,	,	,	,	,
+	.reg	PORTLP,	0xD2,	,	,	,	,	,	,	,
+	.reg	CMPLS,	0xD3,	CMP2SEL,CMP2OE,	CMP2RD,	CMP2EN,	CMP1OE,	CMP1RD,	CMP1EN,
+	;		0xD3
+	.reg	PORTGD,	0xD4,	CKO,	SI,	SK,	SO,	TIO,	,	,	INTR
+	.reg	PORTGD,	0xD4,	,	,	IDLE,	,	,	,	,	HALT
+	;
+	.reg	PORTGC,	0xD5,	,	,	,	,	,	,	,
+	.reg	PORTGP,	0xD6,	,	,	,	,	,	,	,
+	.reg	PORTD,	0xDC,	,	,	,	,	,	,	,
+	;
+	.reg	T1RBLO,	0xE6,	,	,	,	,	,	,	,
+	.reg	T1RBHI,	0xE7,	,	,	,	,	,	,	,
+	.reg	ICNTRL,	0xE8,	,	LPEN,	T0PND,	T0EN,	uWPND,	uWEN,	T1PNDB,	T1ENB
+	.reg	SIOR,	0xE9,	,	,	,	,	,	,	,
+	.reg	TMR1LO,	0xEA,	,	,	,	,	,	,	,
+	.reg	TMR1HI,	0xEB,	,	,	,	,	,	,	,
+	.reg	T1RALO,	0xEC,	,	,	,	,	,	,	,
+	.reg	T1RAHI,	0xED,	,	,	,	,	,	,	,
+	.reg	CNTRL,	0xEE,	T1C3,	T1C2,	T1C1,	T1C0,	MSEL,	IEDG,	SL1,	SL0
+	.reg	PSW,	0xEF,	HC,	C,	T1PNDA,	T1ENA,	EXPND,	BUSY,	EXEN,	GIE
+.endif
+;
+;****************************************************************************
+;
+.ifne	LOWER_CASE_REG
+	.list	(!,src)
+;	Lower Case Register Definitions         Defined
+	.nlist
+
+	;	Name	Addr	Bit0	Bit1	Bit2	Bit3	Bit4	Bit5	Bit6	Bit7
+	;	----	----	----	----	----	----	----	----	----	----
+	.reg	pscal,	0xa0,	,	,	,	,	,	,	,
+	.reg	rlon,	0xa1,	,	,	,	,	,	,	,
+	.reg	pwmcon, 0xa2,	,	esel,	pwpnd,	pwie,	pwmd,	pwon,	pwen1,	pwen2
+	;
+	.reg	txd1,	0xb0,	,	,	,	,	,	,	,	
+	.reg	txd2,	0xb1,	,	,	,	,	,	,	,	
+	.reg	tdlc,	0xb2,	tid3,	tid2,	tid1,	tid0,	tdlc3,	tdlc2,	tdlc1,	tdlc0
+	.reg	tid,	0xb3,	trtr,	tid10,	tid9,	tid8,	tid7,	tid6,	tid5,	tid4
+	.reg	rxd2,	0xb4,	,	,	,	,	,	,	,
+	.reg	rxd2,	0xb5,	,	,	,	,	,	,	,
+	.reg	ridl,	0xb6,	rid3,	rid2,	rid1,	rid0,	rdlc3,	rdlc2,	rdlc1,	rdlc0
+	.reg	rid,	0xb7,	,	rid10,	rid9,	rid8,	rid7,	rid6,	rid5,	rid4
+	;
+	.reg	cscal,	0xb8,	cks7,	cks6,	cks5,	cks4,	cks3,	cks2,	cks1,	cks0
+	.reg	ctim,	0xb9,	pps2,	pps1,	pps0,	ps2,	ps1,	ps0,	sj1,	sj0
+	.reg	cbus,	0xba,	,	raf,	txen1,	txen0,	rxref1,	rxref0,	,	fmod
+	;
+	.reg	tcntl,	0xbb,	ns1,	ns0,	terr,	rerr,	ceie,	tie,	rie,	txss
+	.reg	rtstat,	0xbc,	tbe,	txpnd,	rrtr,	rolb,	rorn,	rfv,	rcv,	rbf
+	.reg	tec	0xbd,	tec7,	tec6,	tec5,	rec4,	tec3,	tec2,	tec1,	tec0
+	.reg	rec,	0xbe,	rec7,	rec6,	rec5,	rec4,	rec3,	rec2,	rec1,	rec0
+	;
+	.reg	wkedg,	0xc8,	,	,	,	,	,	,	,
+	.reg	wken,	0xc9,	,	,	,	,	,	,	,
+	.reg	wkpnd,	0xca,	,	,	,	,	,	,	,
+	;
+	.reg	miwu,	0xd0,	,	,	,	,	,	,	,
+	.reg	portld,	0xd0,	,	cmp2out, alt2inm, cmp2inp, cmp2inm, cmp1out, cmp1inm, cmp1inp
+	.reg	portld,	0xd0,	,	captin,	,	,	,	,	,
+	.reg	portld,	0xd0,	,	pwm0,	pwm1,	,	,	,	,
+	.reg	portlc,	0xd1,	,	,	,	,	,	,	,
+	.reg	portlp,	0xd2,	,	,	,	,	,	,	,
+	.reg	cmpls,	0xd3,	cmp2sel,cmp2oe,	cmp2rd,	cmp2en,	cmp1oe,	cmp1rd,	cmp1en,
+	;		0xd3
+	.reg	portgd,	0xd4,	cko,	si,	sk,	so,	tio,	,	,	intr
+	.reg	portgd,	0xd4,	,	,	idle,	,	,	,	,	halt
+	;
+	.reg	portgc,	0xd5,	,	,	,	,	,	,	,
+	.reg	portgp,	0xd6,	,	,	,	,	,	,	,
+	.reg	portd,	0xdc,	,	,	,	,	,	,	,
+	;
+	.reg	t1rblo,	0xe6,	,	,	,	,	,	,	,
+	.reg	t1rbhi,	0xe7,	,	,	,	,	,	,	,
+	.reg	icntrl,	0xe8,	,	lpen,	t0pnd,	t0en,	uwpnd,	uwen,	t1pndb,	t1enb
+	.reg	sior,	0xe9,	,	,	,	,	,	,	,
+	.reg	tmr1lo,	0xea,	,	,	,	,	,	,	,
+	.reg	tmr1hi,	0xeb,	,	,	,	,	,	,	,
+	.reg	t1ralo,	0xec,	,	,	,	,	,	,	,
+	.reg	t1rahi,	0xed,	,	,	,	,	,	,	,
+	.reg	cntrl,	0xee,	t1c3,	t1c2,	t1c1,	t1c0,	msel,	iedg,	sl1,	sl0
+	.reg	psw,	0xef,	hc,	c,	t1pnda,	t1ena,	expnd,	busy,	exen,	gie
+.endif
+

@@ -1,0 +1,30 @@
+!define BLANK ""
+R:\asxv5pxx\aspic\ptoa\watcom\pictoasx.obj : R:\asxv5pxx\aspic\ptoa\pictoasx&
+.c .AUTODEPEND
+ @R:
+ cd R:\asxv5pxx\aspic\ptoa\watcom
+ *wcc386 ..\pictoasx.c -i="..\...\ptoa/h;C:\WATCOM/h;C:\WATCOM/h/nt" -w4 -e2&
+5 -zq -od -d2 -6r -bt=nt -fo=.obj -mf
+
+R:\asxv5pxx\aspic\ptoa\watcom\ptoa.obj : R:\asxv5pxx\aspic\ptoa\ptoa.c .AUTO&
+DEPEND
+ @R:
+ cd R:\asxv5pxx\aspic\ptoa\watcom
+ *wcc386 ..\ptoa.c -i="..\...\ptoa/h;C:\WATCOM/h;C:\WATCOM/h/nt" -w4 -e25 -z&
+q -od -d2 -6r -bt=nt -fo=.obj -mf
+
+R:\asxv5pxx\aspic\ptoa\watcom\ptoa.exe : R:\asxv5pxx\aspic\ptoa\watcom\picto&
+asx.obj R:\asxv5pxx\aspic\ptoa\watcom\ptoa.obj .AUTODEPEND
+ @R:
+ cd R:\asxv5pxx\aspic\ptoa\watcom
+ @%write ptoa.lk1 FIL pictoasx.obj,ptoa.obj
+ @%append ptoa.lk1 
+!ifneq BLANK ""
+ *wlib -q -n -b ptoa.imp 
+ @%append ptoa.lk1 LIBR ptoa.imp
+!endif
+!ifneq BLANK ""
+ @%append ptoa.lk1 op resource=
+!endif
+ *wlink name ptoa d all SYS nt op m op maxe=25 op q op symf @ptoa.lk1
+

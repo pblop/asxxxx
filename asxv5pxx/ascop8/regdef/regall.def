@@ -1,0 +1,236 @@
+.nlist
+;****************************************************************************
+;
+; Include This File To Define The COP Registers
+;
+;	!!! NOTE !!!
+;		Only Registers And
+;		Register Bit Numbers Are Defined
+;
+;****************************************************************************
+;
+	; Set UPPER_CASE_REG Non Zero To Define Upper Case Registers
+	; Set LOWER_CASE_REG Non Zero To Define Lower Case Registerss
+	; Else Both Upper And Lower Case Registers Will Be Defined
+
+	.ifeq	UPPER_CASE_REG + LOWER_CASE_REG
+		UPPER_CASE_REG =: 1
+		LOWER_CASE_REG =: 1
+	.endif
+
+.ifne	UPPER_CASE_REG + LOWER_CASE_REG
+	.list	(!,src)
+;	Supports Chips:
+;		COP684BC, COP884BC
+	.nlist
+.endif
+;
+;****************************************************************************
+;
+	.include "regdef.mac"
+	.xtnd	0		; Basic Instruction Set
+;
+;****************************************************************************
+;
+
+.ifne	UPPER_CASE_REG
+	.list	(!,src)
+;	Upper Case Register Definitions         Defined
+	.nlist
+
+	;	Name	Addr	Bit7	Bit6	Bit5	Bit4	Bit3	Bit2	Bit1	Bit0
+	;	----	----	----	----	----	----	----	----	----	----
+	.reg	PORTED,	0x90,	,	,	,	,	CT4,	CT3,	CT2,	CT1
+	.reg	PORTED,	0x90,	,	,	,	,	,	,	,
+	.reg	PORTEC,	0x91,	,	,	,	,	,	,	,
+	.reg	PORTEP,	0x92,	,	,	,	,	,	,	,
+	;		0x93
+	.reg	PORTFD,	0x94,	,	,	,	,	,	,	,
+	.reg	PORTFC,	0x95,	,	,	,	,	,	,	,
+	.reg	PORTFP,	0x96,	,	,	,	,	,	,	,
+	;		0x97
+	.reg	MDR1,	0x98,	,	,	,	,	,	,	,
+	.reg	MDR2,	0x99,	,	,	,	,	,	,	,
+	.reg	MDR3,	0x9A,	,	,	,	,	,	,	,
+	.reg	MDR4,	0x9B,	,	,	,	,	,	,	,
+	.reg	MDR5,	0x9C,	,	,	,	,	,	,	,
+	.reg	MDCR,	0x9D,	,	,	,	,	,	DIVOVF,	DIV,	MULT
+	;
+	.reg	CCR1,	0x9E,	C2TM,	C2IPND,	C2IEN,	C2RUN,	C1TM,	C1IPND,	C1IEN,	C1RUN
+	.reg	CCR2,	0x9F,	C4TM,	C4IPND,	C4IEN,	C4RUN,	C3TM,	C3IPND,	C3IEN,	C3RUN
+	;
+	.reg	C1PRL,	0xA0,	,	,	,	,	,	,	,
+	.reg	C1PRH,	0xA1,	,	,	,	,	,	,	,
+	.reg	C1CTL,	0xA2,	,	,	,	,	,	,	,
+	.reg	C1CTH,	0xA3,	,	,	,	,	,	,	,
+	.reg	C2PRL,	0xA4,	,	,	,	,	,	,	,
+	.reg	C2PRH,	0xA5,	,	,	,	,	,	,	,
+	.reg	C2CTL,	0xA6,	,	,	,	,	,	,	,
+	.reg	C2CTH,	0xA7,	,	,	,	,	,	,	,
+	.reg	C3PRL,	0xA8,	,	,	,	,	,	,	,
+	.reg	C3PRH,	0xA9,	,	,	,	,	,	,	,
+	.reg	C3CTL,	0xAA,	,	,	,	,	,	,	,
+	.reg	C3CTH,	0xAB,	,	,	,	,	,	,	,
+	.reg	C4PRL,	0xAC,	,	,	,	,	,	,	,
+	.reg	C4PRH,	0xAD,	,	,	,	,	,	,	,
+	.reg	C4CTL,	0xAE,	,	,	,	,	,	,	,
+	.reg	C4CTH,	0xAF,	,	,	,	,	,	,	,
+	;
+	.reg	CM1PSC,	0xB0	,	,	,	,	,	,	,
+	.reg	CM1CRL,	0xB1	,	,	,	,	,	,	,
+	.reg	CM1CRH,	0xB2	,	,	,	,	,	,	,
+	.reg	CM2PSC,	0xB3	,	,	,	,	,	,	,
+	.reg	CM2CRL,	0xB4	,	,	,	,	,	,	,
+	.reg	CM2CRH,	0xB5	,	,	,	,	,	,	,
+	.reg	CCMR1,	0xB6,	CM1TM,	,	,	CM1EC,	CM1IP2,	CM1IP1,	CM1IEN,	CM1RUN
+	.reg	CCMR2,	0xB7,	CM2TM,	,	,	CM2EC,	CM2IP2,	CM2IP1,	CM2IEN,	CM2RUN
+	;
+	.reg	PSCAL,	0xA0,	,	,	,	,	,	,	,
+	.reg	RLON,	0xA1,	,	,	,	,	,	,	,
+	.reg	PWMCON, 0xA2,	,	ESEL,	PWPND,	PWIE,	PWMD,	PWON,	PWEN1,	PWEN2
+	;
+	.reg	TXD1,	0xB0,	,	,	,	,	,	,	,	
+	.reg	TXD2,	0xB1,	,	,	,	,	,	,	,	
+	.reg	TDLC,	0xB2,	TID3,	TID2,	TID1,	TID0,	TDLC3,	TDLC2,	TDLC1,	TDLC0
+	.reg	TID,	0xB3,	TRTR,	TID10,	TID9,	TID8,	TID7,	TID6,	TID5,	TID4
+	.reg	RXD2,	0xB4,	,	,	,	,	,	,	,
+	.reg	RXD2,	0xB5,	,	,	,	,	,	,	,
+	.reg	RIDL,	0xB6,	RID3,	RID2,	RID1,	RID0,	RDLC3,	RDLC2,	RDLC1,	RDLC0
+	.reg	RID,	0xB7,	,	RID10,	RID9,	RID8,	RID7,	RID6,	RID5,	RID4
+	;
+	.reg	T3LO,	0xB0,	,	,	,	,	,	,	,
+	.reg	T3HI,	0xB1,	,	,	,	,	,	,	,
+	.reg	T3RALO,	0xB2,	,	,	,	,	,	,	,
+	.reg	T3RAHI,	0xB3,	,	,	,	,	,	,	,
+	.reg	T3RBLO,	0xB4,	,	,	,	,	,	,	,
+	.reg	T3RBHI,	0xB5,	,	,	,	,	,	,	,
+	.reg	T3CNTRL,0xB6,	T3C3,	T3C2,	T3C1,	T3C0,	T3PNDA,	T3ENA,	T3PNDB,	T3ENB
+	;
+	.reg	CMPSL,	0xB7,	,	,	,	,	CMP1OE,	CMP1RD,	CMP1EN,
+	;
+	.reg	CMPSL,	0xB7,	,	CMP2OE,	CMP2RD,	CMP2EN,	CMP1OE,	CMP1RD,	CMP1EN,
+	;
+	.reg	CMPSL,	0xB7,	CMPT2B,	CMPISEL2, CMPISEL1, CMPISEL0,	CMPCE,	CSEN,	CMPEN,	CMPNEG
+	;
+	.reg	CSCAL,	0xB8,	CKS7,	CKS6,	CKS5,	CKS4,	CKS3,	CKS2,	CKS1,	CKS0
+	.reg	CTIM,	0xB9,	PPS2,	PPS1,	PPS0,	PS2,	PS1,	PS0,	SJ1,	SJ0
+	.reg	CBUS,	0xBA,	,	RAF,	TXEN1,	TXEN0,	RXREF1,	RXREF0,	,	FMOD
+	;
+	.reg	TBUF,	0xB8,	,	,	,	,	,	,	,
+	.reg	RBUF,	0xB9,	,	,	,	,	,	,	,
+	.reg	ENU,	0xBA,	PEN,	PSEL1,	PSEL0,	CHL1,	CHL0,	ERR,	RBFL,	TBMT
+	.reg	ENU,	0xBA,	,	,	XBIT9,	,	,	,	,
+	.reg	ENUR,	0xBB,	DOE,	FE,	PE,	SPARE,	RBIT9,	ATTN,	XMTG,	RCVG
+	.reg	ENUI,	0xBC,	STP2,	STP78,	ETDX,	SSEL,	XRCLK,	XTCLK,	ERI,	ETI
+	.reg	BAUD,	0xBD,	,	,	,	,	,	,	,
+	.reg	PSR,	0xBE,	,	,	,	,	,	,	,
+	;
+	.reg	TCNTL,	0xBB,	NS1,	NS0,	TERR,	RERR,	CEIE,	TIE,	RIE,	TXSS
+	.reg	RTSTAT,	0xBC,	TBE,	TXPND,	RRTR,	ROLB,	RORN,	RFV,	RCV,	RBF
+	.reg	TEC	0xBD,	TEC7,	TEC6,	TEC5,	REC4,	TEC3,	TEC2,	TEC1,	TEC0
+	.reg	REC,	0xBE,	REC7,	REC6,	REC5,	REC4,	REC3,	REC2,	REC1,	REC0
+	;
+	.reg	T2LO,	0xC0,	,	,	,	,	,	,	,
+	.reg	T2HI,	0xC1,	,	,	,	,	,	,	,
+	.reg	T2RALO,	0xC2,	,	,	,	,	,	,	,
+	.reg	T2RAHI,	0xC3,	,	,	,	,	,	,	,
+	.reg	T2RBLO,	0xC4,	,	,	,	,	,	,	,
+	.reg	T2RBHI,	0xC5,	,	,	,	,	,	,	,
+	.reg	T2CNTRL,0xC6,	T2C3,	T2C2,	T2C1,	T2C0,	T2PNDA,	T2ENA,	T2PNDB,	T2ENB
+	.reg	WDSVR,	0xC7,	,	,	,	,	,	,	,
+	.reg	WKEDG,	0xC8,	,	,	,	,	,	,	,
+	.reg	WKEN,	0xC9,	,	,	,	,	,	,	,
+	.reg	WKPND,	0xCA,	,	,	,	,	,	,	,
+	;
+	.reg	ENAD,	0xCB,	,	,	,	,	,	,	,
+	.reg	ADRSLT,	0xCC,	,	,	,	,	,	,	,
+	;
+	.reg	CNTRL2,	0xCC,	MC3,	MC2,	MC1,	CMPEN,	CMPRO,	CMPOE,	WDUDF,
+	.reg	CNTRL2,	0xCC,	MC3,	MC2,	MC1,	MC0,	CMPEN,	CMPRO,	CMPOE,	WDUDF
+	;
+	.reg	WDREG,	0xCD,	,	,	,	,	,	,	,	WDREN
+	.reg	WDCNT,	0xCE,	,	,	,	,	,	,	,
+	.reg	MODRL,	0xCF,	,	,	,	,	,	,	,
+	;
+	.reg	MIWU,	0xD0	,	,	,	,	,	,	,
+	.reg	PORTLD,	0xD0,	CAP2,	CAP1,	T2B,	T2A,	RDX,	TDX,	CKX,
+	.reg	PORTLD,	0xD0,	T3B,	T3A,	T2B,	T2A,	RDX,	TDX,	CKX,
+	.reg	PORTLD,	0xD0,	T3B,	T3A,	T2B,	T2A,	,	,	,
+	.reg	PORTLD,	0xD0,	,	,	,	,	RDX,	TDX,	CKX,
+	.reg	PORTLD,	0xD0,	,	CMP2OUT, ALT2INM, CMP2INP, CMP2INM, CMP1OUT, CMP1INM, CMP1INP
+	.reg	PORTLD,	0xD0,	,	CAPTIN,	,	,	,	,	,
+	.reg	PORTLD,	0xD0,	,	PWM0,	PWM1,	,	,	,	,
+	;
+	.reg	PORTLD,	0xD0,	,	,	,	,	,	,	,
+	.reg	PORTLD,	0xD0,	MODOUT,	,	,	,	,	CMPINP,	CMPINM,	CMPOUT
+	.reg	PORTLD,	0xD0,	,	,	,	T2B,	T2A,	,	,
+	.reg	PORTLC,	0xD1,	,	,	,	,	,	,	,
+	.reg	PORTLP,	0xD2,	,	,	,	,	,	,	,
+	;		0xD3
+	.reg	PORTGD,	0xD4,	CKO,	SI,	SK,	SO,	T1A,	T1B,	WDOUT,	INT
+	.reg	PORTGD,	0xD4,	CKO,	SI,	SK,	SO,	TIO,	,	,	INT
+	.reg	PORTGD,	0xD4,	CKO,	SI,	SK,	SO,	TIO,	,	,
+	;
+	.reg	PORTGD,	0xD4,	HALT,	,	,	,	,	,	,
+	.reg	PORTGD,	0xD4, RESTART,	,	,	,	,	,	,
+	;
+	.reg	PORTGD,	0xD4,	HALT,	IDLE,	,	,	,	,	,
+	.reg	PORTGD,	0xD4,	WDOUT,	,	IDLE,	,	,	,	,
+	;
+	.reg	PORTGD,	0xD4,	,	ME,	,	,	RD_,	WR_,	,	ALE
+	;
+	.reg	PORTGC,	0xD5,	,	,	,	,	,	,	,
+	.reg	PORTGP,	0xD6,	,	,	,	,	,	,	,
+	;
+	.reg	PORTI,	0xD7,	COMPOUT, COMPIN5P, COMPIN4P, CMPIN3P, CMPIN2P, CMPIN0P, CMPINM, CMP1INP
+	.reg	PORTI,	0xD7,	,	,	,	,	ALTOUT,	,	CUROUT,
+	.reg	PORTI,	0xD7,	,	,	,	,	COMP1OUT, COMP1INP, COMP1INM,
+	.reg	PORTI,	0xD7,	,	COMP2OUT, COMP2INP, COMP2INM, COMP1OUT, COMP1INP, COMP1INM,
+	.reg	PORTI,	0xD7,	,	,	,	,	,	,	,
+	.reg	PORTI,	0xD7,	ACH7,	ACH6,	ACH5,	ACH4,	ACH3,	ACH2,	ACH1,	ACH0
+	;
+	.reg	PORTCD,	0xD8,	,	,	,	,	,	,	,
+	.reg	PORTCC,	0xD9,	,	,	,	,	,	,	,
+	.reg	PORTCP,	0xDA,	,	,	,	,	,	,	,
+	;		0xDB
+	.reg	PORTD,	0xDC,	,	,	,	,	,	,	,
+	.reg	PORTD,	0xDC,	AD7,	AD6,	AD5,	AD4,	AD3,	AD2,	AD1,	AD0
+	;
+	.reg	CMPLS,	0xD3,	CMP2SEL,CMP2OE,	CMP2RD,	CMP2EN,	CMP1OE,	CMP1RD,	CMP1EN,
+	;
+	.reg	EECR,	0xE0,	,	,	,	, BSYERAM,	,	,	WERR
+	;
+	.reg	ECON,	0xE0,	,	, SECURITY, CKL1, CKL2,	,	RAMSIZE,
+	;
+	.reg	T1RBLO,	0xE6,	,	,	,	,	,	,	,
+	.reg	T1RBHI,	0xE7,	,	,	,	,	,	,	,
+	.reg	ICNTRL,	0xE8,	,	LPEN,	T0PND,	T0EN,	uWPND,	uWEN,	T1PNDB,	T1ENB
+	;
+	.reg	ICNTRL,	0xE8,	,	LPEN,	T0PND,	T0EN,	WPND,	WEN,	T1PNDB,	T1ENB
+	;
+	.reg	SIOR,	0xE9,	,	,	,	,	,	,	,
+	.reg	TMR1LO,	0xEA,	,	,	,	,	,	,	,
+	.reg	TMR1HI,	0xEB,	,	,	,	,	,	,	,
+	.reg	T1RALO,	0xEC,	,	,	,	,	,	,	,
+	.reg	T1RAHI,	0xED,	,	,	,	,	,	,	,
+	;
+	.reg	CNTRL,	0xEE,	T1C3,	T1C2,	T1C1,	T1C0,	MSEL,	IEDG,	SL1,	SL0
+	.reg	PSW,	0xEF,	HC,	C,	T1PNDA,	T1ENA,	EXPND,	BUSY,	EXEN,	GIE
+	;
+	.reg	CNTRL1,	0xEE,	TC1,	TC2,	TC3,	TRUN,	MSEL,	IEDG,	SL1,	SL0
+	;
+	.reg	CNTRL,	0xEE,	TC1,	TC2,	TC3,	TRUN,	MSEL,	IEDG,	SL1,	SL0
+	.reg	PSW,	0xEF,	HC,	C,	TPND,	ENTI,	IPND,	BUSY,	ENI,	GIE
+.endif
+;
+;****************************************************************************
+;
+.ifne	LOWER_CASE_REG
+	.list	(!,src)
+;	Lower Case Register Definitions         Defined
+	.nlist
+
+	;	Name	Addr	Bit0	Bit1	Bit2	Bit3	Bit4	Bit5	Bit6	Bit7
+	;	----	----	----	----	----	----	----	----	----	----
+.endif
+
